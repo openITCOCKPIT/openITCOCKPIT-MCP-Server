@@ -1,10 +1,7 @@
 #!/usr/bin/python3
 import requests
-import json
 import urllib3
-import argparse
-import configparser
-import os
+import json
 import sys
 from pprint import pprint
 from datetime import datetime, timedelta
@@ -61,7 +58,8 @@ def GetServiceNameByUUID(uuid):
     service = resp.get("all_services", []) if isinstance(resp, dict) else resp
     if service:
         return service[0]["Service"]["servicename"], service[0]["Host"]["hostname"]
-    
+
+
 def getServicesFromHost(id):
     resp, code = oITC_APIRequest(
         "GET",
@@ -88,6 +86,41 @@ def getServicesFromHost(id):
             }
         )
     return filtered_services
+
+
+def TranslatePatchids(ids: list, os_type: str, host_id: int):
+    translated_ids = {}
+    if "linux" in os_type.lower():
+        url_path = "/packages/view_linux/"
+        url_post = ".json?angular=true"
+    elif "windows" in os_type.lower():
+        url_path = "/packages/view_windows/"
+        url_post = ".json?angular=true"
+    elif "macos" in os_type.lower():
+        url_path = "/packages/view_macos/"
+        url_post = ".json?angular=true"
+    patchinfo = []
+    for id in ids:
+        resp, code = oITC_APIRequest(
+            "GET",
+            f"{url_path}{id}{url_post}",
+            {},
+        )
+        if code != 200:
+            print(f"Error retrieving patch info: {resp}")
+            sys.exit(1)
+        package = resp.get("package", {})
+        # print(package)
+
+        patchinfoapp = {"name": package.get("name")}
+        for host in resp.get("all_host_packages"):
+            if host.get("host_id") == host_id:
+                patchinfoapp["current_version"] = host.get("current_version")
+                patchinfoapp["available_version"] = host.get("available_version")
+                break
+        patchinfo.append(patchinfoapp)
+    print(patchinfo)
+    return patchinfo
 
 
 @mcp.tool
@@ -164,6 +197,7 @@ def GetHostinfo(hostname: str) -> list:
 
     return filtered_hosts, filtered_services
 
+
 @mcp.tool
 def getServicesbyState(state: str) -> list:
     """Use this function if you want to get services by their state. Possible states are OK, WARNING, CRITICAL, UNKNOWN."""
@@ -195,6 +229,101 @@ def getServicesbyState(state: str) -> list:
         # print(filtered_services)
     return filtered_services
 
+
+def CreateHost(name: str, address: str, description: str) -> dict:
+    """Use this function to create a new host in OpenITCockpit."""
+    payload = {
+        "Host": {
+            "name": name,
+            "address": address,
+            "description": description,
+        }
+    }
+    resp, code = oITC_APIRequest(
+        "POST",
+        f"/hosts/add.json",
+        json.dumps(payload),
+    )
+    if code != 201:
+        print(f"Error creating host: {resp}")
+        sys.exit(1)
+    return resp
+
+
+def getHostUpdateStatus(hostname: str):
+    """Use this function to get the update status of a host. This can be used to check if there are any pending updates for the host."""
+    resp, code = oITC_APIRequest(
+        "GET",
+        f"/patchstatus/index.json?angular=true&filter[Hosts.name]={hostname}",
+        {},
+    )
+    if code != 200:
+        print(f"Error retrieving services: {resp}")
+        sys.exit(1)
+    print(resp)
+
+
+def getUpdateStatus():
+    """Use this function to get the update status of all hosts. This can be used to check if there are any pending updates for the hosts."""
+    resp, code = oITC_APIRequest(
+        "GET",
+        f"/patchstatus/index.json?angular=true&filter[PackagesHostDetails.available_updates]=1",
+        {},
+    )
+    if code != 200:
+        print(f"Error retrieving services: {resp}")
+        sys.exit(1)
+    # print(resp)
+    summary = resp.get("summary", {})
+    summary_dict = {
+        "totalHosts": summary.get("totalHosts"),
+        "linuxHosts": summary.get("linuxHosts"),
+        "windowsHosts": summary.get("windowsHosts"),
+        "macosHosts": summary.get("macosHosts"),
+        "totalOutdatedPackages": summary.get("totalOutdatedPackages"),
+        "linuxOutdatedPackages": summary.get("linuxOutdatedPackages"),
+        "windowsOutdatedPackages": summary.get("windowsOutdatedPackages"),
+        "macosOutdatedPackages": summary.get("macosOutdatedPackages"),
+    }
+    return summary_dict
+
+
+@mcp.tool
+def getDetailedSecurityUpdateStatus():
+    """Use this function to get the detailed security update status of all hosts. This can be used to check if there are any pending security updates for the hosts. 
+    Return a table with the hostname, os type, os version, if a reboot is required, how many security updates are available and which security updates are available, including the verions information."""
+    resp, code = oITC_APIRequest(
+        "GET",
+        f"/patchstatus/index.json?angular=true&filter[PackagesHostDetails.available_security_updates]=1",
+        {},
+    )
+    if code != 200:
+        print(f"Error retrieving services: {resp}")
+        sys.exit(1)
+    # print(resp)
+    sec_update_host = []
+    for device in resp.get("all_patchstatus", []):
+        obj_info = {
+            "hostname": device["host"]["name"],
+            "host_id": device["host"]["id"],
+            "os_type": device["os_type"],
+            "os_version": device["os_version"],
+            "reboot_required": device["reboot_required"],
+            "available_security_updates": device["available_security_updates"],
+        }
+        if device["os_type"] == "linux":
+            update_ids = device.get("linux_security_update_ids", [])
+        elif device["os_type"] == "windows":
+            update_ids = device.get("windows_security_update_ids", [])
+        elif device["os_type"] == "macos":
+            update_ids = device.get("macos_security_update_ids", [])
+        obj_info["update_ids"] = update_ids
+        obj_info["patches"] = TranslatePatchids(update_ids, obj_info["os_type"], obj_info["host_id"])
+        sec_update_host.append(obj_info)
+    return sec_update_host
+
+
+#getDetailedSecurityUpdateStatus()
 
 # GetAllServices()
 # GetAllHosts()
