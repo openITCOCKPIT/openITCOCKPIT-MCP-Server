@@ -119,7 +119,7 @@ def TranslatePatchids(ids: list, os_type: str, host_id: int):
                 patchinfoapp["available_version"] = host.get("available_version")
                 break
         patchinfo.append(patchinfoapp)
-    print(patchinfo)
+    #print(patchinfo)
     return patchinfo
 
 
@@ -323,7 +323,40 @@ def getDetailedSecurityUpdateStatus():
     return sec_update_host
 
 
-#getDetailedSecurityUpdateStatus()
+@mcp.tool
+def getDetailedCommonUpdateStatus():
+    """Use this function to get the detailed common update status of all hosts. This can be used to check if there are any pending common updates for the hosts. 
+    Return a table with the hostname, os type, os version, if a reboot is required, how many common updates are available and which common updates are available, including the verions information."""
+    resp, code = oITC_APIRequest(
+        "GET",
+        f"/patchstatus/index.json?angular=true&filter[PackagesHostDetails.available_updates]=1",
+        {},
+    )
+    if code != 200:
+        print(f"Error retrieving services: {resp}")
+        sys.exit(1)
+    # print(resp)
+    update_host = []
+    for device in resp.get("all_patchstatus", []):
+        obj_info = {
+            "hostname": device["host"]["name"],
+            "host_id": device["host"]["id"],
+            "os_type": device["os_type"],
+            "os_version": device["os_version"],
+            "reboot_required": device["reboot_required"],
+            "available_updates": device["available_updates"],
+        }
+        if device["os_type"] == "linux":
+            update_ids = device.get("linux_update_ids", [])
+        elif device["os_type"] == "windows":
+            update_ids = device.get("windows_update_ids", [])
+        elif device["os_type"] == "macos":
+            update_ids = device.get("macos_update_ids", [])
+        obj_info["update_ids"] = update_ids
+        obj_info["patches"] = TranslatePatchids(update_ids, obj_info["os_type"], obj_info["host_id"])
+        update_host.append(obj_info)
+    return update_host
+
 
 # GetAllServices()
 # GetAllHosts()
