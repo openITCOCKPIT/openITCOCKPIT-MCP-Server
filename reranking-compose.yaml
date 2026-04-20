@@ -1,0 +1,29 @@
+services:
+  vllm-reranking:
+    image: vllm/vllm-openai:latest-cu130
+    container_name: vllm-reranking
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - capabilities: ["gpu"]
+    networks:
+      - vllm
+    ports:
+      - "8003:8000"
+    ipc: host
+    volumes:
+      - /root/.cache/huggingface:/root/.cache/huggingface
+    command: [
+        "Qwen/Qwen3-Reranker-0.6B",
+        "--port", "8000",
+        "--host", "0.0.0.0",
+        "--max-model-len", "1024",
+        "--gpu-memory-utilization", "0.1",
+        "--hf-overrides", "{\"architectures\": [\"Qwen3ForSequenceClassification\"], \"classifier_from_token\": [\"no\", \"yes\"], \"is_original_qwen3_reranker\": true}"
+      ]
+    restart: unless-stopped
+
+networks:
+  vllm:
+    external: true
