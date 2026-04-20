@@ -1,0 +1,29 @@
+services:
+   vllm-large-model:
+    image: vllm/vllm-openai:gemma4-cu130
+    container_name: vllm-large-model
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - capabilities: ["gpu"]
+    networks:
+      - vllm
+    ports:
+      - "8001:8000"
+    ipc: host
+    volumes:
+      - /root/.cache/huggingface:/root/.cache/huggingface
+    command: [
+        "google/gemma-4-26B-A4B-it",
+        "--max-model-len", "32768",
+        "--gpu-memory-utilization", "0.70",
+        "--host", "0.0.0.0",
+        "--port", "8000"
+      ]
+      
+    restart: unless-stopped
+
+networks:
+  vllm:
+    external: true
