@@ -229,25 +229,31 @@ def getServicesbyState(state: str) -> list:
         # print(filtered_services)
     return filtered_services
 
-
+@mcp.tool
 def CreateHost(name: str, address: str, description: str) -> dict:
     """Use this function to create a new host in OpenITCockpit."""
     payload = {
         "Host": {
+            "container_id": 9,
             "name": name,
             "address": address,
             "description": description,
+            "hosttemplate_id": 1,
         }
     }
     resp, code = oITC_APIRequest(
         "POST",
-        f"/hosts/add.json",
+        f"/hosts/add.json?angular=true",
         json.dumps(payload),
     )
-    if code != 201:
+    if code != 200:
         print(f"Error creating host: {resp}")
         sys.exit(1)
-    return resp
+
+    return {
+        "message": f"Host with name {name} and address {address} added successfully",
+        "id": resp.get("id"),
+    }
 
 
 def getHostUpdateStatus(hostname: str):
@@ -360,7 +366,7 @@ def getDetailedCommonUpdateStatus():
 
 # GetAllServices()
 # GetAllHosts()
-# GetLast24hLogentries()
+#print(GetLast24hLogentries())
 # GetHostinfo("webserver01")
 # getServicesbyState("CRITICAL")
 
