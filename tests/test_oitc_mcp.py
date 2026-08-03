@@ -1,4 +1,5 @@
 import importlib
+import json
 import os
 import sys
 import unittest
@@ -234,6 +235,77 @@ class GroupFormattingTests(unittest.TestCase):
         )
         result = self.m.mcp.tools["GetHostgroups"]()
         self.assertEqual(result, [{"id": 1, "name": "web-group", "description": "Web servers"}])
+
+
+class ResolverTests(unittest.TestCase):
+    def setUp(self):
+        self.m = import_oitc_mcp()
+
+    @patch("requests.request")
+    def test_resolve_id_by_name_raises_when_not_found(self, mock_request):
+        mock_request.return_value = make_response({"all_commands": []})
+        with self.assertRaises(RuntimeError):
+            self.m.resolve_command_id("does-not-exist")
+
+    @patch("requests.request")
+    def test_resolve_container_id_defaults_to_root(self, mock_request):
+        mock_request.return_value = make_response({"containers": [{"key": 1, "value": "/root"}]})
+        self.assertEqual(self.m.resolve_container_id(""), 1)
+
+    @patch("requests.request")
+    def test_resolve_contactgroup_id_uses_container_name(self, mock_request):
+        mock_request.return_value = make_response(
+            {"all_contactgroups": [{"Contactgroup": {"id": 4}, "Container": {"name": "oncall"}}]}
+        )
+        self.assertEqual(self.m.resolve_contactgroup_id("oncall"), 4)
+
+
+class WriteToolValidationTests(unittest.TestCase):
+    def setUp(self):
+        self.m = import_oitc_mcp(write_tools="true")
+
+    def test_create_contact_requires_email_or_phone(self):
+        with self.assertRaises(ValueError):
+            self.m.mcp.tools["CreateContact"]("Jane Doe")
+
+    def test_create_contactgroup_requires_contacts(self):
+        with self.assertRaises(ValueError):
+            self.m.mcp.tools["CreateContactgroup"]("oncall", [])
+
+    def test_create_servicetemplategroup_requires_servicetemplates(self):
+        with self.assertRaises(ValueError):
+            self.m.mcp.tools["CreateServicetemplategroup"]("group", [])
+
+    def test_create_hosttemplate_requires_contacts_or_contactgroups(self):
+        with self.assertRaises(ValueError):
+            self.m.mcp.tools["CreateHosttemplate"]("tmpl", "check-host-alive")
+
+    def test_create_command_rejects_invalid_type(self):
+        with self.assertRaises(ValueError):
+            self.m.mcp.tools["CreateCommand"]("cmd", "$USER1$/check_dummy", "not-a-type")
+
+    @patch("requests.request")
+    def test_create_contact_sends_integer_flags_not_booleans(self, mock_request):
+        # CakePHP's boolean validation rule for Contact rejects JSON true/false and expects 0/1 -
+        # this is a regression test for that exact bug.
+        def side_effect(method, url, **kwargs):
+            if "/contacts/add.json" in url:
+                payload = json.loads(kwargs["data"])
+                for key, value in payload["Contact"].items():
+                    if key.startswith("notify_") or key.endswith("_enabled"):
+                        assert isinstance(value, int) and not isinstance(value, bool), f"{key} must be int, not {type(value)}"
+                return make_response({"id": 1})
+            if "/commands/index.json" in url:
+                requested_name = url.split("filter%5BCommands.name%5D=")[-1]
+                return make_response({"all_commands": [{"Command": {"id": 1, "name": requested_name}}]})
+            if "/containers/loadContainers.json" in url:
+                return make_response({"containers": [{"key": 1, "value": "/root"}]})
+            if "/timeperiods/index.json" in url:
+                return make_response({"all_timeperiods": [{"Timeperiod": {"id": 1, "name": "24x7"}}]})
+            raise AssertionError(f"unexpected URL: {url}")
+
+        mock_request.side_effect = side_effect
+        self.m.mcp.tools["CreateContact"]("Jane Doe", email="jane@example.invalid")
 
 
 if __name__ == "__main__":
