@@ -1,0 +1,15 @@
+[openitcockpit]
+# Copy this file to config.ini and fill in real values.
+# config.ini is gitignored and must never be committed.
+#
+# Alternatively, all of these can be set as environment variables instead
+# (OITC_APIKEY, OITC_BASEURL, OITC_ENABLE_WRITE_TOOLS) - environment
+# variables always take precedence over config.ini.
+
+api_key = your-api-key-here
+base_url = https://your-openitcockpit-instance/
+
+# Write tools (e.g. CreateHost) are disabled by default. Set to "true" to
+# enable them. Only do this if you understand the tool will make real
+# changes to the monitoring configuration.
+enable_write_tools = false
