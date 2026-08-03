@@ -5,17 +5,6 @@ of an [openITCOCKPIT](https://www.openitcockpit.io/) monitoring instance to an
 LLM: host/service status, log entries, patch/update status, downtimes,
 acknowledgements, groups, and monitoring-engine health.
 
-## Requirements
-
-- Python **3.10+** (required by the `fastmcp` dependency; the script itself
-  only needs 3.9+ syntax-wise, but `fastmcp` cannot be installed on older
-  Python).
-- Network access to an openITCOCKPIT instance and a valid API key for it.
-
-```
-pip install -r requirements.txt
-```
-
 ## Configuration
 
 The server needs `OITC_APIKEY` and `OITC_BASEURL`. Provide them either as
@@ -45,6 +34,7 @@ localhost behind a reverse proxy with auth / VPN-only).
 ## Running
 
 ```
+pip install -r requirements.txt
 python3 oitc_mcp.py
 ```
 
@@ -87,20 +77,3 @@ All `Create*` tools resolve human-readable names (contacts, commands,
 container paths, timeperiods, etc.) to internal IDs themselves - they never
 require the caller to know a raw database ID. Use the corresponding `Get*`
 tool to discover valid names first if a create call fails to resolve one.
-
-## Testing
-
-Unit tests (mocked HTTP responses, no network access, run on any Python
-version - a stub is used for `fastmcp` if it isn't installed):
-
-```
-python3 -m unittest discover -s tests -v
-```
-
-Smoke test (calls every tool against the instance configured via
-`config.ini`/env vars, prints a pass/fail summary, exits non-zero on any
-failure):
-
-```
-python3 smoke_test.py
-```
