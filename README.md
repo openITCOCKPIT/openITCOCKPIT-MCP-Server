@@ -60,15 +60,33 @@ Read-only:
 - `GetHostAcknowledgements(hostname)` - acknowledgement history for a host.
 - `GetServiceAcknowledgements(hostname, servicename)` - acknowledgement history for a service.
 - `GetHostgroups()` / `GetServicegroups()` - list of configured groups.
+- `GetServicetemplategroups()` - list of service template groups.
+- `GetContacts(name_filter="")` / `GetContactgroups()` - notification contacts and groups.
+- `GetCommands(name_filter="")` - check/notification/event-handler commands.
+- `GetHosttemplates(name_filter="")` / `GetServicetemplates(name_filter="")` - reusable host/service configurations.
+- `GetSoftwareInventory(hostname)` - installed packages/apps on a host (Linux/Windows/macOS auto-detected). Requires the openITCOCKPIT agent's software inventory to have already collected data for that host.
+- `GetContainerTree(container_name="root")` - organizational structure (tenants/locations) and what lives directly under a container.
+- `GetHostCheckHistory(hostname, hours=24)` / `GetServiceCheckHistory(hostname, servicename, hours=24)` - every individual check execution (output, latency, execution time).
+- `GetHostStateHistory(hostname, hours=24)` / `GetServiceStateHistory(hostname, servicename, hours=24)` - only entries where the state actually changed.
 - `GetNagiosStats()` - monitoring engine health (check throughput/latency).
-- `getDetailedSecurityUpdateStatus()` / `getDetailedCommonUpdateStatus()` - patch status per host.
+- `getDetailedSecurityUpdateStatus()` / `getDetailedCommonUpdateStatus()` - pending update counts per host.
 
-Write (behind `OITC_ENABLE_WRITE_TOOLS=true`):
+Write (behind `OITC_ENABLE_WRITE_TOOLS=true`, disabled by default):
 
-- `CreateHost(name, address, description)` - creates a new host. Uses a
-  hardcoded `container_id=9` and `hosttemplate_id=1` inherited from the
-  original implementation - verify these IDs exist and mean what you expect
-  on your instance before enabling this tool.
+- `CreateHost(name, address, description="", container_name="", hosttemplate_name="default host")` - creates a new host. `container_name` defaults to the root container.
+- `CreateCommand(name, command_line, command_type, description="")` - `command_type` is one of `check`/`hostcheck`/`notification`/`eventhandler`.
+- `CreateHostgroup(name, description="", parent_container_name="")`
+- `CreateContactgroup(name, contact_names, description="", parent_container_name="")` - requires at least one contact.
+- `CreateServicetemplategroup(name, servicetemplate_names, description="", parent_container_name="")` - requires at least one service template.
+- `CreateContact(name, email="", phone="", ...)` - requires at least one of email/phone; notification commands and container default to the built-in email commands and root container.
+- `CreateHosttemplate(name, check_command_name, contact_names=None, contactgroup_names=None, ...)` - requires at least one of contact_names/contactgroup_names. Uses common monitoring defaults (5min check interval, 3 attempts, `24x7` timeperiod) for everything not explicitly passed.
+- `CreateServicetemplate(name, template_name, check_command_name, ...)` - `template_name` is the internal reference name, separate from the display `name`.
+- `CreateHostWithAgentPullMode(name, address, ..., hosttemplate_name="openITCOCKPIT Agent - Pull", port=3333)` - creates a host and configures it for openITCOCKPIT-agent Pull mode monitoring in one call (two API calls under the hood: create host, then configure the agent connection). Does not auto-discover/create services from the live agent - add those separately once the agent is reachable.
+
+All `Create*` tools resolve human-readable names (contacts, commands,
+container paths, timeperiods, etc.) to internal IDs themselves - they never
+require the caller to know a raw database ID. Use the corresponding `Get*`
+tool to discover valid names first if a create call fails to resolve one.
 
 ## Testing
 

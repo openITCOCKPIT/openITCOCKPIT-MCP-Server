@@ -1,8 +1,9 @@
 #!/usr/bin/python3
 """Smoke test: calls every registered oitc_mcp tool against the configured
-openITCOCKPIT instance and prints a pass/fail summary. Does not modify any
-monitoring configuration unless OITC_ENABLE_WRITE_TOOLS is set, in which case
-it also exercises CreateHost and immediately deletes the host it created.
+openITCOCKPIT instance and prints a pass/fail summary. Read-only unless
+OITC_ENABLE_WRITE_TOOLS is set, in which case it also exercises every write
+tool with clearly-named test objects (prefixed 'mcp-smoketest-') and deletes
+each one immediately after creating it.
 
 Usage: python3 smoke_test.py
 Requires OITC_APIKEY/OITC_BASEURL via environment variables or config.ini
@@ -12,105 +13,154 @@ import sys
 
 import oitc_mcp as m
 
-PROBE_HOSTNAME = None  # filled in dynamically from GetLast24hLogentries/getServicesbyState if possible
+results = []
 
 
 def run(name, fn):
     try:
         result = fn()
-        return True, result
+        results.append((name, True, result))
+        return result
     except Exception as exc:  # noqa: BLE001 - smoke test wants to catch and report everything
-        return False, f"{type(exc).__name__}: {exc}"
+        results.append((name, False, f"{type(exc).__name__}: {exc}"))
+        return None
+
+
+def skip(name, reason):
+    results.append((name, None, reason))
+
+
+def cleanup(url, label):
+    try:
+        resp, code = m.oITC_APIRequest("POST", url, "{}")
+        results.append((f"cleanup: {label}", code == 200, resp))
+    except Exception as exc:  # noqa: BLE001
+        results.append((f"cleanup: {label}", False, str(exc)))
+
+
+def expect_failure(name, fn):
+    try:
+        fn()
+        results.append((name, False, "BUG: expected an error but call succeeded"))
+    except Exception as exc:  # noqa: BLE001
+        results.append((name, True, f"correctly rejected ({type(exc).__name__})"))
 
 
 def main():
     tools = m.mcp.tools
-    results = []
 
-    # Discover a real hostname/service from the environment to use in later calls.
-    ok, critical_services = run("getServicesbyState(CRITICAL)", lambda: tools["getServicesbyState"]("CRITICAL"))
-    results.append(("getServicesbyState(CRITICAL)", ok, critical_services if not ok else f"{len(critical_services)} services"))
+    critical_services = run("getServicesbyState(CRITICAL)", lambda: tools["getServicesbyState"]("CRITICAL"))
+    probe_host = critical_services[0].get("hostname") if critical_services else None
+    probe_service = critical_services[0].get("servicename") if critical_services else None
 
-    probe_host = None
-    probe_service = None
-    if ok and critical_services:
-        probe_host = critical_services[0].get("hostname")
-        probe_service = critical_services[0].get("servicename")
+    expect_failure("getServicesbyState(invalid state should raise)", lambda: tools["getServicesbyState"]("NOTASTATE"))
 
-    ok, _ = run("getServicesbyState(invalid state should raise)", lambda: tools["getServicesbyState"]("NOTASTATE"))
-    results.append(("getServicesbyState(invalid state should raise ValueError)", not ok, "correctly rejected" if not ok else "BUG: did not reject invalid state"))
-
-    ok, res = run("GetLast24hLogentries", lambda: tools["GetLast24hLogentries"]())
-    results.append(("GetLast24hLogentries", ok, res if not ok else f"{len(res)} entries"))
+    run("GetLast24hLogentries", lambda: tools["GetLast24hLogentries"]())
 
     if probe_host:
-        ok, res = run(f"GetHostinfo({probe_host})", lambda: tools["GetHostinfo"](probe_host))
-        results.append((f"GetHostinfo({probe_host})", ok, res if not ok else "OK"))
+        run(f"GetHostinfo({probe_host})", lambda: tools["GetHostinfo"](probe_host))
+        run(f"GetHostDowntimes({probe_host})", lambda: tools["GetHostDowntimes"](probe_host))
+        run(f"GetHostAcknowledgements({probe_host})", lambda: tools["GetHostAcknowledgements"](probe_host))
+        run(f"GetHostCheckHistory({probe_host})", lambda: tools["GetHostCheckHistory"](probe_host))
+        run(f"GetHostStateHistory({probe_host})", lambda: tools["GetHostStateHistory"](probe_host))
+        run(f"GetSoftwareInventory({probe_host})", lambda: tools["GetSoftwareInventory"](probe_host))
     else:
-        results.append(("GetHostinfo", None, "skipped - no host discovered from getServicesbyState"))
-
-    ok, res = run("GetHostDowntimes()", lambda: tools["GetHostDowntimes"]())
-    results.append(("GetHostDowntimes()", ok, res if not ok else f"{len(res)} downtimes"))
-
-    ok, res = run("GetServiceDowntimes()", lambda: tools["GetServiceDowntimes"]())
-    results.append(("GetServiceDowntimes()", ok, res if not ok else f"{len(res)} downtimes"))
-
-    if probe_host:
-        ok, res = run(f"GetHostAcknowledgements({probe_host})", lambda: tools["GetHostAcknowledgements"](probe_host))
-        results.append((f"GetHostAcknowledgements({probe_host})", ok, res if not ok else f"{len(res)} entries"))
-    else:
-        results.append(("GetHostAcknowledgements", None, "skipped - no host discovered"))
+        for name in ("GetHostinfo", "GetHostDowntimes", "GetHostAcknowledgements", "GetHostCheckHistory", "GetHostStateHistory", "GetSoftwareInventory"):
+            skip(name, "skipped - no host discovered from getServicesbyState")
 
     if probe_host and probe_service:
-        ok, res = run(
-            f"GetServiceAcknowledgements({probe_host}, {probe_service})",
-            lambda: tools["GetServiceAcknowledgements"](probe_host, probe_service),
-        )
-        results.append((f"GetServiceAcknowledgements({probe_host}, {probe_service})", ok, res if not ok else f"{len(res)} entries"))
+        run(f"GetServiceAcknowledgements({probe_host},{probe_service})", lambda: tools["GetServiceAcknowledgements"](probe_host, probe_service))
+        run(f"GetServiceCheckHistory({probe_host},{probe_service})", lambda: tools["GetServiceCheckHistory"](probe_host, probe_service))
+        run(f"GetServiceStateHistory({probe_host},{probe_service})", lambda: tools["GetServiceStateHistory"](probe_host, probe_service))
     else:
-        results.append(("GetServiceAcknowledgements", None, "skipped - no host/service discovered"))
+        for name in ("GetServiceAcknowledgements", "GetServiceCheckHistory", "GetServiceStateHistory"):
+            skip(name, "skipped - no host/service discovered")
 
-    ok, res = run("GetHostgroups", lambda: tools["GetHostgroups"]())
-    results.append(("GetHostgroups", ok, res if not ok else f"{len(res)} groups"))
+    run("GetServiceDowntimes()", lambda: tools["GetServiceDowntimes"]())
+    run("GetHostgroups", lambda: tools["GetHostgroups"]())
+    run("GetServicegroups", lambda: tools["GetServicegroups"]())
+    run("GetServicetemplategroups", lambda: tools["GetServicetemplategroups"]())
+    run("GetContactgroups", lambda: tools["GetContactgroups"]())
+    run("GetContacts", lambda: tools["GetContacts"]())
+    run("GetCommands", lambda: tools["GetCommands"]())
+    run("GetHosttemplates", lambda: tools["GetHosttemplates"]())
+    run("GetServicetemplates", lambda: tools["GetServicetemplates"]())
+    run("GetContainerTree", lambda: tools["GetContainerTree"]())
+    run("GetNagiosStats", lambda: tools["GetNagiosStats"]())
+    run("getDetailedSecurityUpdateStatus", lambda: tools["getDetailedSecurityUpdateStatus"]())
+    run("getDetailedCommonUpdateStatus", lambda: tools["getDetailedCommonUpdateStatus"]())
 
-    ok, res = run("GetServicegroups", lambda: tools["GetServicegroups"]())
-    results.append(("GetServicegroups", ok, res if not ok else f"{len(res)} groups"))
-
-    ok, res = run("GetNagiosStats", lambda: tools["GetNagiosStats"]())
-    results.append(("GetNagiosStats", ok, res if not ok else "OK"))
-
-    ok, res = run("getDetailedSecurityUpdateStatus", lambda: tools["getDetailedSecurityUpdateStatus"]())
-    results.append(("getDetailedSecurityUpdateStatus", ok, res if not ok else f"{len(res)} hosts"))
-
-    ok, res = run("getDetailedCommonUpdateStatus", lambda: tools["getDetailedCommonUpdateStatus"]())
-    results.append(("getDetailedCommonUpdateStatus", ok, res if not ok else f"{len(res)} hosts"))
-
-    if m.WRITE_TOOLS_ENABLED and "CreateHost" in tools:
-        ok, res = run(
-            "CreateHost (creates and deletes a test host)",
-            lambda: tools["CreateHost"]("mcp-smoketest-host", "192.0.2.1", "Created by smoke_test.py, safe to delete"),
-        )
-        results.append(("CreateHost", ok, res if not ok else res))
-        if ok and isinstance(res, dict) and res.get("id"):
-            cleanup_ok, cleanup_res = run(
-                "CreateHost cleanup",
-                lambda: m.oITC_APIRequest("POST", f"/hosts/delete/{res['id']}.json?angular=true", "{}"),
-            )
-            results.append(("CreateHost cleanup (delete test host)", cleanup_ok, cleanup_res))
+    if not (m.WRITE_TOOLS_ENABLED and "CreateHost" in tools):
+        for name in (
+            "CreateHost", "CreateCommand", "CreateHostgroup", "CreateContactgroup", "CreateServicetemplategroup",
+            "CreateContact", "CreateHosttemplate", "CreateServicetemplate", "CreateHostWithAgentPullMode",
+        ):
+            skip(name, "skipped - OITC_ENABLE_WRITE_TOOLS is not enabled")
     else:
-        results.append(("CreateHost", None, "skipped - OITC_ENABLE_WRITE_TOOLS is not enabled"))
+        host = run("CreateHost", lambda: tools["CreateHost"]("mcp-smoketest-host", "192.0.2.1", "smoke test"))
+        if host:
+            cleanup(f"/hosts/delete/{host['id']}.json?angular=true", "host")
+
+        cmd = run("CreateCommand", lambda: tools["CreateCommand"]("mcp-smoketest-command", "$USER1$/check_dummy 0", "check", "smoke test"))
+        if cmd:
+            cleanup(f"/commands/delete/{cmd['id']}.json?angular=true", "command")
+
+        hg = run("CreateHostgroup", lambda: tools["CreateHostgroup"]("mcp-smoketest-hostgroup", "smoke test"))
+        if hg:
+            cleanup(f"/hostgroups/delete/{hg['id']}.json?angular=true", "hostgroup")
+
+        existing_contacts = tools["GetContacts"]()
+        existing_contact = existing_contacts[0]["name"] if existing_contacts else None
+        if existing_contact:
+            cg = run("CreateContactgroup", lambda: tools["CreateContactgroup"]("mcp-smoketest-contactgroup", [existing_contact], "smoke test"))
+            if cg:
+                cleanup(f"/contactgroups/delete/{cg['id']}.json?angular=true", "contactgroup")
+        else:
+            skip("CreateContactgroup", "skipped - no existing contact to reference")
+
+        existing_servicetemplates = tools["GetServicetemplates"]()
+        existing_st = existing_servicetemplates[0]["name"] if existing_servicetemplates else None
+        if existing_st:
+            stg = run("CreateServicetemplategroup", lambda: tools["CreateServicetemplategroup"]("mcp-smoketest-stg", [existing_st], "smoke test"))
+            if stg:
+                cleanup(f"/servicetemplategroups/delete/{stg['id']}.json?angular=true", "servicetemplategroup")
+        else:
+            skip("CreateServicetemplategroup", "skipped - no existing service template to reference")
+
+        contact = run("CreateContact", lambda: tools["CreateContact"]("mcp-smoketest-contact", email="smoketest@example.invalid"))
+        if contact:
+            cleanup(f"/contacts/delete/{contact['id']}.json?angular=true", "contact")
+
+        ht = run(
+            "CreateHosttemplate",
+            lambda: tools["CreateHosttemplate"]("mcp-smoketest-hosttemplate", "check-host-alive", contact_names=[existing_contact] if existing_contact else None),
+        )
+        if ht:
+            cleanup(f"/hosttemplates/delete/{ht['id']}.json?angular=true", "hosttemplate")
+
+        st = run(
+            "CreateServicetemplate",
+            lambda: tools["CreateServicetemplate"]("mcp-smoketest-servicetemplate", "mcp_smoketest_servicetemplate", "check_ping"),
+        )
+        if st:
+            cleanup(f"/servicetemplates/delete/{st['id']}.json?angular=true", "servicetemplate")
+
+        agent_host = run("CreateHostWithAgentPullMode", lambda: tools["CreateHostWithAgentPullMode"]("mcp-smoketest-agenthost", "192.0.2.2"))
+        if agent_host:
+            cleanup(f"/hosts/delete/{agent_host['hostId']}.json?angular=true", "agent host")
 
     print(f"\n{'TOOL':55} {'STATUS':10} DETAIL")
-    print("-" * 100)
+    print("-" * 110)
     failures = 0
     for name, ok, detail in results:
         status = "SKIP" if ok is None else ("PASS" if ok else "FAIL")
         if ok is False:
             failures += 1
-        print(f"{name[:55]:55} {status:10} {str(detail)[:200]}")
+        detail_str = detail if isinstance(detail, str) else (f"{len(detail)} items" if isinstance(detail, list) else str(detail))
+        print(f"{name[:55]:55} {status:10} {detail_str[:200]}")
 
-    print("-" * 100)
-    print(f"{len(results)} tools checked, {failures} failed.")
+    print("-" * 110)
+    print(f"{len(results)} checks, {failures} failed.")
     sys.exit(1 if failures else 0)
 
 
