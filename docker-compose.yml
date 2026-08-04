@@ -3,8 +3,6 @@ services:
     build: .
     ports:
       - "8000:8000"
-    environment:
-      OITC_APIKEY: ${OITC_APIKEY}
-      OITC_BASEURL: ${OITC_BASEURL}
-      OITC_ENABLE_WRITE_TOOLS: ${OITC_ENABLE_WRITE_TOOLS:-false}
+    volumes:
+      - ./config.ini:/app/config.ini:ro
     restart: unless-stopped

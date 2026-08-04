@@ -40,30 +40,32 @@ python3 oitc_mcp.py
 
 ## Running in Docker
 
+`config.ini` is excluded from the image itself (`.dockerignore`) so a real
+credential never ends up baked into an image layer. Instead, mount it into
+the running container at `/app/config.ini` (`docker-compose.yml` already does
+this):
+
 ```
-export OITC_APIKEY=your-api-key
-export OITC_BASEURL=https://your-openitcockpit-instance/
+cp config.ini.example config.ini   # then fill in real values
 docker compose up --build
 ```
-
-`OITC_ENABLE_WRITE_TOOLS` defaults to `false` and can be set the same way
-(`export OITC_ENABLE_WRITE_TOOLS=true`) before `docker compose up`.
 
 Without compose:
 
 ```
 docker build -t oitc-mcp-server .
 docker run -d -p 8000:8000 \
-  -e OITC_APIKEY=your-api-key \
-  -e OITC_BASEURL=https://your-openitcockpit-instance/ \
+  -v "$(pwd)/config.ini:/app/config.ini:ro" \
   oitc-mcp-server
 ```
 
-`config.ini` is excluded from the image on purpose (`.dockerignore`) so a
-real credential never ends up baked into an image layer - use environment
-variables for container deployments. The container's exposed port 8000 still
-has no authentication of its own; put it behind a reverse proxy or restrict
-network access at the Docker/firewall level.
+Environment variables still work too and take precedence over `config.ini`
+if both are set - e.g. `docker run -e OITC_APIKEY=... -e OITC_BASEURL=...`
+without a volume mount, useful for CI or secret-manager-based deployments.
+
+The container's exposed port 8000 still has no authentication of its own;
+put it behind a reverse proxy or restrict network access at the
+Docker/firewall level.
 
 ## Tools
 
