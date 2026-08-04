@@ -1,6 +1,6 @@
 services:
   oitc-mcp-server:
-    build: .
+    image: oitc-mcp-server
     ports:
       - "8000:8000"
     volumes:
