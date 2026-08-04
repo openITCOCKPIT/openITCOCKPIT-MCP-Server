@@ -5,6 +5,13 @@ of an [openITCOCKPIT](https://www.openitcockpit.io/) monitoring instance to an
 LLM: host/service status, log entries, patch/update status, downtimes,
 acknowledgements, groups, and monitoring-engine health.
 
+> [!IMPORTANT]
+> **The MCP server operates with the openITCOCKPIT permissions of the user for
+> whom the API key was created.** It does not use a separate, restricted MCP
+> identity. Every MCP client that can access this server can therefore use the
+> exposed tools with that user's permissions. Create the API key for a
+> dedicated least-privilege user and protect the key accordingly.
+
 ## Configuration
 
 The server needs `OITC_APIKEY` and `OITC_BASEURL`. Provide them either as
@@ -23,7 +30,8 @@ real credential.
 
 The API key is used for both connections:
 
-- The MCP server sends it to openITCOCKPIT as its API credential.
+- The MCP server sends it to openITCOCKPIT as its API credential and thereby
+  receives the permissions of the user for whom the key was created.
 - MCP clients must send the exact same value as an HTTP bearer token:
   `Authorization: Bearer <api_key>`.
 
