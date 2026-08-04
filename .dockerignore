@@ -1,0 +1,9 @@
+.git
+.gitignore
+.claude
+config.ini
+config.ini.example
+README.md
+*.md
+__pycache__
+*.pyc

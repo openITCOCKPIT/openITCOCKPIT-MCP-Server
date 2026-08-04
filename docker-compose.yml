@@ -1,0 +1,10 @@
+services:
+  oitc-mcp-server:
+    build: .
+    ports:
+      - "8000:8000"
+    environment:
+      OITC_APIKEY: ${OITC_APIKEY}
+      OITC_BASEURL: ${OITC_BASEURL}
+      OITC_ENABLE_WRITE_TOOLS: ${OITC_ENABLE_WRITE_TOOLS:-false}
+    restart: unless-stopped
