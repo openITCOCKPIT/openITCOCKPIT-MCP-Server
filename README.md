@@ -21,15 +21,36 @@ real credential.
 | Base URL | `OITC_BASEURL` | `base_url` | *(required)* |
 | Enable write tools | `OITC_ENABLE_WRITE_TOOLS` | `enable_write_tools` | `false` |
 
+The API key is used for both connections:
+
+- The MCP server sends it to openITCOCKPIT as its API credential.
+- MCP clients must send the exact same value as an HTTP bearer token:
+  `Authorization: Bearer <api_key>`.
+
+The comparison is case-sensitive. Requests with a missing, malformed, or
+different bearer token are rejected with HTTP `401 Unauthorized`. No separate
+MCP authentication key is needed.
+
+For a client that accepts custom headers, configure the MCP URL and header like
+this (replace the example value with the value from `config.ini`):
+
+```json
+{
+  "url": "http://your-mcp-server:8000/mcp",
+  "headers": {
+    "Authorization": "Bearer your-api-key-here"
+  }
+}
+```
+
 Write tools (currently: `CreateHost`) make real changes to the monitoring
 configuration and are **disabled by default** - they are not even registered
 as MCP tools unless explicitly enabled. Only turn this on if you understand
 the consequences.
 
-The server itself binds to `0.0.0.0:8000` over plain HTTP with no
-authentication layer of its own - anything that can reach that port can call
-every enabled tool. Restrict network access accordingly (firewall / bind to
-localhost behind a reverse proxy with auth / VPN-only).
+The server binds to `0.0.0.0:8000` over plain HTTP. Bearer tokens are not
+encrypted by HTTP, so use TLS at a reverse proxy or only expose the server on a
+trusted network/VPN.
 
 ## Running
 
@@ -63,9 +84,10 @@ Environment variables still work too and take precedence over `config.ini`
 if both are set - e.g. `docker run -e OITC_APIKEY=... -e OITC_BASEURL=...`
 without a volume mount, useful for CI or secret-manager-based deployments.
 
-The container's exposed port 8000 still has no authentication of its own;
-put it behind a reverse proxy or restrict network access at the
-Docker/firewall level.
+The container's exposed port 8000 requires the same bearer token as a local
+installation. Use TLS at a reverse proxy or restrict network access at the
+Docker/firewall level so the credential is not transmitted over an untrusted
+plain-HTTP connection.
 
 ## Tools
 

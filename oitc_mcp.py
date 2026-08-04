@@ -2,14 +2,14 @@
 import configparser
 import json
 import os
+import secrets
 from datetime import datetime, timedelta
 from typing import Any, Optional
 
 import requests
 import urllib3
 from fastmcp import FastMCP
-
-mcp = FastMCP("openITCOCKPIT")
+from fastmcp.server.auth import AccessToken, TokenVerifier
 
 urllib3.disable_warnings()
 
@@ -42,6 +42,30 @@ if not oitc_apikey or not oitc_baseurl:
         "OITC_APIKEY and OITC_BASEURL are not set. Provide them either as environment variables "
         "or in a local config.ini (see config.ini.example)."
     )
+
+
+class APIKeyTokenVerifier(TokenVerifier):
+    """Accept the configured openITCOCKPIT API key as an MCP bearer token."""
+
+    def __init__(self, expected_token: str):
+        super().__init__()
+        self._expected_token = expected_token
+
+    async def verify_token(self, token: str) -> Optional[AccessToken]:
+        if not secrets.compare_digest(token, self._expected_token):
+            return None
+
+        return AccessToken(
+            token=token,
+            client_id="openitcockpit-mcp-client",
+            scopes=[],
+        )
+
+
+mcp = FastMCP(
+    "openITCOCKPIT",
+    auth=APIKeyTokenVerifier(oitc_apikey),
+)
 
 
 def oITC_APIRequest(method: str, url: str, payload: Optional[Any] = None) -> tuple[dict, int]:
