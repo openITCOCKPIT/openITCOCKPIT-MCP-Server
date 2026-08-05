@@ -17,7 +17,8 @@ pipeline {
                         label 'linux-arm64'
                     }
                     steps {
-                        sh script: "docker buildx build --push -f Dockerfile --tag ${dockerImage}:${OPENITCOCKPIT_VERSION}-arm64"
+                        sh script: "docker build -f Dockerfile --tag ${dockerImage}:${OPENITCOCKPIT_VERSION}-arm64 ."
+                        sh script: "docker push ${dockerImage}:${OPENITCOCKPIT_VERSION}-arm64"
                     }
                 }
                 stage('amd64') {
@@ -25,7 +26,8 @@ pipeline {
                         label 'rhel8-amd64'
                     }
                     steps {
-                        sh script: "docker buildx build --push -f Dockerfile --tag ${dockerImage}:${OPENITCOCKPIT_VERSION}-amd64"
+                        sh script: "docker build -f Dockerfile --tag ${dockerImage}:${OPENITCOCKPIT_VERSION}-amd64 ."
+                        sh script: "docker push ${dockerImage}:${OPENITCOCKPIT_VERSION}-amd64"
                     }
                 }
             }
