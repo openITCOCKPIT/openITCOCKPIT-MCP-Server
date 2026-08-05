@@ -4,33 +4,46 @@ pipeline {
       }
     agent any
     stages {
-        stage('Multi-arch buildx') {
-            steps {
-                sh '''
-                    if ! docker buildx inspect oitc-mcp-multiarch > /dev/null 2>&1; then
-                        echo "Buildx-Instanz existiert nicht. Erstelle neu..."
-                        docker buildx create --name oitc-mcp-multiarch --use --bootstrap
-                    else
-                        echo "Buildx-Instanz existiert bereits. Aktiviere..."
-                        docker buildx use oitc-mcp-multiarch
-                    fi
-                '''
-                sh 'docker image prune --filter label=stage=build-mcp-intermediate -f'
+        stage('Build and Publish') {
+            environment {
+                OPENITCOCKPIT_VERSION = sh(
+                    returnStdout: true,
+                    script: 'cat VERSION'
+                ).trim()
+            }
+            parallel {
+                stage('arm64') {
+                    agent {
+                        label 'linux-arm64'
+                    }
+                    steps {
+                        sh script: "docker buildx build --push -f Dockerfile --tag ${dockerImage}:${OPENITCOCKPIT_VERSION}-arm64"
+                    }
+                }
+                stage('amd64') {
+                    agent {
+                        label 'rhel8-amd64'
+                    }
+                    steps {
+                        sh script: "docker buildx build --push -f Dockerfile --tag ${dockerImage}:${OPENITCOCKPIT_VERSION}-amd64"
+                    }
+                }
             }
         }
-        stage('Build and Push') {
+
+        stage('Merge architectures') {
+            agent {
+                label 'rhel8-amd64'
+            }
             environment {
-                VERSION = sh(
+                OPENITCOCKPIT_VERSION = sh(
                     returnStdout: true,
                     script: 'cat VERSION'
                 ).trim()
             }
             steps {
-                sh '''
-                docker buildx build --push --platform linux/amd64,linux/arm64 -f Dockerfile --tag ${dockerImage}:${VERSION} --tag ${dockerImage}:latest  .
-                '''
-                sh 'docker image prune --filter label=stage=build-mcp-intermediate -f'
+                sh "docker buildx imagetools create -t ${dockerImage}:${OPENITCOCKPIT_VERSION}  -t ${dockerImage}:latest ${dockerImage}:${OPENITCOCKPIT_VERSION}-amd64 ${dockerImage}:${OPENITCOCKPIT_VERSION}-arm64"
             }
-        }
+         }
     }
 }
