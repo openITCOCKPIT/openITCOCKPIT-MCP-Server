@@ -84,20 +84,44 @@ docker compose up --build
 Without compose:
 
 ```
-docker build -t oitc-mcp-server .
 docker run -d -p 8000:8000 \
   -v "$(pwd)/config.ini:/app/config.ini:ro" \
-  oitc-mcp-server
+  openitcockpit/mcp-server:latest
 ```
 
 Environment variables still work too and take precedence over `config.ini`
 if both are set - e.g. `docker run -e OITC_APIKEY=... -e OITC_BASEURL=...`
 without a volume mount, useful for CI or secret-manager-based deployments.
 
+```
+docker run -d -p 8000:8000 \
+  -e OITC_APIKEY="YOUR_API_KEY_HERE" \
+  -e OITC_BASEURL="https://openitcockpit.example.org" \
+  -e OITC_ENABLE_WRITE_TOOLS="false" \
+  openitcockpit/mcp-server:latest
+```
+
 The container's exposed port 8000 requires the same bearer token as a local
 installation. Use TLS at a reverse proxy or restrict network access at the
 Docker/firewall level so the credential is not transmitted over an untrusted
 plain-HTTP connection.
+
+## Versioning
+
+The MCP server's version is identical to the openITCOCKPIT version it was build against.
+It is recommended to run the MCP server at the same version as the openITCOCKPIT instance is.
+
+If no new MCP server version is available for a given openITCOCKPIT version, the last MCP server build for that openITCOCKPIT version is still compatible and can be used.
+You can use the `latest` tag to always pull the most recent MCP server build for the openITCOCKPIT version you are running.
+Alternatively, you can use a specific version tag like `5.6.1` to pull a specific MCP server build for a given openITCOCKPIT version.
+
+### Building your own MCP server image
+
+It is also possible to build your own MCP server image by running the following command:
+
+```
+docker build -t oitc-mcp-server .
+```
 
 ## Tools
 
