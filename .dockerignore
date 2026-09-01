@@ -1,9 +1,22 @@
 .git
 .gitignore
 .claude
-config.ini
-config.ini.example
-README.md
+.github
+.venv
+venv
+tests
+legacy
+Jenkinsfile
+docker-compose.yml
+# Secrets must never reach an image layer.
+.env
+.env.*
+# pyproject reads README.md, so keep that one and drop the rest.
 *.md
+!README.md
 __pycache__
 *.pyc
+*.egg-info
+.pytest_cache
+.ruff_cache
+.mypy_cache
