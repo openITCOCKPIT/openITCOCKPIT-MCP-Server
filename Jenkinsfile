@@ -1,4 +1,4 @@
-// Image tags are <openITCOCKPIT version>-<MCP server version>, e.g. 5.6.1-2.0.0.
+// Image tags are <openITCOCKPIT version>-<MCP server version>, e.g. 5.7.1-2.0.0.
 // VERSION holds the openITCOCKPIT release this build targets; MCP_VERSION holds
 // this server's own semantic version, so a fix can ship without openITCOCKPIT
 // moving and a pinned tag never changes behaviour underneath a user.
@@ -8,52 +8,45 @@
 //   <oitc>        floating, the newest build for that openITCOCKPIT release
 //   latest        floating, the newest build overall
 //
-// Tests run for every branch and pull request. Publishing is restricted to
-// main, so the floating tags only ever move through a merge.
+// Tests run on every branch. Publishing needs main *and* the PUBLISH parameter,
+// so a build can be triggered for its test results without touching the
+// registry.
 pipeline {
-    environment {
-        dockerImage = 'openitcockpit/mcp-server'
-      }
     agent any
+
+    parameters {
+        booleanParam(
+            name: 'PUBLISH',
+            defaultValue: false,
+            description: 'Build and push images to the registry. Leave off for a test-only run.'
+        )
+    }
+
+    environment {
+        dockerImage           = 'openitcockpit/mcp-server'
+        OPENITCOCKPIT_VERSION = sh(returnStdout: true, script: 'cat VERSION').trim()
+        MCP_VERSION           = sh(returnStdout: true, script: 'cat MCP_VERSION').trim()
+        RELEASE_TAG           = "${OPENITCOCKPIT_VERSION}-${MCP_VERSION}"
+    }
+
     stages {
         // Nothing gets published that does not pass the suite first.
-        // Runs in the same base image the Dockerfile uses, so the node needs
-        // only Docker and the Python version is defined in one place.
+        // The script runs the checks inside the image the Dockerfile is based
+        // on, so the node needs only Docker and developers can run the exact
+        // same thing locally.
         stage('Test') {
             agent {
                 label 'rhel8-amd64'
             }
             steps {
-                sh script: '''
-                    PYTHON_IMAGE=$(awk '/^FROM /{print $2; exit}' Dockerfile)
-                    docker run --rm -v "$PWD":/src -w /src "$PYTHON_IMAGE" sh -c '
-                        pip install --quiet --upgrade pip
-                        pip install --quiet -e ".[dev]"
-                        ruff check src tests
-                        mypy
-                        pytest -q --cov=openitcockpit_mcp
-                    '
-                '''
+                sh './scripts/checks-docker.sh'
             }
         }
 
         stage('Build and Publish') {
             when {
                 branch 'main'
-            }
-            environment {
-                OPENITCOCKPIT_VERSION = sh(
-                    returnStdout: true,
-                    script: 'cat VERSION'
-                ).trim()
-                MCP_VERSION = sh(
-                    returnStdout: true,
-                    script: 'cat MCP_VERSION'
-                ).trim()
-                RELEASE_TAG = sh(
-                    returnStdout: true,
-                    script: 'echo "$(cat VERSION)-$(cat MCP_VERSION)"'
-                ).trim()
+                expression { params.PUBLISH }
             }
             parallel {
                 stage('arm64') {
@@ -77,26 +70,19 @@ pipeline {
             }
         }
 
+        // Also writes to the registry: it reads both arch images from there and
+        // creates the manifest index, moving the floating tags.
         stage('Merge architectures') {
             when {
                 branch 'main'
+                expression { params.PUBLISH }
             }
             agent {
                 label 'rhel8-amd64'
             }
-            environment {
-                OPENITCOCKPIT_VERSION = sh(
-                    returnStdout: true,
-                    script: 'cat VERSION'
-                ).trim()
-                RELEASE_TAG = sh(
-                    returnStdout: true,
-                    script: 'echo "$(cat VERSION)-$(cat MCP_VERSION)"'
-                ).trim()
-            }
             steps {
                 sh "docker buildx imagetools create -t ${dockerImage}:${RELEASE_TAG} -t ${dockerImage}:${OPENITCOCKPIT_VERSION} -t ${dockerImage}:latest ${dockerImage}:${RELEASE_TAG}-amd64 ${dockerImage}:${RELEASE_TAG}-arm64"
             }
-         }
+        }
     }
 }
