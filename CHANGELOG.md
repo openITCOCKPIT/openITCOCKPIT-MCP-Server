@@ -4,7 +4,7 @@ Notable changes to the openITCOCKPIT MCP Server. Versions follow `MCP_VERSION`,
 this server's semver, which is also the image tag. See
 [Versioning](README.md#versioning).
 
-## 0.1.0 — unreleased
+## 0.1.0 — 2026-09-03
 
 The first released version of this server. It reorganises the previous,
 unversioned `oitc_mcp.py` into an installable package and adds tests, CI,
