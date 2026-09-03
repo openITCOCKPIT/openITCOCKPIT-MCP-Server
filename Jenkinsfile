@@ -8,9 +8,9 @@
 //   <oitc>        floating, the newest build for that openITCOCKPIT release
 //   latest        floating, the newest build overall
 //
-// Tests run on every branch. Publishing needs main *and* the PUBLISH parameter,
-// so a build can be triggered for its test results without touching the
-// registry.
+// Tests run on every branch. On main the images are always built, but pushing
+// needs the PUBLISH parameter, so a Dockerfile change can be verified without
+// touching the registry.
 pipeline {
     agent any
 
@@ -18,7 +18,7 @@ pipeline {
         booleanParam(
             name: 'PUBLISH',
             defaultValue: false,
-            description: 'Build and push images to the registry. Leave off for a test-only run.'
+            description: 'Push the built images to the registry. Leave off for a dry run.'
         )
     }
 
@@ -43,28 +43,52 @@ pipeline {
             }
         }
 
+        // Build and push stay on the same agent per architecture: the image
+        // only exists in that node's local Docker, so a separate push stage
+        // could end up on a different node and find nothing.
         stage('Build and Publish') {
             when {
                 branch 'main'
-                expression { params.PUBLISH }
             }
             parallel {
                 stage('arm64') {
                     agent {
                         label 'linux-arm64'
                     }
-                    steps {
-                        sh script: "docker build -f Dockerfile --tag ${dockerImage}:${RELEASE_TAG}-arm64 ."
-                        sh script: "docker push ${dockerImage}:${RELEASE_TAG}-arm64"
+                    stages {
+                        stage('build') {
+                            steps {
+                                sh script: "docker build -f Dockerfile --tag ${dockerImage}:${RELEASE_TAG}-arm64 ."
+                            }
+                        }
+                        stage('push') {
+                            when {
+                                expression { params.PUBLISH == true }
+                            }
+                            steps {
+                                sh script: "docker push ${dockerImage}:${RELEASE_TAG}-arm64"
+                            }
+                        }
                     }
                 }
                 stage('amd64') {
                     agent {
                         label 'rhel8-amd64'
                     }
-                    steps {
-                        sh script: "docker build -f Dockerfile --tag ${dockerImage}:${RELEASE_TAG}-amd64 ."
-                        sh script: "docker push ${dockerImage}:${RELEASE_TAG}-amd64"
+                    stages {
+                        stage('build') {
+                            steps {
+                                sh script: "docker build -f Dockerfile --tag ${dockerImage}:${RELEASE_TAG}-amd64 ."
+                            }
+                        }
+                        stage('push') {
+                            when {
+                                expression { params.PUBLISH == true }
+                            }
+                            steps {
+                                sh script: "docker push ${dockerImage}:${RELEASE_TAG}-amd64"
+                            }
+                        }
                     }
                 }
             }
