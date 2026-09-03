@@ -8,9 +8,9 @@
 //   <oitc>        floating, the newest build for that openITCOCKPIT release
 //   latest        floating, the newest build overall
 //
-// Tests run on every branch. On main the images are always built, but pushing
-// needs the PUBLISH parameter, so a Dockerfile change can be verified without
-// touching the registry.
+// This is a classic pipeline job wired to main, so there is no branch condition
+// to make - BRANCH_NAME only exists in multibranch jobs. Every run tests and
+// builds; pushing to the registry is gated on the PUBLISH parameter.
 pipeline {
     agent any
 
@@ -48,7 +48,6 @@ pipeline {
         stage('Check tag is free') {
             when {
                 beforeAgent true
-                branch 'main'
                 expression { params.PUBLISH == true }
             }
             agent {
@@ -68,9 +67,6 @@ pipeline {
         // only exists in that node's local Docker, so a separate push stage
         // could end up on a different node and find nothing.
         stage('Build and Publish') {
-            when {
-                branch 'main'
-            }
             parallel {
                 stage('arm64') {
                     agent {
@@ -120,7 +116,6 @@ pipeline {
         stage('Merge architectures') {
             when {
                 beforeAgent true
-                branch 'main'
                 expression { params.PUBLISH == true }
             }
             agent {
