@@ -9,6 +9,7 @@ shipped to a collector that would rather not parse a picture.
 
 from __future__ import annotations
 
+import contextlib
 import logging
 import sys
 from typing import TextIO
@@ -91,15 +92,9 @@ def render(settings: Settings, total: int, mutating: int) -> str:
     bottom = "╰" + "─" * _WIDTH + "╯"
     blank = _centre("")
 
-    if settings.transport == "stdio":
-        listening = "stdio"
-    else:
-        listening = f"http://{settings.host}:{settings.port}/mcp"
+    listening = "stdio" if settings.transport == "stdio" else f"http://{settings.host}:{settings.port}/mcp"
 
-    if mutating:
-        tools = f"{total} registered, {mutating} of them mutating"
-    else:
-        tools = f"{total} registered, all read-only (write tools disabled)"
+    tools = f"{total} registered, {mutating} of them mutating" if mutating else f"{total} registered, all read-only (write tools disabled)"
 
     if settings.ca_bundle:
         tls = f"verified against {settings.ca_bundle}"
@@ -150,7 +145,5 @@ def show(settings: Settings, total: int, mutating: int, stream: TextIO | None = 
     try:
         print(banner, file=out, flush=True)
     except UnicodeEncodeError:
-        try:
+        with contextlib.suppress(Exception):
             print(_to_ascii(banner), file=out, flush=True)
-        except Exception:
-            pass
