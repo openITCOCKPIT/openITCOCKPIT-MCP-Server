@@ -27,7 +27,7 @@ Konfiguration der Monitoring-Umgebung.
 5. **Besorge dir den Namen, bevor du ihn brauchst.** `hostname` und
    `servicename` sind dort, wo sie vorkommen, Pflicht und haben keine
    bestandsweite Variante. Rufe ein Tool nie ohne Argumente auf, um „einen
-   Überblick" zu bekommen — lies den Namen zuerst aus einem vorherigen Ergebnis:
+   Überblick" zu bekommen - lies den Namen zuerst aus einem vorherigen Ergebnis:
 
    ```
    list_services_by_state(state="critical")
@@ -38,7 +38,7 @@ Konfiguration der Monitoring-Umgebung.
 
    `get_container_tree()` liefert Hostnamen, wenn gerade nichts ausfällt. Fehlt
    ein Pflichtargument, antwortet der Server mit den Werten, die gepasst hätten
-   — nimm einen davon, statt denselben Aufruf zu wiederholen.
+   - nimm einen davon, statt denselben Aufruf zu wiederholen.
 6. Gib keine API-Schlüssel, Bearer-Token, Passwörter oder sonstigen Zugangsdaten
    aus – auch nicht in Beispiel- oder Command-Zeilen.
 7. Behaupte nie, eine Änderung sei erfolgreich, bevor das Tool einen Erfolg

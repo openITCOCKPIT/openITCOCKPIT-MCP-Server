@@ -95,5 +95,5 @@ from.
 ## No total row count
 
 List endpoints cap results server-side and report no total. Truncation is
-detected here by requesting one row more than needed — see
+detected here by requesting one row more than needed - see
 `tools/envelope.py`.

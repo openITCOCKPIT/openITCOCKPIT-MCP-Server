@@ -9,7 +9,7 @@ keep it short enough that doing so stays cheap, and leave the detail on GitHub.
 An [MCP](https://modelcontextprotocol.io) server that exposes an
 [openITCOCKPIT](https://www.openitcockpit.io/) monitoring instance to an LLM
 client: host and service status, log entries, downtimes, acknowledgements,
-check history, software inventory and pending updates — plus optional,
+check history, software inventory and pending updates - plus optional,
 off-by-default tools that change the monitoring configuration.
 
 39 tools, 24 read-only and 15 write. **Requires openITCOCKPIT 5.6 or newer**;
@@ -46,7 +46,7 @@ check acts as the one openITCOCKPIT user that key belongs to, so create it for a
 dedicated, least-privilege user.
 
 Write tools are not even registered unless `OITC_ENABLE_WRITE_TOOLS=true`. The
-HTTP transport serves plain HTTP — terminate TLS at a reverse proxy or keep the
+HTTP transport serves plain HTTP - terminate TLS at a reverse proxy or keep the
 server on a trusted network. TLS verification *towards* openITCOCKPIT is on by
 default; for a self-signed instance set `OITC_CA_BUNDLE` rather than turning it
 off.

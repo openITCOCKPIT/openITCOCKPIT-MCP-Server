@@ -107,7 +107,7 @@ docker run -d -p 8000:8000 --env-file .env openitcockpit/mcp-server:0.1.0
 ```
 
 **Which tag?** The tag is this server's own version. `0.1.0` never changes, so a
-redeploy gives you exactly what you tested — pin that. `latest` is the only
+redeploy gives you exactly what you tested - pin that. `latest` is the only
 other tag and it moves under you. The tag says nothing about your openITCOCKPIT
 version; one image serves 5.6 and newer. See [Versioning](#versioning).
 
@@ -270,7 +270,7 @@ release, and no others:
 | `latest` | yes | The newest release, whatever it is |
 
 Semver: patch for fixes, minor for added tools, major for anything that breaks
-a client. **But this is still `0.x`** — the tool set is settling, so a minor
+a client. **But this is still `0.x`** - the tool set is settling, so a minor
 bump may break one too. Pin the exact version and read the
 [CHANGELOG](CHANGELOG.md) before you move.
 
