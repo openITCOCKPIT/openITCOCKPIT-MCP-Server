@@ -184,6 +184,7 @@ plus a system prompt for an openITCOCKPIT assistant.
 | [`oitc-host-onboarding`](skills/oitc-host-onboarding/SKILL.md) | Adding a host and its services without scope rejections |
 | [`oitc-patch-review`](skills/oitc-patch-review/SKILL.md) | Security and update overview across the estate |
 | [`oitc-config-change`](skills/oitc-config-change/SKILL.md) | Changing an object without blanking fields |
+| [`oitc-capabilities`](skills/oitc-capabilities/SKILL.md) | What the server cannot do, so a model does not invent it |
 
 The `oitc-*` folders follow the Agent Skills layout, so `cp -r skills/oitc-*
 ~/.claude/skills/` is enough for Claude Code and Claude Desktop; for other

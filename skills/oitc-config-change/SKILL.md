@@ -87,4 +87,6 @@ matching names in scope or the count of valid ones. Read it and correct all of
 them at once - do not retry a single field at a time, and do not guess a name
 that was just rejected.
 
-Full semantics: `docs/write-tools.md`.
+Full semantics:
+<https://github.com/openITCOCKPIT/openITCOCKPIT-MCP-Server/blob/main/docs/write-tools.md>
+(an absolute link, because this folder is meant to be copied out of the repo).

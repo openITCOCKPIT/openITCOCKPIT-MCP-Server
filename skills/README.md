@@ -13,9 +13,10 @@ wrong answers.
 | [`oitc-host-onboarding/`](oitc-host-onboarding/SKILL.md) | Adding a host and its services without container-scope rejections |
 | [`oitc-patch-review/`](oitc-patch-review/SKILL.md) | Security and update overview across the estate |
 | [`oitc-config-change/`](oitc-config-change/SKILL.md) | Changing an existing object without blanking fields |
+| [`oitc-capabilities/`](oitc-capabilities/SKILL.md) | What the server cannot do - acknowledging, downtimes, deleting, forcing a recheck |
 
-The last three describe write workflows and assume `OITC_ENABLE_WRITE_TOOLS=true`.
-`oitc-incident-triage` and `oitc-patch-review` are read-only.
+`oitc-host-onboarding` and `oitc-config-change` describe write workflows and
+assume `OITC_ENABLE_WRITE_TOOLS=true`. The other three are read-only.
 
 ## Using them
 
@@ -35,8 +36,12 @@ about into your system prompt.
 
 ## Why these exist
 
-Three things about openITCOCKPIT reliably trip up an unguided model, and every
+Four things about openITCOCKPIT reliably trip up an unguided model, and every
 skill here exists to prevent one of them:
+
+- **The tool list is the whole surface.** There is no acknowledge, no downtime
+  scheduling, no delete and no forced recheck. A model asked for one of those
+  invents a tool name or reports the action as done.
 
 - **A critical service may already be acknowledged or in a downtime window.**
   Reporting it as a new incident wastes an operator's time.
