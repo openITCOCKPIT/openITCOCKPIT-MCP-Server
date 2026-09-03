@@ -179,7 +179,7 @@ plus a system prompt for an openITCOCKPIT assistant.
 | Skill | Use it for |
 |---|---|
 | [`system-prompt.md`](skills/system-prompt.md) | Baseline assistant behaviour |
-| [`system-prompt.de.md`](skills/system-prompt.de.md) | German, with the full tool signatures |
+| [`system-prompt.de.md`](skills/system-prompt.de.md) | The same, in German |
 | [`oitc-incident-triage`](skills/oitc-incident-triage/SKILL.md) | "What is broken?", in the order that rules things out |
 | [`oitc-host-onboarding`](skills/oitc-host-onboarding/SKILL.md) | Adding a host and its services without scope rejections |
 | [`oitc-patch-review`](skills/oitc-patch-review/SKILL.md) | Security and update overview across the estate |
