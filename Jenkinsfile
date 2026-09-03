@@ -55,10 +55,21 @@ pipeline {
             }
             steps {
                 sh '''
-                    if docker buildx imagetools inspect "$dockerImage:$RELEASE_TAG" >/dev/null 2>&1; then
+                    if out=$(docker buildx imagetools inspect "$dockerImage:$RELEASE_TAG" 2>&1); then
                         echo "$dockerImage:$RELEASE_TAG is already published - bump VERSION or MCP_VERSION"
                         exit 1
                     fi
+            
+                    # Only a genuine "not there" means the tag is free. Anything else - no
+                    # network, expired credentials - must not be read as permission to push.
+                    case "$out" in
+                        *"not found"*|*"manifest unknown"*|*MANIFEST_UNKNOWN*) ;;
+                        *)
+                            echo "Registry check failed for an unexpected reason:"
+                            echo "$out"
+                            exit 1
+                            ;;
+                    esac
                 '''
             }
         }
