@@ -74,8 +74,9 @@ pipeline {
         // creates the manifest index, moving the floating tags.
         stage('Merge architectures') {
             when {
+                beforeAgent true
                 branch 'main'
-                expression { params.PUBLISH }
+                expression { params.PUBLISH == true }
             }
             agent {
                 label 'rhel8-amd64'
