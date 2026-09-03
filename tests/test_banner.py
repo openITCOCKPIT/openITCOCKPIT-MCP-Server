@@ -5,6 +5,7 @@ from __future__ import annotations
 import io
 
 from openitcockpit_mcp.banner import MARK, WORDMARK, render, show
+from openitcockpit_mcp.version import __version__
 
 
 def _box_widths(banner: str) -> set[int]:
@@ -77,7 +78,7 @@ def test_a_suppressed_banner_still_reports_the_facts_once(settings, caplog):
     with caplog.at_level("INFO"):
         show(settings.model_copy(update={"show_banner": False}), 39, 14, stream=out)
     assert out.getvalue() == ""
-    assert "2.0.0" in caplog.text
+    assert __version__ in caplog.text
     assert settings.baseurl in caplog.text
 
 

@@ -15,54 +15,79 @@ import sys
 from typing import TextIO
 
 from openitcockpit_mcp.config import Settings
-from openitcockpit_mcp.version import OITC_COMPAT_VERSION, __version__
+from openitcockpit_mcp.version import OITC_MIN_VERSION, __version__
 
 log = logging.getLogger(__name__)
 
-# The openITCOCKPIT mark, generated from the product favicon at 20 columns by
-# mapping each pair of pixel rows onto one half-block character. Embedded as a
+# The openITCOCKPIT mark, generated from the product favicon and embedded as a
 # literal so rendering the banner needs no image library at runtime.
+#
+# One pixel is one full block, two columns wide - a terminal cell is about
+# twice as tall as it is wide, so doubling the width keeps the mark from
+# looking squashed. An earlier version packed two pixel rows into one row of
+# ▀▄█ half-blocks, which halved the height but relied on the terminal font
+# aligning three different glyphs seamlessly; plenty of them do not, and the
+# mark came out streaked. One character, drawn solid, survives any font.
 MARK = (
-    "     ▄▄███████▄",
-    "  ▄██████████████▄",
-    " ▄████████████████▄",
-    "▄███▀▀    ▀▀██▀",
-    "███  ▄████▄ ▄▄ ▄████",
-    "███  ██████ █▀██████",
-    "███▄  ████▀ ▀  ▀████",
-    "█████▄▄  ▄▄▄██▄▄",
-    "█████████████████▀",
-    "█████████████▀▀",
+    "              ██████████████",
+    "          ████████████████████",
+    "      ████████████████████████████",
+    "    ████████████████████████████████",
+    "    ████████████████████████████████",
+    "  ████████████████████████████████████",
+    "  ██████████        ██████████",
+    "████████                ████",
+    "██████      ████████            ████████",
+    "██████    ████████████  ████  ██████████",
+    "██████    ████████████  ████████████████",
+    "██████    ████████████  ██  ████████████",
+    "██████      ██████████  ██    ██████████",
+    "████████    ████████            ████████",
+    "██████████              ████",
+    "██████████████    ██████████████",
+    "████████████████████████████████████",
+    "██████████████████████████████████",
+    "██████████████████████████████",
+    "██████████████████████████",
 )
 
-# Two-row half-block glyphs, one per character of "openITCOCKPIT".
-_GLYPHS: dict[str, tuple[str, str]] = {
-    "o": ("█▀█", "█▄█"),
-    "p": ("█▀█", "█▀▀"),
-    # The crossbar is what separates e from C, which is otherwise the same shape.
-    "e": ("███", "█▄▄"),
-    "n": ("█▄█", "█ █"),
+# A 3x4 block glyph per character of "openITCOCKPIT", one row per pixel row, in
+# the same solid blocks as the mark above.
+#
+# "open" is set on x-height and "ITCOCKPIT" on cap height, the way the product
+# wordmark does it, so the lowercase letters leave the top row empty. Drawing
+# them at cap height made o and O the very same glyph, and the whole thing read
+# as OPENITCOCKPIT.
+_GLYPHS: dict[str, tuple[str, str, str, str]] = {
+    "o": ("   ", "███", "█ █", "███"),
+    # Bowl on the two middle rows, stem alone on the last - the descender a
+    # real p has would need a fifth row.
+    "p": ("   ", "███", "███", "█  "),
+    # The crossbar, open to the right, is what separates e from o.
+    "e": ("   ", "███", "██ ", "███"),
+    "n": ("   ", "███", "█ █", "█ █"),
     # Serifs, not a bare stem: a single column disappears between the wide
     # letters. The bottom row keeps it distinct from T.
-    "I": ("▀█▀", "▄█▄"),
-    "T": ("▀█▀", " █ "),
-    "C": ("█▀▀", "█▄▄"),
-    "O": ("█▀█", "█▄█"),
-    "K": ("█▄▀", "█ █"),
-    "P": ("█▀█", "█▀▀"),
+    "I": ("███", " █ ", " █ ", "███"),
+    "T": ("███", " █ ", " █ ", " █ "),
+    "C": ("███", "█  ", "█  ", "███"),
+    "O": ("███", "█ █", "█ █", "███"),
+    "K": ("█ █", "██ ", "█ █", "█ █"),
+    "P": ("███", "█ █", "███", "█  "),
 }
+
+#: Pixel rows per glyph. Every entry in _GLYPHS carries exactly this many.
+_GLYPH_ROWS = 4
 
 WORDMARK = "openITCOCKPIT"
 
-#: Inner width of the box. The wordmark is 51 columns; this leaves a margin and
-#: keeps the whole thing inside a standard 80-column terminal.
+#: Inner width of the box. The mark is 40 columns and the wordmark 51; this
+#: leaves a margin and keeps the whole thing inside an 80-column terminal.
 _WIDTH = 76
 
 
 def _wordmark_rows() -> list[str]:
-    top = " ".join(_GLYPHS[c][0] for c in WORDMARK)
-    bottom = " ".join(_GLYPHS[c][1] for c in WORDMARK)
-    return [top, bottom]
+    return [" ".join(_GLYPHS[c][row] for c in WORDMARK) for row in range(_GLYPH_ROWS)]
 
 
 def _as_block(rows: tuple[str, ...]) -> list[str]:
@@ -109,7 +134,7 @@ def render(settings: Settings, total: int, mutating: int) -> str:
     lines += [_centre(row) for row in _wordmark_rows()]
     lines += [blank, _centre("MCP Server"), blank]
     lines += [
-        _field("Version", f"{__version__}  (built against openITCOCKPIT {OITC_COMPAT_VERSION})"),
+        _field("Version", f"{__version__}  (requires openITCOCKPIT {OITC_MIN_VERSION} or newer)"),
         _field("Instance", settings.baseurl),
         _field("TLS", tls),
         _field("Listening on", listening),
@@ -121,7 +146,7 @@ def render(settings: Settings, total: int, mutating: int) -> str:
 
 def _to_ascii(banner: str) -> str:
     """Fallback for a stream that cannot encode the block characters."""
-    table = str.maketrans({"█": "#", "▀": "#", "▄": "#", "─": "-", "│": "|",
+    table = str.maketrans({"█": "#", "─": "-", "│": "|",
                            "╭": "+", "╮": "+", "╰": "+", "╯": "+", "…": "..."})
     return banner.translate(table)
 
@@ -136,8 +161,8 @@ def show(settings: Settings, total: int, mutating: int, stream: TextIO | None = 
         # The banner is the only place these facts are reported, so a suppressed
         # banner becomes one log line rather than nothing.
         log.info(
-            "openITCOCKPIT MCP Server %s (built against %s), instance %s, %d tools (%d mutating)",
-            __version__, OITC_COMPAT_VERSION, settings.baseurl, total, mutating,
+            "openITCOCKPIT MCP Server %s (requires openITCOCKPIT %s or newer), instance %s, %d tools (%d mutating)",
+            __version__, OITC_MIN_VERSION, settings.baseurl, total, mutating,
         )
         return
     out = stream or sys.stderr

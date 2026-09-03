@@ -1,13 +1,19 @@
 # Changelog
 
-Notable changes to the openITCOCKPIT MCP Server. Versions follow `MCP_VERSION`
-(this server's own semver); the openITCOCKPIT release a build targets is in
-`VERSION`. See [Versioning](README.md#versioning).
+Notable changes to the openITCOCKPIT MCP Server. Versions follow `MCP_VERSION`,
+this server's semver, which is also the image tag. See
+[Versioning](README.md#versioning).
 
-## 2.0.0 — unreleased
+## 0.1.0 — unreleased
 
-Reorganises the server into an installable package and adds tests, CI,
-versioning and documentation around it. The openITCOCKPIT domain logic — the
+The first released version of this server. It reorganises the previous,
+unversioned `oitc_mcp.py` into an installable package and adds tests, CI,
+versioning and documentation around it.
+
+A `0.x` on purpose: the coverage is there and every tool has been exercised
+against live instances, but the tool set and its parameters have not yet held
+still across releases. Until they have, a minor bump may break a client. Pin
+the exact version. The openITCOCKPIT domain logic — the
 container-scope rules and the read-modify-write semantics of the edit
 endpoints — is carried over unchanged.
 
@@ -48,7 +54,13 @@ reads against one with 40 hosts, writes and their rejection paths against a
 local one. The image itself was verified end to end - container, bearer auth,
 real instance, reads and writes.
 
-### Breaking
+### Migrating from the previous server
+
+Nothing here breaks a *released* version — 0.1.0 is the first. But the
+predecessor, the single-file `oitc_mcp.py` published as `openitcockpit/mcp-server:5.6.1`,
+was in use, and everything below differs from it. That image and its tags have
+been removed from Docker Hub; the old code remains on GitHub under the git tag
+`5.6.1` if you need to build it.
 
 - **Every tool was renamed** to `snake_case`: `list_*` for collections, `get_*`
   for a single object, `create_*` / `update_*` for writes. `GetHostinfo`
@@ -116,10 +128,11 @@ real instance, reads and writes.
 
 - `fastmcp` from the `3.0.0b1` pre-release to `>=4.0,<5`. The base image stays
   `python:3.12-slim`; the suite is verified on 3.11 and 3.12.
-- Versioning split in two: `VERSION` tracks openITCOCKPIT, `MCP_VERSION` tracks
-  this server. Images publish as `<oitc>-<mcp>`, e.g. `5.6.1-2.0.0`, so a fix
-  can ship without openITCOCKPIT moving and a pinned tag never changes
-  behaviour.
+- Versioning is the server's own semver in `MCP_VERSION`, and that is the image
+  tag: `0.1.0` immutable plus a floating `latest`, and nothing else. The
+  predecessor tagged images with the openITCOCKPIT release instead, which tied
+  a pinned tag to a version it had no real binding to. Which openITCOCKPIT
+  releases a build supports is now stated as a range in the README.
 - Query parameters are URL-encoded. A hostname containing `&`, `#` or a space
   previously broke the request or injected an extra filter.
 - Write tools are registered from a subpackage rather than an 800-line
@@ -127,11 +140,13 @@ real instance, reads and writes.
 - README reorganised front-to-back with tool tables.
 - `docker-compose.yml` publishes the port from `OITC_PORT` instead of a
   hardcoded 8000, and gained a healthcheck.
-- The pipeline runs ruff, mypy and pytest for every branch and pull request,
-  and publishes only from `main`, so the floating `<oitc>` and `latest` tags
-  move only through a merge. The test stage runs inside the base image named by
-  the Dockerfile, so the build nodes need only Docker and the Python version is
-  defined in one place.
+- The pipeline runs ruff, mypy and pytest on every run and builds both
+  architectures unconditionally; pushing to the registry is gated on a
+  `PUBLISH` parameter, and a publish run refuses to start if the immutable tag
+  already exists. The test stage runs inside the base image named by the
+  Dockerfile, so the build nodes need only Docker and the Python version is
+  defined in one place — `scripts/checks-docker.sh` gives developers the same
+  run locally.
 
 ### Fixed
 

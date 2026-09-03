@@ -22,7 +22,7 @@ RUN groupadd --system oitc && useradd --system --gid oitc --no-create-home oitc
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-COPY pyproject.toml MCP_VERSION VERSION LICENSE README.md ./
+COPY pyproject.toml MCP_VERSION LICENSE README.md ./
 COPY src/ ./src/
 RUN pip install --no-cache-dir --no-deps .
 

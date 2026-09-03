@@ -13,15 +13,15 @@ from openitcockpit_mcp.config import Settings
 from openitcockpit_mcp.deps import Deps
 from openitcockpit_mcp.middleware import CompactContentMiddleware
 from openitcockpit_mcp.tools import register_all
-from openitcockpit_mcp.version import OITC_COMPAT_VERSION, __version__, version_banner
+from openitcockpit_mcp.version import OITC_MIN_VERSION, __version__, version_banner
 
 log = logging.getLogger(__name__)
 
 SERVER_NAME = "openITCOCKPIT"
 
 INSTRUCTIONS = f"""\
-Tools for an openITCOCKPIT monitoring instance (built against openITCOCKPIT \
-{OITC_COMPAT_VERSION}).
+Tools for an openITCOCKPIT monitoring instance (requires openITCOCKPIT \
+{OITC_MIN_VERSION} or newer).
 
 All tools take human-readable names - hostnames, template names, container \
 paths - never database ids. List results are capped and not paginated, so never \

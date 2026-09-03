@@ -6,6 +6,7 @@ client: host and service status, log entries, downtimes, acknowledgements,
 check history, software inventory and pending updates - plus optional,
 off-by-default tools that change the monitoring configuration.
 
+- **Requires openITCOCKPIT 5.6 or newer.** See [Compatibility](#compatibility).
 - **39 tools**, 24 read-only and 15 write.
 - **Write tools are disabled by default** and are not even registered until you
   enable them.
@@ -102,15 +103,13 @@ No HTTP layer, so no `MCP_AUTH_TOKEN` is needed.
 ### Docker
 
 ```bash
-docker run -d -p 8000:8000 --env-file .env openitcockpit/mcp-server:5.6.1-2.0.0
+docker run -d -p 8000:8000 --env-file .env openitcockpit/mcp-server:0.1.0
 ```
 
-**Which tag?** The tag reads `<openITCOCKPIT version>-<MCP server version>`. Pick
-the one matching the openITCOCKPIT you run — `5.6.1-2.0.0` is this server's
-2.0.0 built against openITCOCKPIT 5.6.1. That tag never changes, so a redeploy
-gives you exactly what you tested. `5.6.1` always points at the newest build for
-that openITCOCKPIT release, and `latest` at the newest build overall; both move
-under you. See [Versioning](#versioning).
+**Which tag?** The tag is this server's own version. `0.1.0` never changes, so a
+redeploy gives you exactly what you tested — pin that. `latest` is the only
+other tag and it moves under you. The tag says nothing about your openITCOCKPIT
+version; one image serves 5.6 and newer. See [Versioning](#versioning).
 
 Or with individual variables, for CI or a secret manager:
 
@@ -119,7 +118,7 @@ docker run -d -p 8000:8000 \
   -e MCP_AUTH_TOKEN="..." \
   -e OITC_APIKEY="..." \
   -e OITC_BASEURL="https://openitcockpit.example.org" \
-  openitcockpit/mcp-server:5.6.1-2.0.0
+  openitcockpit/mcp-server:0.1.0
 ```
 
 No secret is baked into the image; configuration is read from the environment
@@ -275,38 +274,53 @@ clients they are plain Markdown - paste what you need. See
 
 ## Versioning
 
-Two version numbers, deliberately independent:
+One version number, in `MCP_VERSION`, and it is the image tag. It follows
+semver: patch for fixes, minor for added tools, **major for anything that
+breaks a client** - a renamed or removed tool, a changed parameter.
 
-| File | Meaning | Moves when |
-|---|---|---|
-| `VERSION` | The openITCOCKPIT release this build targets (`5.6.1`) | openITCOCKPIT releases |
-| `MCP_VERSION` | This server's own semantic version (`2.0.0`) | *this* codebase changes |
+Two tags per release, and no others:
 
 | Image tag | Mutable? | Use for |
 |---|---|---|
-| `5.6.1-2.0.0` | no | **Pin this.** Exactly this build. |
-| `5.6.1` | yes | Newest build for openITCOCKPIT 5.6.1 |
-| `latest` | yes | Newest build overall |
+| `0.1.0` | no | **Pin this.** Exactly this build. |
+| `latest` | yes | The newest release, whatever it is |
 
-This is what lets a bugfix ship without openITCOCKPIT having moved: bump
-`MCP_VERSION` to `2.0.1`, publish `5.6.1-2.0.1`, and the floating `5.6.1` tag
-follows while anyone pinned to `5.6.1-2.0.0` keeps exactly what they had.
+So a fix ships as `0.1.1`: `latest` follows it, while anyone pinned to `0.1.0`
+keeps exactly what they had. There is deliberately no floating `0.1` or `0`
+tag - such a tag promises "newer but compatible", and see below for why this
+project cannot promise that yet.
 
-`MCP_VERSION` follows semver: patch for fixes, minor for added tools, **major
-for anything that breaks a client** - a renamed or removed tool, a changed
-parameter.
+**We are before 1.0.0.** The tool set and its parameters are still settling, so
+a *minor* bump may break a client - that is what a `0.x` version is for. Read
+the [CHANGELOG](CHANGELOG.md) before moving, and pin the exact version in
+anything you depend on. Once the interface has held still across a few
+releases, this becomes 1.0.0 and the usual semver promise applies.
+
+The tag carries no openITCOCKPIT version. It used to - images were published as
+`<openITCOCKPIT>-<server>` - but that asserted a binding which does not exist,
+and it would have produced a new image for every openITCOCKPIT release without
+a line of code changing. What openITCOCKPIT versions a release supports is a
+*range*, and a range only fits in prose - see [Compatibility](#compatibility)
+below.
 
 What changed per release is in [CHANGELOG.md](CHANGELOG.md).
 
 ### Compatibility
 
-Run a build made against the openITCOCKPIT version you run. If there is no
-newer build for it, the last one is still compatible.
+**openITCOCKPIT 5.6 or newer.** One image serves every supported release; there
+is nothing to match up.
 
-| MCP server | openITCOCKPIT | Notes |
-|---|---|---|
-| 1.x | 5.6.x | Original tool names (`GetHostinfo`, …) |
-| 2.0.x | 5.6.x | **All tool names renamed to snake_case** |
+All 39 tools were exercised against live instances on the 5.6 line. The
+openITCOCKPIT API is backwards compatible, so a newer instance is expected to
+work - the floor is what has been tested, not a hard block. Two caveats:
+
+- The software-inventory and patch tools (`list_installed_software`,
+  `list_pending_updates`, `list_pending_security_updates`) depend on the
+  openITCOCKPIT agent's package endpoints. On an instance without that feature
+  they fail with an API error; the other 36 tools are unaffected.
+- The server always sends an explicit `sort=` to `/servicechecks/index`, which
+  works around a 5.6.1 bug that returned HTTP 500 without it. Harmless on
+  newer releases.
 
 ---
 
@@ -336,7 +350,7 @@ src/openitcockpit_mcp/
   formatting.py   API rows -> the flat dicts tools return
   fields.py       Field maps and appliers for the create_*/update_* tools
   defaults.py     Command types, agent configuration defaults
-  version.py      openITCOCKPIT compatibility vs. this server's own semver
+  version.py      This server's semver and the oldest openITCOCKPIT it supports
   scope/          Container-scope enforcement: definitions, fetch+cache, validation
   tools/          annotations and the ListResult envelope, shared by both sides
   tools/read/     Read tools, one module per area, always registered

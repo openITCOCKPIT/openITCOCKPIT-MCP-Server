@@ -38,9 +38,9 @@ package-dir = { "" = "src" }
 [tool.setuptools.packages.find]
 where = ["src"]
 
-# The package version is this server's OWN semantic version (MCP_VERSION).
-# The openITCOCKPIT release it targets lives in VERSION and is exposed as
-# openitcockpit_mcp.version.OITC_COMPAT_VERSION - see README "Versioning".
+# The single version this project carries, and what the image is tagged with.
+# The openITCOCKPIT releases it supports are a range, not a version, and live
+# in openitcockpit_mcp.version.OITC_MIN_VERSION - see README "Versioning".
 [tool.setuptools.dynamic]
 version = { file = ["MCP_VERSION"] }
 
