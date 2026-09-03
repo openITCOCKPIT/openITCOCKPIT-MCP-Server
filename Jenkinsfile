@@ -72,8 +72,12 @@ pipeline {
 
                     # Only a genuine "not there" means the tag is free. Anything else - no
                     # network, expired credentials - must not be read as permission to push.
-                    case "$out" in
-                        *"not found"*|*"manifest unknown"*|*MANIFEST_UNKNOWN*) ;;
+                    #
+                    # Matched case-insensitively because the wording is not part of any
+                    # contract: buildx has answered both "not found" and "404 Not Found"
+                    # depending on version and registry.
+                    case "$(echo "$out" | tr '[:upper:]' '[:lower:]')" in
+                        *"not found"*|*"manifest unknown"*|*404*) ;;
                         *)
                             echo "Registry check failed for an unexpected reason:"
                             echo "$out"
