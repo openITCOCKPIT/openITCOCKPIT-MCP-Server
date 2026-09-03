@@ -51,33 +51,37 @@ MARK = (
     "██████████████████████████",
 )
 
-# A 3x4 block glyph per character of "openITCOCKPIT", one row per pixel row, in
-# the same solid blocks as the mark above.
+# A 3x5 block glyph per character of "openITCOCKPIT", one row per pixel row, in
+# the same solid blocks as the mark above. The five rows are, top to bottom:
+# cap line, x-height line, middle, baseline, descender.
 #
 # "open" is set on x-height and "ITCOCKPIT" on cap height, the way the product
-# wordmark does it, so the lowercase letters leave the top row empty. Drawing
+# wordmark does it, so the lowercase letters leave the cap row empty. Drawing
 # them at cap height made o and O the very same glyph, and the whole thing read
 # as OPENITCOCKPIT.
-_GLYPHS: dict[str, tuple[str, str, str, str]] = {
-    "o": ("   ", "███", "█ █", "███"),
-    # Bowl on the two middle rows, stem alone on the last - the descender a
-    # real p has would need a fifth row.
-    "p": ("   ", "███", "███", "█  "),
+#
+# The descender row exists for one stroke, the tail of the p. Without it a
+# lowercase p has three rows for a bowl that needs a top, a counter and a
+# bottom, so the counter has to go - and a p whose bowl is a solid block reads
+# as an unrecognisable blob next to the hollow uppercase P.
+_GLYPHS: dict[str, tuple[str, str, str, str, str]] = {
+    "o": ("   ", "███", "█ █", "███", "   "),
+    "p": ("   ", "███", "█ █", "███", "█  "),
     # The crossbar, open to the right, is what separates e from o.
-    "e": ("   ", "███", "██ ", "███"),
-    "n": ("   ", "███", "█ █", "█ █"),
+    "e": ("   ", "███", "██ ", "███", "   "),
+    "n": ("   ", "███", "█ █", "█ █", "   "),
     # Serifs, not a bare stem: a single column disappears between the wide
     # letters. The bottom row keeps it distinct from T.
-    "I": ("███", " █ ", " █ ", "███"),
-    "T": ("███", " █ ", " █ ", " █ "),
-    "C": ("███", "█  ", "█  ", "███"),
-    "O": ("███", "█ █", "█ █", "███"),
-    "K": ("█ █", "██ ", "█ █", "█ █"),
-    "P": ("███", "█ █", "███", "█  "),
+    "I": ("███", " █ ", " █ ", "███", "   "),
+    "T": ("███", " █ ", " █ ", " █ ", "   "),
+    "C": ("███", "█  ", "█  ", "███", "   "),
+    "O": ("███", "█ █", "█ █", "███", "   "),
+    "K": ("█ █", "██ ", "█ █", "█ █", "   "),
+    "P": ("███", "█ █", "███", "█  ", "   "),
 }
 
 #: Pixel rows per glyph. Every entry in _GLYPHS carries exactly this many.
-_GLYPH_ROWS = 4
+_GLYPH_ROWS = 5
 
 WORDMARK = "openITCOCKPIT"
 
