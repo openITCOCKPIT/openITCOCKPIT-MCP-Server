@@ -139,83 +139,35 @@ oitc-mcp
 
 ## Tools
 
+**39 tools, 24 read-only and 15 write.** Full signatures and behaviour:
+**[read tools](docs/read-tools.md)** · **[write tools](docs/write-tools.md)**.
+
 Every tool carries MCP annotations, so a client can tell a read from a write
-before calling it. Names are resolved to IDs internally - you never pass a raw
-database ID.
+before calling it, and takes names rather than database IDs - the server
+resolves them itself.
 
-List tools answer with an envelope, never a bare array:
-`{items, count, truncated, hint}`. `truncated` matters - openITCOCKPIT caps its
-list endpoints and reports no total, so without it a partial answer is
-indistinguishable from a complete one. Every list tool takes `limit` (default
-50, max 500).
+A few things you can ask for, and what answers them:
 
-`hostname` and `servicename` are required where they appear. A call that omits
-one is answered with the values that would have worked, so the caller can
-correct it instead of retrying.
-
-Results are delivered twice: JSON text in `content`, and `structuredContent`
-for clients on MCP revision 2025-06-18 or later. `OITC_COMPACT_CONTENT=true`
-roughly halves each response by reducing `content` to a summary - but then
-**only clients that read `structuredContent` see the data**. Leave it off for
-Open WebUI.
-
-### Read
-
-| Tool | What it returns |
+| Ask | Tools |
 |---|---|
-| `list_log_entries(hours=24, limit=50)` | Host/service alert log entries, newest first |
-| `get_host_info(hostname)` | A host's status with its services inline |
-| `list_services_by_state(state, limit=50)` | Services filtered by `ok`/`warning`/`critical`/`unknown` |
-| `get_monitoring_engine_stats()` | Engine health: check throughput and latency |
-| `list_host_downtimes(hostname="", only_active=False, limit=50)` | Scheduled and running host downtimes |
-| `list_service_downtimes(hostname="", servicename="", only_active=False, limit=50)` | Scheduled and running service downtimes |
-| `list_host_acknowledgements(hostname, limit=50)` | Who acknowledged what, when, with which comment |
-| `list_service_acknowledgements(hostname, servicename, limit=50)` | Same, per service |
-| `list_hostgroups(limit=50)` / `list_servicegroups(limit=50)` | Configured groups |
-| `list_servicetemplategroups(limit=50)` | Service template groups |
-| `list_hosttemplates(name_filter="", limit=50)` / `list_servicetemplates(...)` | Reusable host/service configurations. Filter by name - an instance has hundreds |
-| `list_contacts(name_filter="", limit=50)` / `list_contactgroups(limit=50)` | Notification contacts and groups |
-| `list_commands(name_filter="", limit=50)` | Check, notification and event-handler commands |
-| `get_container_tree(container_name="root")` | Tenants/locations and what lives under them |
-| `list_host_checks(hostname, hours=24, limit=25)` / `list_service_checks(...)` | Every check execution: output, latency, runtime |
-| `list_host_state_changes(hostname, hours=24, limit=50)` / `list_service_state_changes(...)` | Only entries where the state actually changed. Prefer this over check history |
-| `list_installed_software(hostname, name_filter="", only_updatable=False, limit=50)` | Installed packages/apps, OS auto-detected¹ |
-| `list_pending_security_updates(limit=50, max_packages_per_host=20)` / `list_pending_updates(...)` | Pending updates per host¹. Naming each package costs one API call, hence the cap |
+| "What is broken right now?" | `list_services_by_state`, `list_log_entries` |
+| "Do we already know about db-01?" | `get_host_info`, `list_host_acknowledgements`, `list_host_downtimes` |
+| "Why did web-03 flap last night?" | `list_host_state_changes`, `list_host_checks` |
+| "Which hosts need security patches?" | `list_pending_security_updates` |
+| "Is the monitoring itself keeping up?" | `get_monitoring_engine_stats` |
+| "Which templates could web-05 use?" | `get_allowed_elements_for_container` |
+| "Add web-05 with the Linux template" | `create_host` |
 
-¹ Requires the openITCOCKPIT agent's software inventory to have collected data
-for that host.
-
-### Write
-
-Registered only when `OITC_ENABLE_WRITE_TOOLS=true`. **These change your
-monitoring configuration.**
-
-| Tool | What it does |
-|---|---|
-| `get_allowed_elements_for_container(object_type, container_name="")` | Lists the values a create call would accept in that container. Call this instead of guessing and retrying. |
-| `create_host(name, address, ...)` | New host from a host template |
-| `create_host_with_agent_pull_mode(name, address, ..., port=3333)` | New host plus its agent pull-mode connection, in one call² |
-| `create_service(hostname, servicetemplate_name, name="", fields=None)` | New service on an existing host |
-| `create_hosttemplate(name, check_command_name, ...)` | Needs at least one contact or contact group |
-| `create_servicetemplate(name, template_name, check_command_name, ...)` | `template_name` is the internal reference name |
-| `create_command(name, command_line, command_type, ...)` | `check`/`hostcheck`/`notification`/`eventhandler`; global, not container-scoped |
-| `create_hostgroup(name, ...)` | New host group under a Tenant/Location/Node |
-| `create_contactgroup(name, contact_names, ...)` | Needs at least one contact |
-| `create_servicetemplategroup(name, servicetemplate_names, ...)` | Needs at least one service template |
-| `create_contact(name, email="", phone="", ...)` | Needs at least one of email/phone |
-| `update_host(hostname, fields=None, container_name=None)` | Read-modify-write³ |
-| `update_service(hostname, servicename, fields=None)` | Read-modify-write³ |
-| `update_contact(name, fields=None)` | Read-modify-write³, no inheritance |
-| `update_contactgroup(name, fields=None)` | Read-modify-write³, no inheritance |
-
-² Does not discover services from the live agent; add those separately.
-³ **See [docs/write-tools.md](docs/write-tools.md).** openITCOCKPIT's edit
-endpoints expect the complete object, and the inheritance, array and
-container-change rules determine what a partial `fields` dict does.
+Write tools are registered only when `OITC_ENABLE_WRITE_TOOLS=true`. **They
+change your monitoring configuration.**
 
 [docs/openitcockpit-api-notes.md](docs/openitcockpit-api-notes.md) documents the
 API behaviour this server works around - which endpoints omit newly created
 objects, the two names a service template carries, and the response shapes.
+
+<!-- The tool tables live in docs/read-tools.md and docs/write-tools.md. Keep
+     this section to examples: 39 rows of signatures pushed everything else in
+     the readme below the fold. -->
 
 ---
 

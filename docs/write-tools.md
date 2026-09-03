@@ -1,122 +1,135 @@
-# Write tool behaviour
+# Write tools
 
-Reference for the `create_*` / `update_*` tools: how openITCOCKPIT scopes
-cross-references, and what a read-modify-write update does to inheritance.
-Read this before adding a write tool.
+The 15 write tools, and the two openITCOCKPIT behaviours that decide what they
+actually do: cross-references are scoped to a container, and the edit endpoints
+want the whole object on every save.
 
-## Container-scoped fields
+> [!IMPORTANT]
+> These change your monitoring configuration. They are not registered at all
+> unless `OITC_ENABLE_WRITE_TOOLS=true`.
 
-openITCOCKPIT restricts most cross-references (a host's host template, a
-contact group's members, ...) to whatever is actually visible from the
-target container's scope - roughly the container itself plus its
-descendants, plus a couple of legacy tenant-wide exceptions. openITCOCKPIT's
-own API does **not** enforce this at write time; it's only checked in the
-endpoints the web UI calls to populate its form dropdowns, and (for
-`create_hostgroup`/`create_contactgroup`/`create_servicetemplategroup`/
-`create_contact`) in the endpoint that lists which container *types* may even
-hold that kind of object. Every `Create*` tool with a cross-reference calls
-those same endpoints and rejects an out-of-scope or wrong-container-type
-value before ever sending the write request, with an error naming the field,
-every invalid value that was rejected in one go, and either the closest
-matching names in scope or a hint to call `get_allowed_elements_for_container`
-for the full list. `create_command` has no scope checks because commands
-aren't a container-scoped object type at all.
+## The tools
 
-The "allowed elements" response for a given scope is cached briefly
-(`scope_cache_ttl_seconds`, default 30s) to avoid an extra API round trip per
-validated field on every write call, and is cleared automatically after every
-successful write. Set `scope_cache_enabled=false` to disable caching
-entirely.
+| Tool | What it does |
+|---|---|
+| `get_allowed_elements_for_container(object_type, container_name="")` | Lists the values a create call would accept in that container. Call this instead of guessing and retrying. Read-only. |
+| `create_host(name, address, ...)` | New host from a host template |
+| `create_host_with_agent_pull_mode(name, address, ..., port=3333)` | New host plus its agent pull-mode connection, in one call. Does not discover services from the live agent; add those separately. |
+| `create_service(hostname, servicetemplate_name, name="", fields=None)` | New service on an existing host |
+| `create_hosttemplate(name, check_command_name, ...)` | Needs at least one contact or contact group |
+| `create_servicetemplate(name, template_name, check_command_name, ...)` | `template_name` is the internal reference name |
+| `create_command(name, command_line, command_type, ...)` | `check`/`hostcheck`/`notification`/`eventhandler`; global, not container-scoped |
+| `create_hostgroup(name, ...)` | New host group under a Tenant/Location/Node |
+| `create_contactgroup(name, contact_names, ...)` | Needs at least one contact |
+| `create_servicetemplategroup(name, servicetemplate_names, ...)` | Needs at least one service template |
+| `create_contact(name, email="", phone="", ...)` | Needs at least one of email/phone |
+| `update_host(hostname, fields=None, container_name=None)` | Read-modify-write |
+| `update_service(hostname, servicename, fields=None)` | Read-modify-write |
+| `update_contact(name, fields=None)` | Read-modify-write, no inheritance |
+| `update_contactgroup(name, fields=None)` | Read-modify-write, no inheritance |
 
-This was verified end-to-end against a live openITCOCKPIT instance: creating
-a host template scoped to one tenant, then attempting to reference it from a
-host created under a *different* container, is correctly rejected before any
-API write happens - which is the exact class of bug this feature exists to
-prevent.
+All of them take human-readable names, never a database id. A contact group's
+`name` is its container's name, since a contact group has no name column of its
+own.
 
-## Update tools: conventions for future write tools
+## Container scope
 
-openITCOCKPIT's `edit` endpoints expect the complete object on every save, not
-a partial patch - submitting only the changed fields would blank out every
-field you didn't include. `update_service`/`update_host` therefore always do a
-read-modify-write: fetch the object's current *effective* (already
-merged-with-template) values, apply only what's in the `fields` dict on top of
-that, and resend the whole object - exactly what openITCOCKPIT's own Angular UI
-does on every edit.
+openITCOCKPIT restricts most cross-references - a host's template, a contact
+group's members - to what is visible from the target container: roughly the
+container plus its descendants, plus a few legacy tenant-wide exceptions.
 
-- **Inheritance.** A `null`/empty field on a Service or Host means "inherited
-  from its (service/host) template", not "empty". The backend re-derives this
-  on every save by diffing the submitted value against the current template:
-  equal -> stored as inherited again; different -> stored as this object's own
-  explicit override. Omitting a field from `fields` keeps its current
-  effective value (safe - either it stays an override, or it collapses back to
-  inherited if it now matches the template); passing it explicitly as `null`
-  *forces* it back to inherited even if it's currently an override. This holds
-  for ordinary scalar fields and for `check_period_name`/`notify_period_name`/
-  `check_command_name`/`eventhandler_command_name`. It does **not** apply to
-  `name`/`address` (no inheritance concept there) or to `servicetemplate_name`/
-  `hosttemplate_name` (a service/host must always reference exactly one
-  template) - `null` on those is rejected outright rather than silently
-  ignored.
-- **Contacts/contact groups are a coupled pair.** Due to a naemon-core
-  limitation, a Service/Host can only inherit contacts *and* contact groups
-  together, never independently. `contact_names`/`contactgroup_names` must
-  both be `null` together to reset both to inherited, or both given
-  explicitly; setting only one to `null` while giving the other a real value
-  is rejected rather than producing a state openITCOCKPIT itself can't
-  represent.
-- **`_ids` arrays default to replace, not append.** `servicegroup_names`,
-  `hostgroup_names`, and the coupled contact fields above all replace the full
-  set when given. There is no additive "add one more" mode - if that's ever
-  needed, it should be a separate, explicitly-named tool/parameter, not a
-  hidden mode of `fields`.
-- **Container changes re-validate everything, not just what moved.**
-  `update_host`'s `container_name` re-checks every cross-reference the host
-  already has (host template, timeperiods, contacts/contact groups, host
-  groups) against the *new* container's scope, even references you didn't
-  touch in that call - openITCOCKPIT itself does not do this, so a host moved
-  to a container that can't see its current host template would otherwise end
-  up with a silently dangling reference. If a currently-set reference is no
-  longer valid, the call is rejected with the same field/allowed-values detail
-  as any other scope violation, and it must be fixed explicitly in the same
-  call. Parent-host references and a host's additional "shared into"
-  containers are carried forward unchanged on a move and are *not*
-  re-validated - no scope-listing endpoint exists for either in openITCOCKPIT's
-  API, so this is a known, documented gap rather than a silent one.
-- **Identification.** All four tools take human-readable names (`hostname`,
-  `servicename`, a contact's `name`, a contact group's `name` - which is its
-  container's name, since a contact group has no name column of its own),
-  never a raw database id, consistent with the rest of this server's read
-  tools.
-- **Errors pass CakePHP's field-level validation errors through** (field name
-  + message per field) instead of collapsing them into one generic failure,
-  and scope violations name the field, the rejected value, and either the
-  closest matching names or the total count of valid values - never a bare
-  "failed".
-- **Contacts/contact groups have no template, so no inheritance.** Unlike
-  Service/Host, every field on `update_contact`/`update_contactgroup` is either
-  set or it isn't - `null` is rejected outright on fields that are always
-  required (`host_timeperiod_name`, `service_timeperiod_name`,
-  `container_names`, `host_command_names`, `service_command_names`,
-  `contact_names`) rather than treated as "reset to inherited", because there
-  is nothing to inherit from. `container_names`/`host_command_names`/
-  `service_command_names`/`contact_names` still replace the full set when
-  given (same convention as the array fields above), but can never be emptied
-  since openITCOCKPIT requires at least one of each on every save, not just
-  create.
-- **Not every endpoint's list responses share one shape.** `resolve_contactgroup_id`
-  (used to look up a contact group by name) had to be written against
-  `/contactgroups/index.json`'s actual response, which nests under
-  `"Contactgroup"`/`"Container"` - the sibling `/hostgroups/index.json` used
-  elsewhere in this codebase is flat instead. Checked directly against a live
-  instance rather than assumed from the sibling endpoint; worth re-checking
-  per-endpoint again for any future tool that needs to resolve a name to an id
-  this way.
+**openITCOCKPIT does not enforce this when writing.** It is only checked in the
+endpoints its own web UI calls to fill form dropdowns. So every `create_*` tool
+with a cross-reference calls those same endpoints and rejects an out-of-scope
+value *before* sending the write. `create_command` is exempt: commands are not
+a container-scoped object type.
 
-**Naming deviation, flagged rather than silently fixed:** `create_service`,
-`update_service`, `update_host`, `update_contact`, and `update_contactgroup`
-use `snake_case`, while every earlier write tool uses `PascalCase`
-(`create_host`, `create_hosttemplate`, ...) and one read tool already uses
-`snake_case` (`get_allowed_elements_for_container`). This was an explicit
-naming choice for these tools, not an oversight - if the project wants one
-convention across all tools, unifying it is a separate decision.
+A rejection names the field, every invalid value at once, and either the
+closest matching names in scope or a pointer to
+`get_allowed_elements_for_container` for the full list.
+
+The scope lookups are cached for `OITC_SCOPE_CACHE_TTL_SECONDS` (default 30) to
+avoid a round trip per validated field, and are cleared after every successful
+write. `OITC_SCOPE_CACHE_ENABLED=false` turns caching off.
+
+## Updates are read-modify-write
+
+The `edit` endpoints expect the **complete** object on every save. Submitting
+only the changed fields would blank out everything you left out. So
+`update_host` and `update_service` fetch the object's current *effective*
+values, apply `fields` on top, and resend the whole object - the same thing
+openITCOCKPIT's own UI does on every edit.
+
+### Inheritance
+
+On a host or service, an empty field means "inherited from the template", not
+"empty". The backend re-derives that on each save by comparing what you sent
+against the template:
+
+| `fields` entry | Result |
+|---|---|
+| omitted | Current effective value is kept. Either it stays an override, or it collapses back to inherited if it now matches the template. |
+| a value | Stored as this object's own override - unless it equals the template's value, in which case it becomes inherited again. |
+| `null` | **Forces** back to inherited, even if it is currently an override. |
+
+This covers ordinary scalar fields plus `check_period_name`,
+`notify_period_name`, `check_command_name` and `eventhandler_command_name`.
+
+Two exceptions, where `null` is rejected outright rather than silently ignored:
+
+- `name` and `address` - there is no inheritance concept for them.
+- `servicetemplate_name` and `hosttemplate_name` - an object must always
+  reference exactly one template.
+
+### Contacts and contact groups move together
+
+A naemon-core limitation: a host or service can inherit contacts *and* contact
+groups only as a pair, never independently. So `contact_names` and
+`contactgroup_names` must either both be `null`, or both be given. Setting one
+to `null` while giving the other a real value is rejected, because
+openITCOCKPIT cannot represent the result.
+
+### Array fields replace, they do not append
+
+`servicegroup_names`, `hostgroup_names` and the coupled contact fields above
+all replace the entire set when given. There is deliberately no additive mode
+hidden inside `fields`; if "add one more" is ever needed it should be its own
+explicitly named tool.
+
+### Moving a host re-validates everything
+
+`update_host`'s `container_name` re-checks *every* cross-reference the host
+already has - template, timeperiods, contacts, contact groups, host groups -
+against the new container's scope, including ones you did not touch.
+openITCOCKPIT does not do this, so a host moved somewhere that cannot see its
+own template would otherwise end up with a dangling reference. Anything no
+longer valid must be fixed in the same call.
+
+> [!NOTE]
+> **Known gap.** Parent-host references and a host's additional "shared into"
+> containers are carried forward unchanged on a move and are *not*
+> re-validated. openITCOCKPIT exposes no scope-listing endpoint for either.
+
+### Contacts have no template
+
+`update_contact` and `update_contactgroup` have no inheritance at all - every
+field is either set or it is not. `null` is rejected on the fields
+openITCOCKPIT always requires (`host_timeperiod_name`,
+`service_timeperiod_name`, `container_names`, `host_command_names`,
+`service_command_names`, `contact_names`), because there is nothing to inherit
+from. The array fields among them still replace the full set, but can never be
+emptied: openITCOCKPIT requires at least one of each on every save, not just on
+create.
+
+## Errors
+
+CakePHP's field-level validation errors are passed through, one message per
+field, rather than collapsed into a single failure. Scope violations name the
+field, the rejected value, and either the closest matching names or the count
+of valid ones - never a bare "failed".
+
+---
+
+Read tools are in [read-tools.md](read-tools.md). Response shapes and the other
+API quirks this server works around are in
+[openitcockpit-api-notes.md](openitcockpit-api-notes.md).
