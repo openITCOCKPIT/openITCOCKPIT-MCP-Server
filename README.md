@@ -1,285 +1,310 @@
 # openITCOCKPIT MCP Server
 
-An MCP (Model Context Protocol) server that exposes a curated, read-mostly view
-of an [openITCOCKPIT](https://www.openitcockpit.io/) monitoring instance to an
-LLM: host/service status, log entries, patch/update status, downtimes,
-acknowledgements, groups, and monitoring-engine health.
+An [MCP](https://modelcontextprotocol.io) server that exposes an
+[openITCOCKPIT](https://www.openitcockpit.io/) monitoring instance to an LLM
+client: host and service status, log entries, downtimes, acknowledgements,
+check history, software inventory and pending updates - plus optional,
+off-by-default tools that change the monitoring configuration.
 
-> [!IMPORTANT]
-> **The MCP server operates with the openITCOCKPIT permissions of the user for
-> whom the API key was created.** It does not use a separate, restricted MCP
-> identity. Every MCP client that can access this server can therefore use the
-> exposed tools with that user's permissions. Create the API key for a
-> dedicated least-privilege user and protect the key accordingly.
+- **Requires openITCOCKPIT 5.6 or newer.** See [Compatibility](#compatibility).
+- **39 tools**, 24 read-only and 15 write.
+- **Write tools are disabled by default** and are not even registered until you
+  enable them.
+- **Names, never IDs.** Every tool takes hostnames, template names and container
+  paths; the server resolves them itself.
+- **Scope-checked writes.** References are validated against the target
+  container before anything is sent, which openITCOCKPIT's own API does not do.
+
+---
+
+## Quickstart
+
+```bash
+cp .env.example .env          # fill in the two secrets, see Configuration
+docker compose up --build
+```
+
+Then point your client at `http://localhost:8000/mcp` with the bearer token
+from your `.env`. Compose reads that same file for the published port, so
+setting `OITC_PORT` there moves both sides at once.
+
+---
 
 ## Configuration
 
-The server needs `OITC_APIKEY` and `OITC_BASEURL`. Provide them either as
-environment variables, or in a local `config.ini` (copy `config.ini.example`
-to `config.ini` and fill in real values). Environment variables take
-precedence over `config.ini` if both are set.
+The server needs **two separate secrets** and refuses to start if they are the
+same value:
 
-`config.ini` is gitignored and must never be committed - it will contain a
-real credential.
+| Secret | Who presents it to whom |
+|---|---|
+| `MCP_AUTH_TOKEN` | **Clients → this server.** A random token you generate. |
+| `OITC_APIKEY` | **This server → openITCOCKPIT.** The API key of a dedicated, least-privilege openITCOCKPIT user. |
 
-| Setting | Env var | config.ini key | Default |
-|---|---|---|---|
-| API key | `OITC_APIKEY` | `api_key` | *(required)* |
-| Base URL | `OITC_BASEURL` | `base_url` | *(required)* |
-| Enable write tools | `OITC_ENABLE_WRITE_TOOLS` | `enable_write_tools` | `false` |
-| Enable scope-validation cache | `OITC_SCOPE_CACHE_ENABLED` | `scope_cache_enabled` | `true` |
-| Scope-validation cache TTL (seconds) | `OITC_SCOPE_CACHE_TTL_SECONDS` | `scope_cache_ttl_seconds` | `30` |
+```bash
+python -c "import secrets; print(secrets.token_urlsafe(32))"   # generate MCP_AUTH_TOKEN
+```
 
-The API key is used for both connections:
+Copy `.env.example` to `.env` and fill it in. Precedence, highest first:
+**CLI flags → environment variables → `.env` → defaults**. `.env` is gitignored
+and must never be committed.
 
-- The MCP server sends it to openITCOCKPIT as its API credential and thereby
-  receives the permissions of the user for whom the key was created.
-- MCP clients must send the exact same value as an HTTP bearer token:
-  `Authorization: Bearer <api_key>`.
+| Setting | Env var | Default |
+|---|---|---|
+| Client bearer token | `MCP_AUTH_TOKEN` | *(required for http)* |
+| openITCOCKPIT API key | `OITC_APIKEY` | *(required)* |
+| openITCOCKPIT base URL | `OITC_BASEURL` | *(required)* |
+| Verify the instance's TLS certificate | `OITC_VERIFY_TLS` | `true` |
+| CA bundle for a self-signed instance | `OITC_CA_BUNDLE` | *(unset)* |
+| Request timeout, seconds | `OITC_TIMEOUT_SECONDS` | `20` |
+| Register the write tools | `OITC_ENABLE_WRITE_TOOLS` | `false` |
+| Cache scope-validation lookups | `OITC_SCOPE_CACHE_ENABLED` | `true` |
+| Scope cache TTL, seconds | `OITC_SCOPE_CACHE_TTL_SECONDS` | `30` |
+| Summarise the text half of a result | `OITC_COMPACT_CONTENT` | `false` |
+| Transport, `http` or `stdio` | `OITC_TRANSPORT` | `http` |
+| Bind address / port (http) | `OITC_HOST` / `OITC_PORT` | `0.0.0.0` / `8000` |
+| Log level | `OITC_LOG_LEVEL` | `INFO` |
+| Print the start-up banner | `OITC_SHOW_BANNER` | `true` |
 
-The comparison is case-sensitive. Requests with a missing, malformed, or
-different bearer token are rejected with HTTP `401 Unauthorized`. No separate
-MCP authentication key is needed.
+---
 
-For a client that accepts custom headers, configure the MCP URL and header like
-this (replace the example value with the value from `config.ini`):
+## Connecting a client
+
+### HTTP (server runs as a service)
+
+Clients send `Authorization: Bearer <MCP_AUTH_TOKEN>`. The comparison is
+constant-time; a missing, malformed or wrong token gets HTTP `401`.
 
 ```json
 {
   "url": "http://your-mcp-server:8000/mcp",
-  "headers": {
-    "Authorization": "Bearer your-api-key-here"
+  "headers": { "Authorization": "Bearer your-mcp-auth-token" }
+}
+```
+
+### stdio (client spawns the server)
+
+No HTTP layer, so no `MCP_AUTH_TOKEN` is needed.
+
+```json
+{
+  "command": "oitc-mcp",
+  "args": ["--transport", "stdio"],
+  "env": {
+    "OITC_APIKEY": "your-openitcockpit-api-key",
+    "OITC_BASEURL": "https://openitcockpit.example.org"
   }
 }
 ```
 
-Write tools (see the "Write" list below) make real changes to the monitoring
-configuration and are **disabled by default** - they are not even registered
-as MCP tools unless explicitly enabled. Only turn this on if you understand
-the consequences.
+---
 
-The server binds to `0.0.0.0:8000` over plain HTTP. Bearer tokens are not
-encrypted by HTTP, so use TLS at a reverse proxy or only expose the server on a
-trusted network/VPN.
+## Installation
 
-## Running
+### Docker
 
-```
-pip install -r requirements.txt
-python3 oitc_mcp.py
+```bash
+docker run -d -p 8000:8000 --env-file .env openitcockpit/mcp-server:0.1.0
 ```
 
-## Running in Docker
+**Which tag?** The tag is this server's own version. `0.1.0` never changes, so a
+redeploy gives you exactly what you tested — pin that. `latest` is the only
+other tag and it moves under you. The tag says nothing about your openITCOCKPIT
+version; one image serves 5.6 and newer. See [Versioning](#versioning).
 
-`config.ini` is excluded from the image itself (`.dockerignore`) so a real
-credential never ends up baked into an image layer. Instead, mount it into
-the running container at `/app/config.ini` (`docker-compose.yml` already does
-this):
+Or with individual variables, for CI or a secret manager:
 
-```
-cp config.ini.example config.ini   # then fill in real values
-docker compose up --build
-```
-
-Without compose:
-
-```
+```bash
 docker run -d -p 8000:8000 \
-  -v "$(pwd)/config.ini:/app/config.ini:ro" \
-  openitcockpit/mcp-server:latest
-```
-
-Environment variables still work too and take precedence over `config.ini`
-if both are set - e.g. `docker run -e OITC_APIKEY=... -e OITC_BASEURL=...`
-without a volume mount, useful for CI or secret-manager-based deployments.
-
-```
-docker run -d -p 8000:8000 \
-  -e OITC_APIKEY="YOUR_API_KEY_HERE" \
+  -e MCP_AUTH_TOKEN="..." \
+  -e OITC_APIKEY="..." \
   -e OITC_BASEURL="https://openitcockpit.example.org" \
-  -e OITC_ENABLE_WRITE_TOOLS="false" \
-  openitcockpit/mcp-server:latest
+  openitcockpit/mcp-server:0.1.0
 ```
 
-The container's exposed port 8000 requires the same bearer token as a local
-installation. Use TLS at a reverse proxy or restrict network access at the
-Docker/firewall level so the credential is not transmitted over an untrusted
-plain-HTTP connection.
+No secret is baked into the image; configuration is read from the environment
+at start-up.
 
-## Versioning
+### From source
 
-The MCP server's version is identical to the openITCOCKPIT version it was build against.
-It is recommended to run the MCP server at the same version as the openITCOCKPIT instance is.
-
-If no new MCP server version is available for a given openITCOCKPIT version, the last MCP server build for that openITCOCKPIT version is still compatible and can be used.
-You can use the `latest` tag to always pull the most recent MCP server build for the openITCOCKPIT version you are running.
-Alternatively, you can use a specific version tag like `5.6.1` to pull a specific MCP server build for a given openITCOCKPIT version.
-
-### Building your own MCP server image
-
-It is also possible to build your own MCP server image by running the following command:
-
+```bash
+pip install .
+cp .env.example .env
+oitc-mcp
 ```
-docker build -t oitc-mcp-server .
-```
+
+`oitc-mcp --help` lists the flags that override the configuration
+(`--transport`, `--host`, `--port`, `--log-level`).
+
+---
 
 ## Tools
 
-Read-only:
+Every tool carries MCP annotations, so a client can tell a read from a write
+before calling it. Names are resolved to IDs internally - you never pass a raw
+database ID.
 
-- `GetLast24hLogentries` - host/service alert log entries from the last 24h.
-- `GetHostinfo(hostname)` - a host's status plus all of its services.
-- `getServicesbyState(state)` - services filtered by `ok`/`warning`/`critical`/`unknown`.
-- `GetHostDowntimes(hostname="", only_active=False)` - scheduled/running host downtimes.
-- `GetServiceDowntimes(hostname="", servicename="", only_active=False)` - scheduled/running service downtimes.
-- `GetHostAcknowledgements(hostname)` - acknowledgement history for a host.
-- `GetServiceAcknowledgements(hostname, servicename)` - acknowledgement history for a service.
-- `GetHostgroups()` / `GetServicegroups()` - list of configured groups.
-- `GetServicetemplategroups()` - list of service template groups.
-- `GetContacts(name_filter="")` / `GetContactgroups()` - notification contacts and groups.
-- `GetCommands(name_filter="")` - check/notification/event-handler commands.
-- `GetHosttemplates(name_filter="")` / `GetServicetemplates(name_filter="")` - reusable host/service configurations.
-- `GetSoftwareInventory(hostname)` - installed packages/apps on a host (Linux/Windows/macOS auto-detected). Requires the openITCOCKPIT agent's software inventory to have already collected data for that host.
-- `GetContainerTree(container_name="root")` - organizational structure (tenants/locations) and what lives directly under a container.
-- `GetHostCheckHistory(hostname, hours=24)` / `GetServiceCheckHistory(hostname, servicename, hours=24)` - every individual check execution (output, latency, execution time).
-- `GetHostStateHistory(hostname, hours=24)` / `GetServiceStateHistory(hostname, servicename, hours=24)` - only entries where the state actually changed.
-- `GetNagiosStats()` - monitoring engine health (check throughput/latency).
-- `getDetailedSecurityUpdateStatus()` / `getDetailedCommonUpdateStatus()` - pending update counts per host.
+List tools answer with an envelope, never a bare array:
+`{items, count, truncated, hint}`. `truncated` matters - openITCOCKPIT caps its
+list endpoints and reports no total, so without it a partial answer is
+indistinguishable from a complete one. Every list tool takes `limit` (default
+50, max 500).
 
-Write (behind `OITC_ENABLE_WRITE_TOOLS=true`, disabled by default):
+`hostname` and `servicename` are required where they appear. A call that omits
+one is answered with the values that would have worked, so the caller can
+correct it instead of retrying.
 
-- `get_allowed_elements_for_container(object_type, container_name="")` - lists the host templates, contacts, contact groups, timeperiods, etc. that are actually visible from a given container, i.e. the values a create call for that `object_type` would accept there. Call this first when unsure whether a name is in scope, instead of guessing and retrying on error. `object_type` is one of `host`, `hosttemplate`, `servicetemplate`, `hostgroup`, `contactgroup`, `servicetemplategroup`, `contact`.
-- `CreateHost(name, address, description="", container_name="", hosttemplate_name="default host")` - creates a new host. `container_name` defaults to the root container.
-- `CreateCommand(name, command_line, command_type, description="")` - `command_type` is one of `check`/`hostcheck`/`notification`/`eventhandler`. Commands are a global object type in openITCOCKPIT (no container scope applies).
-- `CreateHostgroup(name, description="", parent_container_name="")`
-- `CreateContactgroup(name, contact_names, description="", parent_container_name="")` - requires at least one contact.
-- `CreateServicetemplategroup(name, servicetemplate_names, description="", parent_container_name="")` - requires at least one service template.
-- `CreateContact(name, email="", phone="", ...)` - requires at least one of email/phone; notification commands and container default to the built-in email commands and root container.
-- `CreateHosttemplate(name, check_command_name, contact_names=None, contactgroup_names=None, ...)` - requires at least one of contact_names/contactgroup_names. Uses common monitoring defaults (5min check interval, 3 attempts, `24x7` timeperiod) for everything not explicitly passed.
-- `CreateServicetemplate(name, template_name, check_command_name, ...)` - `template_name` is the internal reference name, separate from the display `name`.
-- `CreateHostWithAgentPullMode(name, address, ..., hosttemplate_name="openITCOCKPIT Agent - Pull", port=3333)` - creates a host and configures it for openITCOCKPIT-agent Pull mode monitoring in one call (two API calls under the hood: create host, then configure the agent connection). Does not auto-discover/create services from the live agent - add those separately once the agent is reachable.
-- `create_service(hostname, servicetemplate_name, name="", fields=None)` - creates a service on an existing host from a service template. Everything not set in `fields` is left for openITCOCKPIT to inherit from the service template (and, for contacts/contactgroups, further down through the host to its host template).
-- `update_service(hostname, servicename, fields=None)` / `update_host(hostname, fields=None, container_name=None)` - read-modify-write updates: fetch the object's current effective values, apply only what's in `fields`, resend the whole object. See "Update tools" below for the inheritance/array/container-change semantics - they're not optional reading, a naive partial payload would silently blank fields.
-- `update_contact(name, fields=None)` / `update_contactgroup(name, fields=None)` - same read-modify-write pattern, but contacts/contact groups have no template to inherit from - every field is either set or it isn't. `name` identifies an existing contact/contact group (for a contact group, its container's name - it has no name column of its own). See "Update tools" below.
+Results are delivered twice: JSON text in `content`, and `structuredContent`
+for clients on MCP revision 2025-06-18 or later. `OITC_COMPACT_CONTENT=true`
+roughly halves each response by reducing `content` to a summary - but then
+**only clients that read `structuredContent` see the data**. Leave it off for
+Open WebUI.
 
-All `Create*`/`create_*`/`update_*` tools resolve human-readable names (contacts, commands,
-container paths, timeperiods, etc.) to internal IDs themselves - they never
-require the caller to know a raw database ID. Use the corresponding `Get*`
-tool to discover valid names first if a create call fails to resolve one.
+### Read
 
-### Container-scoped fields
+| Tool | What it returns |
+|---|---|
+| `list_log_entries(hours=24, limit=50)` | Host/service alert log entries, newest first |
+| `get_host_info(hostname)` | A host's status with its services inline |
+| `list_services_by_state(state, limit=50)` | Services filtered by `ok`/`warning`/`critical`/`unknown` |
+| `get_monitoring_engine_stats()` | Engine health: check throughput and latency |
+| `list_host_downtimes(hostname="", only_active=False, limit=50)` | Scheduled and running host downtimes |
+| `list_service_downtimes(hostname="", servicename="", only_active=False, limit=50)` | Scheduled and running service downtimes |
+| `list_host_acknowledgements(hostname, limit=50)` | Who acknowledged what, when, with which comment |
+| `list_service_acknowledgements(hostname, servicename, limit=50)` | Same, per service |
+| `list_hostgroups(limit=50)` / `list_servicegroups(limit=50)` | Configured groups |
+| `list_servicetemplategroups(limit=50)` | Service template groups |
+| `list_hosttemplates(name_filter="", limit=50)` / `list_servicetemplates(...)` | Reusable host/service configurations. Filter by name - an instance has hundreds |
+| `list_contacts(name_filter="", limit=50)` / `list_contactgroups(limit=50)` | Notification contacts and groups |
+| `list_commands(name_filter="", limit=50)` | Check, notification and event-handler commands |
+| `get_container_tree(container_name="root")` | Tenants/locations and what lives under them |
+| `list_host_checks(hostname, hours=24, limit=25)` / `list_service_checks(...)` | Every check execution: output, latency, runtime |
+| `list_host_state_changes(hostname, hours=24, limit=50)` / `list_service_state_changes(...)` | Only entries where the state actually changed. Prefer this over check history |
+| `list_installed_software(hostname, name_filter="", only_updatable=False, limit=50)` | Installed packages/apps, OS auto-detected¹ |
+| `list_pending_security_updates(limit=50, max_packages_per_host=20)` / `list_pending_updates(...)` | Pending updates per host¹. Naming each package costs one API call, hence the cap |
 
-openITCOCKPIT restricts most cross-references (a host's host template, a
-contact group's members, ...) to whatever is actually visible from the
-target container's scope - roughly the container itself plus its
-descendants, plus a couple of legacy tenant-wide exceptions. openITCOCKPIT's
-own API does **not** enforce this at write time; it's only checked in the
-endpoints the web UI calls to populate its form dropdowns, and (for
-`CreateHostgroup`/`CreateContactgroup`/`CreateServicetemplategroup`/
-`CreateContact`) in the endpoint that lists which container *types* may even
-hold that kind of object. Every `Create*` tool with a cross-reference calls
-those same endpoints and rejects an out-of-scope or wrong-container-type
-value before ever sending the write request, with an error naming the field,
-every invalid value that was rejected in one go, and either the closest
-matching names in scope or a hint to call `get_allowed_elements_for_container`
-for the full list. `CreateCommand` has no scope checks because commands
-aren't a container-scoped object type at all.
+¹ Requires the openITCOCKPIT agent's software inventory to have collected data
+for that host.
 
-The "allowed elements" response for a given scope is cached briefly
-(`scope_cache_ttl_seconds`, default 30s) to avoid an extra API round trip per
-validated field on every write call, and is cleared automatically after every
-successful write. Set `scope_cache_enabled=false` to disable caching
-entirely.
+### Write
 
-This was verified end-to-end against a live openITCOCKPIT instance: creating
-a host template scoped to one tenant, then attempting to reference it from a
-host created under a *different* container, is correctly rejected before any
-API write happens - which is the exact class of bug this feature exists to
-prevent.
+Registered only when `OITC_ENABLE_WRITE_TOOLS=true`. **These change your
+monitoring configuration.**
 
-### Update tools (`update_service`, `update_host`, `update_contact`, `update_contactgroup`) - conventions for future write tools
+| Tool | What it does |
+|---|---|
+| `get_allowed_elements_for_container(object_type, container_name="")` | Lists the values a create call would accept in that container. Call this instead of guessing and retrying. |
+| `create_host(name, address, ...)` | New host from a host template |
+| `create_host_with_agent_pull_mode(name, address, ..., port=3333)` | New host plus its agent pull-mode connection, in one call² |
+| `create_service(hostname, servicetemplate_name, name="", fields=None)` | New service on an existing host |
+| `create_hosttemplate(name, check_command_name, ...)` | Needs at least one contact or contact group |
+| `create_servicetemplate(name, template_name, check_command_name, ...)` | `template_name` is the internal reference name |
+| `create_command(name, command_line, command_type, ...)` | `check`/`hostcheck`/`notification`/`eventhandler`; global, not container-scoped |
+| `create_hostgroup(name, ...)` | New host group under a Tenant/Location/Node |
+| `create_contactgroup(name, contact_names, ...)` | Needs at least one contact |
+| `create_servicetemplategroup(name, servicetemplate_names, ...)` | Needs at least one service template |
+| `create_contact(name, email="", phone="", ...)` | Needs at least one of email/phone |
+| `update_host(hostname, fields=None, container_name=None)` | Read-modify-write³ |
+| `update_service(hostname, servicename, fields=None)` | Read-modify-write³ |
+| `update_contact(name, fields=None)` | Read-modify-write³, no inheritance |
+| `update_contactgroup(name, fields=None)` | Read-modify-write³, no inheritance |
 
-openITCOCKPIT's `edit` endpoints expect the complete object on every save, not
-a partial patch - submitting only the changed fields would blank out every
-field you didn't include. `update_service`/`update_host` therefore always do a
-read-modify-write: fetch the object's current *effective* (already
-merged-with-template) values, apply only what's in the `fields` dict on top of
-that, and resend the whole object - exactly what openITCOCKPIT's own Angular UI
-does on every edit.
+² Does not discover services from the live agent; add those separately.
+³ **See [docs/write-tools.md](docs/write-tools.md).** openITCOCKPIT's edit
+endpoints expect the complete object, and the inheritance, array and
+container-change rules determine what a partial `fields` dict does.
 
-- **Inheritance.** A `null`/empty field on a Service or Host means "inherited
-  from its (service/host) template", not "empty". The backend re-derives this
-  on every save by diffing the submitted value against the current template:
-  equal -> stored as inherited again; different -> stored as this object's own
-  explicit override. Omitting a field from `fields` keeps its current
-  effective value (safe - either it stays an override, or it collapses back to
-  inherited if it now matches the template); passing it explicitly as `null`
-  *forces* it back to inherited even if it's currently an override. This holds
-  for ordinary scalar fields and for `check_period_name`/`notify_period_name`/
-  `check_command_name`/`eventhandler_command_name`. It does **not** apply to
-  `name`/`address` (no inheritance concept there) or to `servicetemplate_name`/
-  `hosttemplate_name` (a service/host must always reference exactly one
-  template) - `null` on those is rejected outright rather than silently
-  ignored.
-- **Contacts/contact groups are a coupled pair.** Due to a naemon-core
-  limitation, a Service/Host can only inherit contacts *and* contact groups
-  together, never independently. `contact_names`/`contactgroup_names` must
-  both be `null` together to reset both to inherited, or both given
-  explicitly; setting only one to `null` while giving the other a real value
-  is rejected rather than producing a state openITCOCKPIT itself can't
-  represent.
-- **`_ids` arrays default to replace, not append.** `servicegroup_names`,
-  `hostgroup_names`, and the coupled contact fields above all replace the full
-  set when given. There is no additive "add one more" mode - if that's ever
-  needed, it should be a separate, explicitly-named tool/parameter, not a
-  hidden mode of `fields`.
-- **Container changes re-validate everything, not just what moved.**
-  `update_host`'s `container_name` re-checks every cross-reference the host
-  already has (host template, timeperiods, contacts/contact groups, host
-  groups) against the *new* container's scope, even references you didn't
-  touch in that call - openITCOCKPIT itself does not do this, so a host moved
-  to a container that can't see its current host template would otherwise end
-  up with a silently dangling reference. If a currently-set reference is no
-  longer valid, the call is rejected with the same field/allowed-values detail
-  as any other scope violation, and it must be fixed explicitly in the same
-  call. Parent-host references and a host's additional "shared into"
-  containers are carried forward unchanged on a move and are *not*
-  re-validated - no scope-listing endpoint exists for either in openITCOCKPIT's
-  API, so this is a known, documented gap rather than a silent one.
-- **Identification.** All four tools take human-readable names (`hostname`,
-  `servicename`, a contact's `name`, a contact group's `name` - which is its
-  container's name, since a contact group has no name column of its own),
-  never a raw database id, consistent with the rest of this server's read
-  tools.
-- **Errors pass CakePHP's field-level validation errors through** (field name
-  + message per field) instead of collapsing them into one generic failure,
-  and scope violations name the field, the rejected value, and either the
-  closest matching names or the total count of valid values - never a bare
-  "failed".
-- **Contacts/contact groups have no template, so no inheritance.** Unlike
-  Service/Host, every field on `update_contact`/`update_contactgroup` is either
-  set or it isn't - `null` is rejected outright on fields that are always
-  required (`host_timeperiod_name`, `service_timeperiod_name`,
-  `container_names`, `host_command_names`, `service_command_names`,
-  `contact_names`) rather than treated as "reset to inherited", because there
-  is nothing to inherit from. `container_names`/`host_command_names`/
-  `service_command_names`/`contact_names` still replace the full set when
-  given (same convention as the array fields above), but can never be emptied
-  since openITCOCKPIT requires at least one of each on every save, not just
-  create.
-- **Not every endpoint's list responses share one shape.** `resolve_contactgroup_id`
-  (used to look up a contact group by name) had to be written against
-  `/contactgroups/index.json`'s actual response, which nests under
-  `"Contactgroup"`/`"Container"` - the sibling `/hostgroups/index.json` used
-  elsewhere in this codebase is flat instead. Checked directly against a live
-  instance rather than assumed from the sibling endpoint; worth re-checking
-  per-endpoint again for any future tool that needs to resolve a name to an id
-  this way.
+[docs/openitcockpit-api-notes.md](docs/openitcockpit-api-notes.md) documents the
+API behaviour this server works around - which endpoints omit newly created
+objects, the two names a service template carries, and the response shapes.
 
-**Naming deviation, flagged rather than silently fixed:** `create_service`,
-`update_service`, `update_host`, `update_contact`, and `update_contactgroup`
-use `snake_case`, while every earlier write tool uses `PascalCase`
-(`CreateHost`, `CreateHosttemplate`, ...) and one read tool already uses
-`snake_case` (`get_allowed_elements_for_container`). This was an explicit
-naming choice for these tools, not an oversight - if the project wants one
-convention across all tools, unifying it is a separate decision.
+---
+
+## Skills
+
+`skills/` ships prompt material that teaches a model how to *chain* these tools,
+plus a system prompt for an openITCOCKPIT assistant.
+
+| Skill | Use it for |
+|---|---|
+| [`system-prompt.md`](skills/system-prompt.md) | Baseline assistant behaviour |
+| [`system-prompt.de.md`](skills/system-prompt.de.md) | German, with the full tool signatures |
+| [`oitc-incident-triage`](skills/oitc-incident-triage/SKILL.md) | "What is broken?", in the order that rules things out |
+| [`oitc-host-onboarding`](skills/oitc-host-onboarding/SKILL.md) | Adding a host and its services without scope rejections |
+| [`oitc-patch-review`](skills/oitc-patch-review/SKILL.md) | Security and update overview across the estate |
+| [`oitc-config-change`](skills/oitc-config-change/SKILL.md) | Changing an object without blanking fields |
+
+The `oitc-*` folders follow the Agent Skills layout, so `cp -r skills/oitc-*
+~/.claude/skills/` is enough for Claude Code and Claude Desktop; for other
+clients they are plain Markdown. See [skills/README.md](skills/README.md).
+
+---
+
+## Security
+
+> [!IMPORTANT]
+> Every client that passes the bearer check acts with the permissions of the
+> **one** openITCOCKPIT user the API key belongs to. There is no per-client
+> identity. Create that key for a dedicated, least-privilege user and treat
+> `MCP_AUTH_TOKEN` as a shared secret.
+
+- The http transport serves **plain HTTP**. Terminate TLS at a reverse proxy or
+  keep the server on a trusted network.
+- `MCP_AUTH_TOKEN` must differ from `OITC_APIKEY`; the server enforces this so
+  the openITCOCKPIT key is never handed to a client.
+- TLS verification against openITCOCKPIT is **on** by default. For a self-signed
+  instance set `OITC_CA_BUNDLE` rather than disabling verification.
+- Authentication is a shared static token, not OAuth 2.1 - a deliberate tradeoff
+  for a server that authenticates as a single service user. See
+  `src/openitcockpit_mcp/auth.py`.
+
+---
+
+## Versioning
+
+The image tag is this server's version, from `MCP_VERSION`. Two tags per
+release, and no others:
+
+| Image tag | Mutable? | Use for |
+|---|---|---|
+| `0.1.0` | no | **Pin this.** Exactly this build. |
+| `latest` | yes | The newest release, whatever it is |
+
+Semver: patch for fixes, minor for added tools, major for anything that breaks
+a client. **But this is still `0.x`** — the tool set is settling, so a minor
+bump may break one too. Pin the exact version and read the
+[CHANGELOG](CHANGELOG.md) before you move.
+
+### Compatibility
+
+**openITCOCKPIT 5.6 or newer** - one image serves every supported release.
+
+All 39 tools were exercised against live instances on the 5.6 line, and the
+openITCOCKPIT API is backwards compatible, so newer instances are expected to
+work. One caveat: `list_installed_software`, `list_pending_updates` and
+`list_pending_security_updates` need the openITCOCKPIT agent's package
+endpoints and fail with an API error where that feature is absent.
+
+---
+
+## Development
+
+```bash
+python -m venv .venv && . .venv/bin/activate    # Windows: .venv\Scripts\activate
+pip install -e ".[dev]"
+./scripts/checks-docker.sh    # ruff, mypy and pytest, exactly as CI runs them
+```
+
+The script runs the suite inside the image the Dockerfile is based on, so a
+local run and a CI run use the same Python. Individually: `ruff check .`,
+`mypy`, `pytest` (206 tests).
+
+Adding a tool: write it in the matching module under `tools/read/` or
+`tools/write/`, decorate it with `@mcp.tool(title=..., annotations=...)` using a
+preset from `tools/annotations.py`, and the subpackage's `register()` picks it
+up - anything under `tools/write/` is gated by `OITC_ENABLE_WRITE_TOOLS`
+automatically. A new module goes into that subpackage's `READ_MODULES` /
+`WRITE_MODULES` tuple, and a new tool into the call table in
+`tests/test_tools_smoke.py`, which runs every tool once against stubbed
+responses.
+
+Build the image yourself with `docker build -t oitc-mcp-server .`.

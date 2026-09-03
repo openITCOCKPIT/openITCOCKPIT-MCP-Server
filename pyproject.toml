@@ -1,0 +1,65 @@
+[build-system]
+requires = ["setuptools>=77"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "openitcockpit-mcp-server"
+description = "MCP server exposing an openITCOCKPIT monitoring instance to LLM clients"
+readme = "README.md"
+requires-python = ">=3.11"
+license = "MIT"
+license-files = ["LICENSE"]
+dynamic = ["version"]
+dependencies = [
+    "fastmcp>=4.0,<5",
+    "pydantic>=2.7,<3",
+    "pydantic-settings>=2.3,<3",
+    "requests>=2.31,<3",
+    "urllib3>=2.0,<3",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8",
+    "pytest-asyncio>=0.23",
+    "pytest-cov>=5",
+    "responses>=0.25",
+    "ruff>=0.6",
+    "mypy>=1.11",
+    "types-requests",
+]
+
+[project.scripts]
+oitc-mcp = "openitcockpit_mcp.cli:main"
+
+[tool.setuptools]
+package-dir = { "" = "src" }
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+# The single version this project carries, and what the image is tagged with.
+# The openITCOCKPIT releases it supports are a range, not a version, and live
+# in openitcockpit_mcp.version.OITC_MIN_VERSION - see README "Versioning".
+[tool.setuptools.dynamic]
+version = { file = ["MCP_VERSION"] }
+
+[tool.ruff]
+line-length = 140
+target-version = "py311"
+src = ["src", "tests"]
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "UP", "B", "SIM", "RUF"]
+ignore = ["E501"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]
+asyncio_mode = "auto"
+
+[tool.mypy]
+python_version = "3.11"
+packages = ["openitcockpit_mcp"]
+mypy_path = "src"
+ignore_missing_imports = true

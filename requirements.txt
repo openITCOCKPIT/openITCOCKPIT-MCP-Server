@@ -1,3 +1,7 @@
-fastmcp==3.0.0b1
+# Runtime dependencies, kept in sync with pyproject.toml.
+# Split out so Docker can cache the dependency layer separately from the source.
+fastmcp>=4.0,<5
+pydantic>=2.7,<3
+pydantic-settings>=2.3,<3
 requests>=2.31,<3
 urllib3>=2.0,<3
