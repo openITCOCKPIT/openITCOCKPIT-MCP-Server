@@ -43,6 +43,27 @@ pipeline {
             }
         }
 
+        // The pinnable tag must never move. Fail before building rather than
+        // silently replacing it at push time.
+        stage('Check tag is free') {
+            when {
+                beforeAgent true
+                branch 'main'
+                expression { params.PUBLISH == true }
+            }
+            agent {
+                label 'rhel8-amd64'
+            }
+            steps {
+                sh '''
+                    if docker buildx imagetools inspect "$dockerImage:$RELEASE_TAG" >/dev/null 2>&1; then
+                        echo "$dockerImage:$RELEASE_TAG is already published - bump VERSION or MCP_VERSION"
+                        exit 1
+                    fi
+                '''
+            }
+        }
+
         // Build and push stay on the same agent per architecture: the image
         // only exists in that node's local Docker, so a separate push stage
         // could end up on a different node and find nothing.
