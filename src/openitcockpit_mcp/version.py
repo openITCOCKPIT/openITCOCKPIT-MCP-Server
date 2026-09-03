@@ -22,7 +22,7 @@ from importlib.metadata import PackageNotFoundError, version
 DISTRIBUTION_NAME = "openitcockpit-mcp-server"
 
 #: openITCOCKPIT release this build targets. Keep in sync with the VERSION file.
-OITC_COMPAT_VERSION = "5.6.1"
+OITC_COMPAT_VERSION = "5.7.1"
 
 try:
     __version__ = version(DISTRIBUTION_NAME)
