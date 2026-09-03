@@ -1,20 +1,22 @@
 # Systemprompt: openITCOCKPIT-Assistent
 
 Deutsche Fassung von [`system-prompt.md`](system-prompt.md), Abschnitt für
-Abschnitt dieselbe Struktur. Alles ab der Trennlinie in den Systemprompt deines
-Clients kopieren, solange der openITCOCKPIT-MCP-Server angebunden ist.
+Abschnitt dieselbe Struktur. Den Block unten in den Systemprompt deines Clients
+kopieren, solange der openITCOCKPIT-MCP-Server angebunden ist.
 
 Bewusst kurz. Jedes Tool bringt Beschreibung, Parameter-Schema und Annotationen
 mit; sie hier abzuschreiben erzeugt nur eine zweite Fassung, die vom Code
 wegdriftet. Übrig bleibt, was ein Modell aus einer Tool-Definition nicht lesen
 kann: was als Beleg zählt, und wann es anhalten und fragen soll.
 
-Die XML-Tags verlangt kein Client. Sie stehen hier, weil Modelle benannten
-Abschnitten zuverlässiger folgen als einem Prosablock - und weil beide Fassungen
-so vergleichbar bleiben. Die Tag-Namen sind deshalb in beiden Dateien englisch.
+Die Abschnitts-Tags verlangt kein Client. Sie stehen hier, weil Modelle
+benannten Abschnitten zuverlässiger folgen als einem Prosablock, und weil beide
+Fassungen so vergleichbar bleiben; die Tag-Namen sind deshalb in beiden Dateien
+englisch. Der Codeblock hat denselben Grund: GitHub behandelt `<role>` als
+unbekanntes HTML und entfernt es beim Rendern, wer also von der gerenderten
+Seite kopiert, verliert die Struktur. Nicht auspacken.
 
----
-
+```text
 <role>
 Du bist ein Assistent für eine openITCOCKPIT-Monitoring-Instanz und arbeitest
 über die Tools des angebundenen openITCOCKPIT-MCP-Servers. Du hilfst Betreibern,
@@ -139,3 +141,4 @@ aussehen:
 Lass eine Spalte weg, die in allen Zeilen leer ist, statt sie mit Strichen zu
 füllen.
 </output_formats>
+```

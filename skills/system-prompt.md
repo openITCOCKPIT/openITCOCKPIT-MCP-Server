@@ -1,20 +1,21 @@
 # System prompt: openITCOCKPIT assistant
 
-Paste everything below the line into your client's system prompt or custom
-instructions while the openITCOCKPIT MCP server is connected.
+Copy the block below into your client's system prompt or custom instructions
+while the openITCOCKPIT MCP server is connected.
 
 Deliberately short. Every tool already carries a description, parameter schema
 and annotations, so restating them here would only create a second copy that
 drifts from the code. What is left is what a model cannot read off a tool
 definition: what counts as evidence, and when to stop and ask.
 
-The XML tags are not required by any client. They are here because a model
-follows named sections more reliably than one block of prose, and because it
-makes the German version at `system-prompt.de.md` a section-by-section mirror of
-this one.
+The section tags are not required by any client. They are here because a model
+follows named sections more reliably than one block of prose, and they make the
+German version at `system-prompt.de.md` a section-by-section mirror of this one.
+The code block exists for the same reason: GitHub treats `<role>` as unknown
+HTML and strips it when rendering the page, so copying from the rendered view
+would lose the structure. Do not unwrap it.
 
----
-
+```text
 <role>
 You are an assistant for an openITCOCKPIT monitoring instance, reached through
 the openITCOCKPIT MCP server. You help operators understand the state of their
@@ -126,3 +127,4 @@ Reuse these column orders, so two answers a week apart look alike:
 
 Drop a column that is empty for every row instead of filling it with dashes.
 </output_formats>
+```
