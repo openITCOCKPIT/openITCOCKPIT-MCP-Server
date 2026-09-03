@@ -10,27 +10,44 @@ want the whole object on every save.
 
 ## The tools
 
+All of them take human-readable names, never a database id. A contact group's
+`name` is its container's name, since a contact group has no name column of its
+own.
+
+### Before you write
+
 | Tool | What it does |
 |---|---|
-| `get_allowed_elements_for_container(object_type, container_name="")` | Lists the values a create call would accept in that container. Call this instead of guessing and retrying. Read-only. |
+| `get_allowed_elements_for_container(object_type, container_name="")` | Lists the values a create call would accept in that container. Read-only. Call it instead of guessing and retrying. |
+
+### Hosts and services
+
+| Tool | What it does |
+|---|---|
 | `create_host(name, address, ...)` | New host from a host template |
 | `create_host_with_agent_pull_mode(name, address, ..., port=3333)` | New host plus its agent pull-mode connection, in one call. Does not discover services from the live agent; add those separately. |
 | `create_service(hostname, servicetemplate_name, name="", fields=None)` | New service on an existing host |
+| `update_host(hostname, fields=None, container_name=None)` | Read-modify-write. `container_name` moves the host, see below. |
+| `update_service(hostname, servicename, fields=None)` | Read-modify-write |
+
+### Templates, commands and groups
+
+| Tool | What it does |
+|---|---|
 | `create_hosttemplate(name, check_command_name, ...)` | Needs at least one contact or contact group |
 | `create_servicetemplate(name, template_name, check_command_name, ...)` | `template_name` is the internal reference name |
 | `create_command(name, command_line, command_type, ...)` | `check`/`hostcheck`/`notification`/`eventhandler`; global, not container-scoped |
 | `create_hostgroup(name, ...)` | New host group under a Tenant/Location/Node |
-| `create_contactgroup(name, contact_names, ...)` | Needs at least one contact |
 | `create_servicetemplategroup(name, servicetemplate_names, ...)` | Needs at least one service template |
+
+### Contacts
+
+| Tool | What it does |
+|---|---|
 | `create_contact(name, email="", phone="", ...)` | Needs at least one of email/phone |
-| `update_host(hostname, fields=None, container_name=None)` | Read-modify-write |
-| `update_service(hostname, servicename, fields=None)` | Read-modify-write |
+| `create_contactgroup(name, contact_names, ...)` | Needs at least one contact |
 | `update_contact(name, fields=None)` | Read-modify-write, no inheritance |
 | `update_contactgroup(name, fields=None)` | Read-modify-write, no inheritance |
-
-All of them take human-readable names, never a database id. A contact group's
-`name` is its container's name, since a contact group has no name column of its
-own.
 
 ## Container scope
 
