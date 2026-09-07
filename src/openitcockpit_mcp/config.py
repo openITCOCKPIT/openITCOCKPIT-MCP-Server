@@ -50,6 +50,16 @@ class Settings(BaseSettings):
     apikey: str = Field(default="", description="openITCOCKPIT API key of the MCP service user.")
     baseurl: str = Field(default="", description="Base URL of the openITCOCKPIT instance.")
 
+    # --- Tool surface ------------------------------------------------------
+    toolsets: str = Field(
+        default="all",
+        description="Comma-separated toolset or tool names to limit this instance to. 'all' registers everything.",
+    )
+    toolsets_file: str | None = Field(
+        default=None,
+        description="Path to a toolsets.toml. Defaults to ./toolsets.toml, else the file shipped with the package.",
+    )
+
     # --- openITCOCKPIT connection -----------------------------------------
     verify_tls: bool = Field(default=True, description="Verify the openITCOCKPIT TLS certificate.")
     ca_bundle: str | None = Field(default=None, description="Path to a CA bundle for a self-signed instance.")
@@ -81,6 +91,19 @@ class Settings(BaseSettings):
     @classmethod
     def _strip_trailing_slash(cls, value: str) -> str:
         return value.rstrip("/")
+
+    @field_validator("toolsets")
+    @classmethod
+    def _reject_empty_toolsets(cls, value: str) -> str:
+        """An empty value is not a shorthand for anything.
+
+        It could only mean 'everything', which 'all' already says - and a
+        variable whose blank value carries a meaning is a variable nobody can
+        read.
+        """
+        if not value.strip():
+            raise ValueError("OITC_TOOLSETS must not be empty - use 'all' to register every tool.")
+        return value.strip()
 
     @field_validator("log_level")
     @classmethod

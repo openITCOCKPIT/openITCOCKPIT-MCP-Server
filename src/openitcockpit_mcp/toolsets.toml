@@ -1,0 +1,130 @@
+# Toolsets: named subsets of this server's tools.
+#
+# An instance can be limited to one or more of them, so an agent sees only the
+# tools its job needs - fewer candidates, fewer wrong calls, and a tool that is
+# not registered cannot be called at all.
+#
+#   OITC_TOOLSETS=triage          one set
+#   OITC_TOOLSETS=triage,patch    several
+#   OITC_TOOLSETS=all             everything registered - the default
+#   OITC_TOOLSETS=triage,get_container_tree   a set plus one more tool
+#
+# To use your own: copy this file next to where you start the server, or point
+# OITC_TOOLSETS_FILE at it. Your file *replaces* these sets rather than adding
+# to them, so what you see here is all there is to know.
+#
+#   cp src/openitcockpit_mcp/toolsets.toml toolsets.toml
+#
+# Selecting a set never widens what is available: the write tools stay
+# unregistered unless OITC_ENABLE_WRITE_TOOLS=true, whatever a set names.
+#
+# `guides` names the material an instance limited to this set should serve as
+# MCP resources: either one shipped with the server (see --list-toolsets, or
+# skills/) or a path to a Markdown file of your own, relative to this file:
+#
+#   skills = ["oitc-incident-triage", "./meine-anleitung.md"]
+#
+# The capabilities guide and the two general system prompts are served whatever
+# the limit, so no set needs to name them.
+#
+# Tools appear in several sets on purpose. A set has to be workable on its own -
+# an onboarding agent that cannot list host templates will guess names and be
+# rejected - so being minimal is not the goal here.
+
+[triage]
+description = "What is broken, since when, whether it is already handled, and whether the monitoring itself is at fault."
+skills = ["oitc-incident-triage"]
+systemprompts = ["system-prompt-triage", "system-prompt-triage-de"]
+tools = [
+    "list_services_by_state",
+    "get_host_info",
+    "list_log_entries",
+    "list_host_state_changes",
+    "list_service_state_changes",
+    "list_host_checks",
+    "list_service_checks",
+    "list_host_downtimes",
+    "list_service_downtimes",
+    "list_host_acknowledgements",
+    "list_service_acknowledgements",
+    "get_monitoring_engine_stats",
+]
+
+[patch]
+description = "Update and security posture across the monitored estate."
+skills = ["oitc-patch-review"]
+systemprompts = ["system-prompt-patch", "system-prompt-patch-de"]
+tools = [
+    "list_installed_software",
+    "list_pending_updates",
+    "list_pending_security_updates",
+    "get_host_info",
+]
+
+[catalog]
+description = "Look up what exists - templates, commands, contacts, groups, containers - without changing anything."
+systemprompts = ["system-prompt-catalog", "system-prompt-catalog-de"]
+tools = [
+    "list_hosttemplates",
+    "list_servicetemplates",
+    "list_commands",
+    "list_contacts",
+    "list_contactgroups",
+    "list_hostgroups",
+    "list_servicegroups",
+    "list_servicetemplategroups",
+    "get_container_tree",
+]
+
+# The sets below name write tools. They take effect only with
+# OITC_ENABLE_WRITE_TOOLS=true; otherwise they resolve to their read tools.
+
+[onboarding]
+description = "Take a host and its services into monitoring without container-scope rejections."
+skills = ["oitc-host-onboarding"]
+systemprompts = ["system-prompt-onboarding", "system-prompt-onboarding-de"]
+tools = [
+    "create_host",
+    "create_host_with_agent_pull_mode",
+    "create_service",
+    "get_allowed_elements_for_container",
+    "get_container_tree",
+    "list_hosttemplates",
+    "list_servicetemplates",
+    "get_host_info",
+]
+
+[config]
+description = "Change existing objects without blanking the fields you did not mention."
+skills = ["oitc-config-change"]
+systemprompts = ["system-prompt-config", "system-prompt-config-de"]
+tools = [
+    "update_host",
+    "update_service",
+    "update_contact",
+    "update_contactgroup",
+    "get_host_info",
+    "get_allowed_elements_for_container",
+    "list_hosttemplates",
+    "list_servicetemplates",
+    "list_commands",
+    "list_contacts",
+    "list_contactgroups",
+]
+
+[provisioning]
+description = "Create the building blocks hosts and services are made of, without touching anything that exists."
+skills = ["oitc-config-change"]
+systemprompts = ["system-prompt-provisioning", "system-prompt-provisioning-de"]
+tools = [
+    "create_hosttemplate",
+    "create_servicetemplate",
+    "create_command",
+    "create_contact",
+    "create_hostgroup",
+    "create_contactgroup",
+    "create_servicetemplategroup",
+    "get_container_tree",
+    "list_commands",
+    "list_contacts",
+]

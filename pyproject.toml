@@ -41,7 +41,7 @@ where = ["src"]
 # The skills/ Markdown is served over MCP as resources and prompts, so it has
 # to ship inside the package - see openitcockpit_mcp.guides.
 [tool.setuptools.package-data]
-openitcockpit_mcp = ["skills/*.md", "skills/*/SKILL.md"]
+openitcockpit_mcp = ["skills/*.md", "skills/*/SKILL.md", "systemprompts/*/*.md", "toolsets.toml"]
 
 # The single version this project carries, and what the image is tagged with.
 # The openITCOCKPIT releases it supports are a range, not a version, and live

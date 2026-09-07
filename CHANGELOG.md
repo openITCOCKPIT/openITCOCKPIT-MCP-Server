@@ -4,6 +4,57 @@ Notable changes to the openITCOCKPIT MCP Server. Versions follow `MCP_VERSION`,
 this server's semver, which is also the image tag. See
 [Versioning](README.md#versioning).
 
+## Unreleased
+
+### Added
+
+- **Toolsets.** `OITC_TOOLSETS` limits an instance to named subsets of the tool
+  surface, so an agent sees only the tools its job needs - and a tool that was
+  never registered cannot be called, which makes the limit a boundary rather
+  than a hint. Six sets ship: `triage`, `patch`, `catalog`, `onboarding`,
+  `config`, `provisioning`. `all` is the default and registers everything, as
+  before; a name that is not a set is taken to be a single tool, so a set can
+  be extended for one deployment without editing the file. There is no keyword
+  for "read-only" and no blank value - `all` plus `OITC_ENABLE_WRITE_TOOLS`
+  already covers it.
+
+  The sets live in `toolsets.toml` rather than in code, read from
+  `OITC_TOOLSETS_FILE`, else `./toolsets.toml`, else the file shipped with the
+  package - so an operator changes them without touching Python, and a file
+  found earlier replaces the sets rather than merging with them. Each set's
+  `description` is appended to the server instructions, which means an operator
+  running their own sets tells their own clients what they mean, in their own
+  words.
+
+- **A system prompt per toolset**, English and German, under
+  `skills/system-prompts/<language>/`. Each says what an agent limited to that
+  set does differently - the order triage rules things out in, the export gap
+  onboarding has to mention, that an update blanks the fields it omits - and is
+  meant to be added to the general prompt rather than to replace it. An
+  instance limited to a set serves its supplement as a resource; an unfiltered
+  one serves none, since it is not playing one of those roles.
+
+  Which material a set serves is named in `toolsets.toml` too, as `skills` and
+  `systemprompts` - either something shipped with the server or a path to a
+  file of your own, so a set you invent can carry material you wrote. Nothing
+  about the mapping lives in Python. `oitc-capabilities` and the two general
+  prompts are served whatever the limit, since knowing what the server cannot
+  do is what stops a model inventing a tool name in any role.
+
+  The system prompts now live in `systemprompts/<language>/`, beside `skills/`
+  rather than inside it: a skill is attached to a conversation, a system prompt
+  belongs in the client's system field, and the resource names say so -
+  `system-prompt-de`, `system-prompt-triage`, `system-prompt-triage-de`.
+
+  The two general prompts moved into that directory with it. Their resource
+  URIs are unchanged: moving a file is a repository decision, a URI is
+  something a client may have written down.
+
+  `oitc-mcp --list-toolsets` prints the sets and flags tools that belong to
+  none. An unknown tool or set name stops the start with a message naming it,
+  rather than costing a tool silently, and so does a selection that would leave
+  no tools registered at all.
+
 ## 0.2.0 - 2026-09-07
 
 ### Added
