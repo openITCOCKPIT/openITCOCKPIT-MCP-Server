@@ -11,6 +11,7 @@ from openitcockpit_mcp.argument_help import ArgumentHelpMiddleware
 from openitcockpit_mcp.auth import StaticTokenVerifier
 from openitcockpit_mcp.config import Settings
 from openitcockpit_mcp.deps import Deps
+from openitcockpit_mcp.guides import register_guides
 from openitcockpit_mcp.middleware import CompactContentMiddleware
 from openitcockpit_mcp.tools import register_all
 from openitcockpit_mcp.version import OITC_MIN_VERSION, __version__, version_banner
@@ -52,6 +53,9 @@ def create_server(settings: Settings, deps: Deps | None = None) -> tuple[FastMCP
         mcp.add_middleware(CompactContentMiddleware())
 
     register_all(mcp, deps)
+    # The skills/ Markdown as resources and prompts, so a client that cannot
+    # copy folders into ~/.claude/skills still gets the workflows.
+    register_guides(mcp, deps)
 
     # The start-up banner reports version, instance, transport and tool counts.
     # Logging the same at INFO would print it twice.

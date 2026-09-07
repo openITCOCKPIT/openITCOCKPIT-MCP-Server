@@ -4,6 +4,27 @@ Notable changes to the openITCOCKPIT MCP Server. Versions follow `MCP_VERSION`,
 this server's semver, which is also the image tag. See
 [Versioning](README.md#versioning).
 
+## Unreleased
+
+### Added
+
+- **The skills material is served over MCP.** Every file under
+  `src/openitcockpit_mcp/skills/` is now an MCP resource at
+  `oitc://skills/<name>`, and each `oitc-*` workflow is also a prompt. A client
+  that cannot copy folders into a skills directory gets the same material
+  without them. The `system-prompt` files are resources but not prompts: a
+  prompt is inserted as a message, and a system prompt belongs in the client's
+  system field. `oitc-host-onboarding` and `oitc-config-change` are registered
+  only when `OITC_ENABLE_WRITE_TOOLS=true`, the same gate the write tools use -
+  offering a workflow the server cannot run is worse than not offering it.
+
+### Changed
+
+- **`skills/` moved to `src/openitcockpit_mcp/skills/`.** It has to ship inside
+  the package to be served, and one copy is better than two. The folders are
+  unchanged, so `cp -r src/openitcockpit_mcp/skills/oitc-* ~/.claude/skills/`
+  replaces the old path and nothing else about their use changes.
+
 ## 0.1.0 - 2026-09-03
 
 The first release. An MCP server exposing an openITCOCKPIT monitoring instance

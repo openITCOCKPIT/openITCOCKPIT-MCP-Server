@@ -27,7 +27,7 @@ into your skills directory - `~/.claude/skills/` for personal use, or
 description matches what you asked for.
 
 ```bash
-cp -r skills/oitc-* ~/.claude/skills/
+cp -r src/openitcockpit_mcp/skills/oitc-* ~/.claude/skills/
 ```
 
 **Any other MCP client.** They are plain Markdown. Paste the relevant one into
