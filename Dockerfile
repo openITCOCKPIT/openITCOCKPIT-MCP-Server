@@ -1,5 +1,11 @@
 FROM python:3.12-slim
 
+# The MCP Registry proves ownership of an OCI package by reading this label off
+# the published image and comparing it to the name in server.json - it has to
+# match that value character for character, including the capitalisation of the
+# GitHub organisation. tests/test_server_json.py holds the two together.
+LABEL io.modelcontextprotocol.server.name="io.github.openITCOCKPIT/mcp-server"
+
 ENV PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1
 

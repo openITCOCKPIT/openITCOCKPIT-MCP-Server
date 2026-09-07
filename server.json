@@ -1,0 +1,62 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
+  "name": "io.github.openITCOCKPIT/mcp-server",
+  "title": "openITCOCKPIT",
+  "description": "openITCOCKPIT monitoring: host and service state, history, downtimes, acknowledgements, patches",
+  "version": "0.2.0",
+  "websiteUrl": "https://openitcockpit.io/",
+  "repository": {
+    "url": "https://github.com/openITCOCKPIT/openITCOCKPIT-MCP-Server",
+    "source": "github"
+  },
+  "packages": [
+    {
+      "registryType": "oci",
+      "identifier": "docker.io/openitcockpit/mcp-server:0.2.0",
+      "transport": {
+        "type": "stdio"
+      },
+      "environmentVariables": [
+        {
+          "name": "OITC_APIKEY",
+          "description": "API key of a dedicated, least-privilege openITCOCKPIT user. This server presents it to openITCOCKPIT; it is never handed to a client.",
+          "isRequired": true,
+          "isSecret": true
+        },
+        {
+          "name": "OITC_BASEURL",
+          "description": "Base URL of the openITCOCKPIT instance, e.g. https://openitcockpit.example.org - without a path.",
+          "isRequired": true,
+          "format": "string"
+        },
+        {
+          "name": "OITC_TRANSPORT",
+          "description": "Transport mode. The image defaults to 'http', which additionally requires MCP_AUTH_TOKEN and a published port; a client that runs this container itself wants 'stdio'.",
+          "default": "stdio",
+          "choices": [
+            "stdio",
+            "http"
+          ]
+        },
+        {
+          "name": "OITC_ENABLE_WRITE_TOOLS",
+          "description": "Register the 15 tools that change the monitoring configuration. Off by default: they are not even registered unless this is 'true'.",
+          "default": "false",
+          "choices": [
+            "false",
+            "true"
+          ]
+        },
+        {
+          "name": "OITC_VERIFY_TLS",
+          "description": "Verify the openITCOCKPIT TLS certificate. On by default; for a self-signed instance set OITC_CA_BUNDLE rather than turning this off.",
+          "default": "true",
+          "choices": [
+            "true",
+            "false"
+          ]
+        }
+      ]
+    }
+  ]
+}

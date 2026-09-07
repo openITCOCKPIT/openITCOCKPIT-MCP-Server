@@ -4,7 +4,7 @@ Notable changes to the openITCOCKPIT MCP Server. Versions follow `MCP_VERSION`,
 this server's semver, which is also the image tag. See
 [Versioning](README.md#versioning).
 
-## Unreleased
+## 0.2.0 - 2026-09-07
 
 ### Added
 
@@ -17,6 +17,21 @@ this server's semver, which is also the image tag. See
   system field. `oitc-host-onboarding` and `oitc-config-change` are registered
   only when `OITC_ENABLE_WRITE_TOOLS=true`, the same gate the write tools use -
   offering a workflow the server cannot run is worse than not offering it.
+
+- **A `server.json` for the MCP Registry.** `server.json` in the repo root is
+  what `mcp-publisher publish` sends, and the Dockerfile now carries the
+  `io.modelcontextprotocol.server.name` label the registry reads off the
+  published image as its ownership proof. The registry name is
+  `io.github.openITCOCKPIT/mcp-server` - the capitalisation matters, since the
+  registry derives the permission from GitHub's organisation login and matches
+  it case-sensitively. `tests/test_server_json.py` holds name, label,
+  `MCP_VERSION` and the image tag in the identifier together, because a
+  mismatch is otherwise invisible until a publish that happens after the image
+  is already pushed.
+
+  Publishing to the registry starts with this version: the ownership check
+  reads the label off the image in the registry, and the released `0.1.0` image
+  carries no labels at all.
 
 ### Changed
 
