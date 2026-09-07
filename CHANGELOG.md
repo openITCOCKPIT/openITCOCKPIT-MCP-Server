@@ -4,7 +4,7 @@ Notable changes to the openITCOCKPIT MCP Server. Versions follow `MCP_VERSION`,
 this server's semver, which is also the image tag. See
 [Versioning](README.md#versioning).
 
-## Unreleased
+## 0.2.0 - 2026-09-07
 
 ### Added
 
@@ -29,9 +29,9 @@ this server's semver, which is also the image tag. See
   mismatch is otherwise invisible until a publish that happens after the image
   is already pushed.
 
-  Not published yet: the ownership check reads the label off the image in the
-  registry, and the released `0.1.0` image does not carry it. The first version
-  that can be published is the next one built from this Dockerfile.
+  Publishing to the registry starts with this version: the ownership check
+  reads the label off the image in the registry, and the released `0.1.0` image
+  carries no labels at all.
 
 ### Changed
 

@@ -19,7 +19,7 @@ one image serves every supported release.
 
 | Tag | |
 |---|---|
-| `0.1.0` | Immutable. **Pin this.** |
+| `0.2.0` | Immutable. **Pin this.** |
 | `latest` | The newest release, whatever it is |
 
 Still `0.x`: the tool set is settling, so a minor bump may break a client.
@@ -31,7 +31,7 @@ docker run -d -p 8000:8000 \
   -e MCP_AUTH_TOKEN="a-token-you-generate" \
   -e OITC_APIKEY="the-openITCOCKPIT-api-key" \
   -e OITC_BASEURL="https://openitcockpit.example.org" \
-  openitcockpit/mcp-server:0.1.0
+  openitcockpit/mcp-server:0.2.0
 ```
 
 Point your client at `http://localhost:8000/mcp`, using `MCP_AUTH_TOKEN` as the

@@ -103,10 +103,10 @@ No HTTP layer, so no `MCP_AUTH_TOKEN` is needed.
 ### Docker
 
 ```bash
-docker run -d -p 8000:8000 --env-file .env openitcockpit/mcp-server:0.1.0
+docker run -d -p 8000:8000 --env-file .env openitcockpit/mcp-server:0.2.0
 ```
 
-**Which tag?** The tag is this server's own version. `0.1.0` never changes, so a
+**Which tag?** The tag is this server's own version. `0.2.0` never changes, so a
 redeploy gives you exactly what you tested - pin that. `latest` is the only
 other tag and it moves under you. The tag says nothing about your openITCOCKPIT
 version; one image serves 5.6 and newer. See [Versioning](#versioning).
@@ -118,7 +118,7 @@ docker run -d -p 8000:8000 \
   -e MCP_AUTH_TOKEN="..." \
   -e OITC_APIKEY="..." \
   -e OITC_BASEURL="https://openitcockpit.example.org" \
-  openitcockpit/mcp-server:0.1.0
+  openitcockpit/mcp-server:0.2.0
 ```
 
 No secret is baked into the image; configuration is read from the environment
@@ -252,7 +252,7 @@ release, and no others:
 
 | Image tag | Mutable? | Use for |
 |---|---|---|
-| `0.1.0` | no | **Pin this.** Exactly this build. |
+| `0.2.0` | no | **Pin this.** Exactly this build. |
 | `latest` | yes | The newest release, whatever it is |
 
 Semver: patch for fixes, minor for added tools, major for anything that breaks

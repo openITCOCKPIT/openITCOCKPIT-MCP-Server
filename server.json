@@ -3,7 +3,7 @@
   "name": "io.github.openITCOCKPIT/mcp-server",
   "title": "openITCOCKPIT",
   "description": "openITCOCKPIT monitoring: host and service state, history, downtimes, acknowledgements, patches",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "websiteUrl": "https://openitcockpit.io/",
   "repository": {
     "url": "https://github.com/openITCOCKPIT/openITCOCKPIT-MCP-Server",
@@ -12,7 +12,7 @@
   "packages": [
     {
       "registryType": "oci",
-      "identifier": "docker.io/openitcockpit/mcp-server:0.1.0",
+      "identifier": "docker.io/openitcockpit/mcp-server:0.2.0",
       "transport": {
         "type": "stdio"
       },
