@@ -1,7 +1,7 @@
 # openITCOCKPIT MCP Server
 
 An [MCP](https://modelcontextprotocol.io) server that exposes an
-[openITCOCKPIT](https://www.openitcockpit.io/) monitoring instance to an LLM
+[openITCOCKPIT](https://openitcockpit.io/) monitoring instance to an LLM
 client: host and service status, log entries, downtimes, acknowledgements,
 check history, software inventory and pending updates - plus optional,
 off-by-default tools that change the monitoring configuration.
