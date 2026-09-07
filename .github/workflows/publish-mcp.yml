@@ -1,15 +1,20 @@
 name: Publish to MCP Registry
 
-# Manuell ausloesen, solange das Publizieren neu ist. Spaeter kann
-# `push: tags: ["v*"]` dazu, dann laeuft es beim Release-Tag automatisch.
+# Publishing the GitHub release creates the tag, which fires this. The image
+# has to be on Docker Hub first - the registry verifies ownership by reading
+# the io.modelcontextprotocol.server.name label off the *published* image, so
+# run the Jenkins pipeline with PUBLISH=yes before publishing the release.
+# workflow_dispatch stays for a rerun after a failed or out-of-order run.
 on:
+  push:
+    tags: ["v*"]
   workflow_dispatch:
 
 jobs:
   publish:
     runs-on: ubuntu-latest
     permissions:
-      id-token: write # OIDC: leitet den Namensraum aus dem Repo-Owner ab
+      id-token: write # OIDC: the namespace is derived from the repository owner
       contents: read
 
     steps:
@@ -31,6 +36,13 @@ jobs:
             || { echo "image tag ${identifier##*:} != MCP_VERSION $mcp_version"; exit 1; }
           [ "$name" = "$label" ] \
             || { echo "server.json name $name != Dockerfile label $label"; exit 1; }
+
+          # On a tag run the tag itself is a fourth claim about the version, and
+          # it is the only one a mistyped release can get wrong on its own.
+          if [ "${GITHUB_REF_TYPE:-}" = "tag" ] && [ "$GITHUB_REF_NAME" != "v$mcp_version" ]; then
+            echo "tag $GITHUB_REF_NAME does not match MCP_VERSION $mcp_version"
+            exit 1
+          fi
 
           echo "OK: $name $mcp_version -> $identifier"
 
