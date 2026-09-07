@@ -135,6 +135,20 @@ oitc-mcp
 `oitc-mcp --help` lists the flags that override the configuration
 (`--transport`, `--host`, `--port`, `--log-level`).
 
+### MCP Registry
+
+`server.json` in the repo root is this server's entry for the
+[MCP Registry](https://registry.modelcontextprotocol.io), published with
+`mcp-publisher publish`. The registry name is
+`io.github.openITCOCKPIT/mcp-server`, and the Dockerfile carries the same
+string as an `io.modelcontextprotocol.server.name` label - the registry reads
+it off the published image as its only ownership proof for an OCI package, and
+compares it case-sensitively.
+
+Three values have to agree at release time: `MCP_VERSION`, the `version` in
+`server.json`, and the image tag in its package `identifier`.
+`tests/test_server_json.py` fails when they do not.
+
 ---
 
 ## Tools
