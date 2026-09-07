@@ -156,6 +156,18 @@ docker run -d -p 8000:8000 \
 No secret is baked into the image; configuration is read from the environment
 at start-up.
 
+**Or with Compose.** [`docker-compose.example.yml`](docker-compose.example.yml)
+is a complete deployment of the published image - restart policy, health check,
+and every setting inline in two blocks, required and optional. Copy it, fill in
+the three required values, and:
+
+```bash
+docker compose -f docker-compose.example.yml up -d
+```
+
+The `docker-compose.yml` next to it is a different thing: it builds from this
+repository and reads `.env`, which is what [Quickstart](#quickstart) uses.
+
 ### From source
 
 ```bash
