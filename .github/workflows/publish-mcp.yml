@@ -1,0 +1,46 @@
+name: Publish to MCP Registry
+
+# Manuell ausloesen, solange das Publizieren neu ist. Spaeter kann
+# `push: tags: ["v*"]` dazu, dann laeuft es beim Release-Tag automatisch.
+on:
+  workflow_dispatch:
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write # OIDC: leitet den Namensraum aus dem Repo-Owner ab
+      contents: read
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+
+      - name: Check server.json against MCP_VERSION and the Dockerfile label
+        run: |
+          set -eu
+          mcp_version="$(cat MCP_VERSION)"
+          name="$(jq -r .name server.json)"
+          json_version="$(jq -r .version server.json)"
+          identifier="$(jq -r '.packages[0].identifier' server.json)"
+          label="$(grep -oE '^LABEL io\.modelcontextprotocol\.server\.name="[^"]+"' Dockerfile | cut -d'"' -f2)"
+
+          [ "$json_version" = "$mcp_version" ] \
+            || { echo "server.json version $json_version != MCP_VERSION $mcp_version"; exit 1; }
+          [ "${identifier##*:}" = "$mcp_version" ] \
+            || { echo "image tag ${identifier##*:} != MCP_VERSION $mcp_version"; exit 1; }
+          [ "$name" = "$label" ] \
+            || { echo "server.json name $name != Dockerfile label $label"; exit 1; }
+
+          echo "OK: $name $mcp_version -> $identifier"
+
+      - name: Install mcp-publisher
+        run: |
+          curl -L "https://github.com/modelcontextprotocol/registry/releases/latest/download/mcp-publisher_$(uname -s | tr '[:upper:]' '[:lower:]')_$(uname -m | sed 's/x86_64/amd64/;s/aarch64/arm64/').tar.gz" | tar xz mcp-publisher
+          ./mcp-publisher --version
+
+      - name: Authenticate to MCP Registry
+        run: ./mcp-publisher login github-oidc
+
+      - name: Publish server to MCP Registry
+        run: ./mcp-publisher publish
