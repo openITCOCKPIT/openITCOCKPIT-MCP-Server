@@ -1,0 +1,89 @@
+# A complete deployment of the published image. Copy this file, fill in the
+# three required values, and `docker compose -f docker-compose.example.yml up -d`.
+#
+# Unlike docker-compose.yml, which builds from this repository and reads .env,
+# everything here is inline: no clone, no second file. If you would rather keep
+# the secrets out of this file, delete them from `environment` and add
+# `env_file: [.env]` instead - a variable set there wins over nothing, and
+# anything left here still applies.
+services:
+  oitc-mcp-server:
+    # `latest` follows every release. Pin the version instead - e.g.
+    # openitcockpit/mcp-server:0.2.0 - if a redeploy must give you exactly what
+    # you tested; see "Versioning" in the README.
+    image: openitcockpit/mcp-server:latest
+    container_name: oitc-mcp-server
+    restart: unless-stopped
+
+    # Host port first. Change both halves together with OITC_PORT below if 8000
+    # is taken. Bind to 127.0.0.1:8000:8000 to keep the server off the network
+    # while you terminate TLS in front of it.
+    ports:
+      - "8000:8000"
+
+    environment:
+      # ── Required ───────────────────────────────────────────────────────────
+      # Two separate secrets. The server refuses to start if they are equal.
+
+      # Presented by MCP *clients* to this server, as `Authorization: Bearer …`.
+      # Generate one:  python3 -c "import secrets; print(secrets.token_urlsafe(32))"
+      MCP_AUTH_TOKEN: "change-me-generate-a-random-token"
+
+      # Presented by this server to openITCOCKPIT. Create it for a dedicated,
+      # least-privilege user: every client that passes the bearer check acts
+      # with that user's permissions.
+      OITC_APIKEY: "your-openitcockpit-api-key"
+      OITC_BASEURL: "https://your-openitcockpit-instance"
+
+      # ── Optional (values shown are the defaults) ───────────────────────────
+
+      # Certificate verification towards openITCOCKPIT. For a self-signed
+      # instance mount the CA and point OITC_CA_BUNDLE at it (see volumes
+      # below) rather than turning this off.
+      OITC_VERIFY_TLS: "true"
+      #OITC_CA_BUNDLE: "/etc/ssl/certs/openitcockpit-ca.pem"
+      OITC_TIMEOUT_SECONDS: "20"
+
+      # The 15 tools that change the monitoring configuration are not even
+      # registered while this is false.
+      OITC_ENABLE_WRITE_TOOLS: "false"
+
+      # Write tools validate referenced objects against the target container's
+      # scope before writing; those lookups are cached briefly.
+      OITC_SCOPE_CACHE_ENABLED: "true"
+      OITC_SCOPE_CACHE_TTL_SECONDS: "30"
+
+      # Replaces the text half of a result with a one-line summary. Only
+      # clients that read structuredContent still see the data afterwards.
+      OITC_COMPACT_CONTENT: "false"
+
+      # http = network server, needs MCP_AUTH_TOKEN. stdio has no place in
+      # compose: it is spawned by a client over stdin/stdout.
+      OITC_TRANSPORT: "http"
+      OITC_HOST: "0.0.0.0"
+      OITC_PORT: "8000"
+
+      OITC_LOG_LEVEL: "INFO"
+      # The banner goes to stderr. Turn it off where a log collector would
+      # rather not parse a picture.
+      OITC_SHOW_BANNER: "true"
+
+    # Only needed for OITC_CA_BUNDLE above.
+    #volumes:
+    #  - ./openitcockpit-ca.pem:/etc/ssl/certs/openitcockpit-ca.pem:ro
+
+    healthcheck:
+      # The MCP endpoint requires a bearer token, so an unauthenticated request
+      # answering 401 is the expected healthy response: the server is up and
+      # rejecting correctly. A dead container gives no answer at all.
+      test:
+        - CMD-SHELL
+        - >-
+          python3 -c "import os,urllib.request,urllib.error;
+          p=os.environ.get('OITC_PORT','8000');
+          req=urllib.request.Request(f'http://127.0.0.1:{p}/mcp', method='POST');
+          exec('try:\n urllib.request.urlopen(req, timeout=5)\nexcept urllib.error.HTTPError as e:\n raise SystemExit(0 if e.code==401 else 1)\nexcept Exception:\n raise SystemExit(1)')"
+      interval: 30s
+      timeout: 10s
+      start_period: 10s
+      retries: 3
