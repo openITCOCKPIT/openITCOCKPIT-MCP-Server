@@ -2,12 +2,21 @@ from __future__ import annotations
 
 import pytest
 
-from openitcockpit_mcp.guides import GUIDES, URI_PREFIX, _read, _split_frontmatter
+from openitcockpit_mcp.guides import (
+    GUIDES,
+    TOOLSET_OVERVIEW_SLUG,
+    URI_PREFIX,
+    _read,
+    _split_frontmatter,
+)
 from openitcockpit_mcp.server import create_server
 
 READ_GUIDE_COUNT = 5
 WRITE_GUIDE_COUNT = 2
 READ_PROMPT_COUNT = 3
+#: The toolsets overview, which is served whatever an instance was limited to
+#: and is not a guide.
+OVERVIEW_COUNT = 1
 
 
 @pytest.fixture(scope="module")
@@ -41,7 +50,7 @@ def test_every_guide_file_ships_with_the_package():
 
 async def test_read_guides_are_registered(settings):
     resources, prompts = await _listed(settings)
-    assert len(resources) == READ_GUIDE_COUNT
+    assert len(resources) == READ_GUIDE_COUNT + OVERVIEW_COUNT
     assert len(prompts) == READ_PROMPT_COUNT
     assert f"{URI_PREFIX}oitc-incident-triage" in resources
     assert "oitc-incident-triage" in prompts
@@ -57,7 +66,7 @@ async def test_write_guides_are_absent_by_default(settings):
 
 async def test_write_guides_appear_when_write_tools_are_enabled(settings):
     resources, prompts = await _listed(settings.model_copy(update={"enable_write_tools": True}))
-    assert len(resources) == READ_GUIDE_COUNT + WRITE_GUIDE_COUNT
+    assert len(resources) == READ_GUIDE_COUNT + WRITE_GUIDE_COUNT + OVERVIEW_COUNT
     assert {f"{URI_PREFIX}oitc-host-onboarding", f"{URI_PREFIX}oitc-config-change"} <= set(resources)
     assert {"oitc-host-onboarding", "oitc-config-change"} <= set(prompts)
 
@@ -254,3 +263,38 @@ async def test_skills_are_annotated_for_the_model_and_prompts_for_the_person(set
     assert skill.audience == ["assistant"]
     assert prompt.audience == ["user"]
     assert by_uri[f"{URI_PREFIX}oitc-capabilities"].annotations.priority == 0.9
+
+
+async def _read_resource(mcp, uri: str) -> str:
+    result = await mcp.read_resource(uri)
+    return result.contents[0].content
+
+
+async def test_the_toolsets_an_instance_runs_with_are_readable_as_a_resource(settings):
+    """The same descriptions reach a client through the server instructions, but
+    the protocol revision from 2026-07-28 has no handshake and therefore no
+    instructions. A resource is readable on both paths."""
+    limited, deps = create_server(settings.model_copy(update={"toolsets": "triage"}))
+    try:
+        uris = {str(resource.uri) for resource in await limited.list_resources()}
+        body = await _read_resource(limited, f"{URI_PREFIX}{TOOLSET_OVERVIEW_SLUG}")
+    finally:
+        deps.api.close()
+
+    assert f"{URI_PREFIX}{TOOLSET_OVERVIEW_SLUG}" in uris
+    assert "## triage" in body
+    # The description from toolsets.toml, which is what the instructions carried.
+    assert "What is broken, since when" in body
+    # And which tools the set names, which tools/list alone does not say.
+    assert "list_services_by_state" in body
+    assert "## patch" not in body
+
+
+async def test_an_unlimited_instance_says_so(settings):
+    mcp, deps = create_server(settings)
+    try:
+        body = await _read_resource(mcp, f"{URI_PREFIX}{TOOLSET_OVERVIEW_SLUG}")
+    finally:
+        deps.api.close()
+
+    assert "not limited" in body

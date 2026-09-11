@@ -9,7 +9,7 @@
 services:
   oitc-mcp-server:
     # `latest` follows every release. Pin the version instead - e.g.
-    # openitcockpit/mcp-server:0.2.0 - if a redeploy must give you exactly what
+    # openitcockpit/mcp-server:0.3.0 - if a redeploy must give you exactly what
     # you tested; see "Versioning" in the README.
     image: openitcockpit/mcp-server:latest
     container_name: oitc-mcp-server

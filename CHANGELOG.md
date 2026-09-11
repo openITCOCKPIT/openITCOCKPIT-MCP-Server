@@ -4,7 +4,7 @@ Notable changes to the openITCOCKPIT MCP Server. Versions follow `MCP_VERSION`,
 this server's semver, which is also the image tag. See
 [Versioning](README.md#versioning).
 
-## Unreleased
+## 0.3.0 - 2026-09-11
 
 ### Added
 
@@ -54,6 +54,20 @@ this server's semver, which is also the image tag. See
   none. An unknown tool or set name stops the start with a message naming it,
   rather than costing a tool silently, and so does a selection that would leave
   no tools registered at all.
+
+- **An instance says what it is limited to, as a resource.** The active sets
+  and their descriptions are served as `oitc://skills/oitc-toolsets`, alongside
+  the server instructions that already carried them. The protocol revision from
+  2026-07-28 removed the initialize handshake, and with it `serverInfo` and
+  `instructions`, so on that path a resource is the only way a client can read
+  back what an instance is for. It also names the tools of each set, which
+  `tools/list` does not: that list is flat.
+
+- **`docker-compose.roles.yml`**, which runs one instance per role - `triage`,
+  `catalog`, `patch`, and a `config` instance that may write - each with its own
+  toolset, port, bearer token and openITCOCKPIT API key. That last part is the
+  point: an instance's account is what every client of it acts with, so the
+  division of labour only holds if the keys differ.
 
 ## 0.2.0 - 2026-09-07
 

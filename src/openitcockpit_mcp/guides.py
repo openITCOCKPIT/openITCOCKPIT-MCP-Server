@@ -69,6 +69,10 @@ MIME_TYPE = "text/markdown"
 #: Served whatever an instance was limited to.
 ALWAYS = ("oitc-capabilities", "system-prompt", "system-prompt-de")
 
+#: The resource naming the toolsets an instance runs with. Always served, so a
+#: client can ask what an instance is for without knowing what to look for.
+TOOLSET_OVERVIEW_SLUG = "oitc-toolsets"
+
 #: The toolsets the shipped file defines, for the supplements below. A set that
 #: is not here simply has no supplement shipped with it; toolsets.toml can name
 #: one of the operator's own instead.
@@ -297,4 +301,60 @@ def _as_prompt(slug: str, title: str, description: str, body: str) -> Prompt:
     return Prompt.from_function(render, name=slug, title=title, description=description)
 
 
-__all__ = ["ALWAYS", "GUIDES", "URI_PREFIX", "Guide", "register_guides"]
+def _toolset_overview(active: dict[str, Toolset]) -> str:
+    """The body of the toolsets resource."""
+    if not active:
+        return (
+            "# Toolsets\n\n"
+            "This instance is not limited to a toolset: every tool the server "
+            "registers is available. `tools/list` is the authority on what that "
+            "is, since write tools are registered only where they are enabled.\n"
+        )
+
+    lines = [
+        "# Toolsets",
+        "",
+        "This instance is limited to the tools of: " + ", ".join(sorted(active)) + ".",
+        "",
+        "`tools/list` is the authority on what is registered. A set may name "
+        "write tools that are absent because write tools are disabled.",
+    ]
+    for name in sorted(active):
+        toolset = active[name]
+        lines += ["", f"## {name}", ""]
+        if toolset.description:
+            lines += [toolset.description, ""]
+        lines.append(", ".join(sorted(toolset.tools)) or "No tools named.")
+
+    return "\n".join(lines) + "\n"
+
+
+def register_toolset_overview(mcp: FastMCP, active: dict[str, Toolset] | None) -> None:
+    """Register the resource naming what this instance is limited to.
+
+    The same descriptions reach a client through the server instructions, but
+    only where those exist: the protocol revision from 2026-07-28 removed the
+    initialize handshake, and with it serverInfo and instructions. A resource is
+    readable on both paths, which is what lets a client show an operator what an
+    instance is for.
+    """
+    _register(
+        mcp,
+        TOOLSET_OVERVIEW_SLUG,
+        "Toolsets",
+        "Which toolsets this instance runs with, and what each one is for.",
+        _toolset_overview(active or {}),
+        as_prompt=False,
+        audience=("user",),
+    )
+
+
+__all__ = [
+    "ALWAYS",
+    "GUIDES",
+    "TOOLSET_OVERVIEW_SLUG",
+    "URI_PREFIX",
+    "Guide",
+    "register_guides",
+    "register_toolset_overview",
+]

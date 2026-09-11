@@ -97,7 +97,7 @@ who just wants to connect a desktop client:
     "-e", "OITC_TRANSPORT=stdio",
     "-e", "OITC_APIKEY",
     "-e", "OITC_BASEURL",
-    "openitcockpit/mcp-server:0.2.0"
+    "openitcockpit/mcp-server:0.3.0"
   ],
   "env": {
     "OITC_APIKEY": "your-openitcockpit-api-key",
@@ -135,10 +135,10 @@ client provides, so neither secret ends up in the process list.
 ### Docker
 
 ```bash
-docker run -d -p 8000:8000 --env-file .env openitcockpit/mcp-server:0.2.0
+docker run -d -p 8000:8000 --env-file .env openitcockpit/mcp-server:0.3.0
 ```
 
-**Which tag?** The tag is this server's own version. `0.2.0` never changes, so a
+**Which tag?** The tag is this server's own version. `0.3.0` never changes, so a
 redeploy gives you exactly what you tested - pin that. `latest` is the only
 other tag and it moves under you. The tag says nothing about your openITCOCKPIT
 version; one image serves 5.6 and newer. See [Versioning](#versioning).
@@ -150,7 +150,7 @@ docker run -d -p 8000:8000 \
   -e MCP_AUTH_TOKEN="..." \
   -e OITC_APIKEY="..." \
   -e OITC_BASEURL="https://openitcockpit.example.org" \
-  openitcockpit/mcp-server:0.2.0
+  openitcockpit/mcp-server:0.3.0
 ```
 
 No secret is baked into the image; configuration is read from the environment
@@ -309,6 +309,26 @@ A file found that way *replaces* the sets rather than adding to them, and its
 `description` per set is what a client is told this instance is for - so your
 own wording reaches your own agents without living in this repository.
 
+**What an instance says about itself.** The active sets and their descriptions
+are appended to the server instructions, and served as the resource
+`oitc://skills/oitc-toolsets` as well. The resource matters on the protocol
+revision from 2026-07-28: it has no initialize handshake, so it has no
+instructions either, and reading them back is how a client shows an operator
+what an instance is for. It also names which tools each set holds, which
+`tools/list` does not - that list is flat.
+
+**One instance per role.** [`docker-compose.roles.yml`](docker-compose.roles.yml)
+runs four at once - `triage`, `catalog`, `patch` and a `config` instance that
+may write - each on its own port:
+
+```bash
+docker compose -f docker-compose.roles.yml up -d
+```
+
+Give each one its own openITCOCKPIT API key. That account's permissions are
+what every client of that instance acts with, so one key shared across all four
+gives every role the rights of the widest one.
+
 ---
 
 ## Skills
@@ -379,7 +399,7 @@ release, and no others:
 
 | Image tag | Mutable? | Use for |
 |---|---|---|
-| `0.2.0` | no | **Pin this.** Exactly this build. |
+| `0.3.0` | no | **Pin this.** Exactly this build. |
 | `latest` | yes | The newest release, whatever it is |
 
 Semver: patch for fixes, minor for added tools, major for anything that breaks

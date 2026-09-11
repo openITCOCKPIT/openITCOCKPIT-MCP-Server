@@ -1,0 +1,101 @@
+# Four instances, one per role, each limited to its own toolset.
+#
+# Where docker-compose.example.yml runs one unlimited server, this runs the
+# division of labour the toolsets were written for: an agent pointed at an
+# instance sees the tools of that role and no others, and a tool that was never
+# registered cannot be called.
+#
+#   docker compose -f docker-compose.roles.yml up -d
+#
+# The important part is not the ports. Each instance gets its **own**
+# openITCOCKPIT API key, because that account's permissions are what every
+# client of that instance acts with. Give the three read-only roles an account
+# that can only read; only `config` needs one that may write. Sharing one key
+# across all four gives every role the rights of the widest one and makes the
+# split decorative.
+#
+# Each also gets its own MCP_AUTH_TOKEN, so access to one role is not access to
+# the rest.
+
+x-role: &role
+  image: openitcockpit/mcp-server:0.3.0
+  restart: unless-stopped
+  healthcheck:
+    # An unauthenticated request answering 401 is the healthy response: the
+    # server is up and rejecting correctly. A dead container answers nothing.
+    test:
+      - CMD-SHELL
+      - >-
+        python3 -c "import urllib.request,urllib.error;
+        req=urllib.request.Request('http://127.0.0.1:8000/mcp', method='POST');
+        exec('try:\n urllib.request.urlopen(req, timeout=5)\nexcept urllib.error.HTTPError as e:\n raise SystemExit(0 if e.code==401 else 1)\nexcept Exception:\n raise SystemExit(1)')"
+    interval: 30s
+    timeout: 10s
+    start_period: 10s
+    retries: 3
+
+x-role-env: &role-env
+  OITC_BASEURL: "https://your-openitcockpit-instance"
+  OITC_VERIFY_TLS: "true"
+  OITC_TRANSPORT: "http"
+  OITC_HOST: "0.0.0.0"
+  OITC_PORT: "8000"
+  OITC_LOG_LEVEL: "INFO"
+  # Off here: a role that only reads has nothing to gain from it, and the one
+  # role that writes turns it on for itself below.
+  OITC_ENABLE_WRITE_TOOLS: "false"
+  OITC_SHOW_BANNER: "false"
+
+services:
+  # What is broken, since when, and whether someone is already on it.
+  oitc-mcp-triage:
+    <<: *role
+    container_name: oitc-mcp-triage
+    ports:
+      - "8801:8000"
+    environment:
+      <<: *role-env
+      OITC_TOOLSETS: "triage"
+      MCP_AUTH_TOKEN: "change-me-token-triage"
+      OITC_APIKEY: "api-key-of-a-read-only-account"
+
+  # What exists and how it is described: hosts, services, templates, contacts.
+  oitc-mcp-catalog:
+    <<: *role
+    container_name: oitc-mcp-catalog
+    ports:
+      - "8802:8000"
+    environment:
+      <<: *role-env
+      OITC_TOOLSETS: "catalog"
+      MCP_AUTH_TOKEN: "change-me-token-catalog"
+      OITC_APIKEY: "api-key-of-a-read-only-account"
+
+  # Update and security posture across the monitored estate.
+  oitc-mcp-patch:
+    <<: *role
+    container_name: oitc-mcp-patch
+    ports:
+      - "8803:8000"
+    environment:
+      <<: *role-env
+      OITC_TOOLSETS: "patch"
+      MCP_AUTH_TOKEN: "change-me-token-patch"
+      OITC_APIKEY: "api-key-of-a-read-only-account"
+
+  # The one instance that changes anything. Three sets, because onboarding a
+  # host and provisioning what it runs are the same job from two directions.
+  #
+  # Its account is the only one that needs write permissions in openITCOCKPIT,
+  # and every client that passes its bearer check acts with them.
+  oitc-mcp-config:
+    <<: *role
+    container_name: oitc-mcp-config
+    ports:
+      - "8804:8000"
+    environment:
+      <<: *role-env
+      OITC_TOOLSETS: "config,onboarding,provisioning"
+      OITC_ENABLE_WRITE_TOOLS: "true"
+      MCP_AUTH_TOKEN: "change-me-token-config"
+      OITC_APIKEY: "api-key-of-an-account-that-may-write"

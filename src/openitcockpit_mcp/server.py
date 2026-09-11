@@ -11,7 +11,7 @@ from openitcockpit_mcp.argument_help import ArgumentHelpMiddleware
 from openitcockpit_mcp.auth import StaticTokenVerifier
 from openitcockpit_mcp.config import Settings
 from openitcockpit_mcp.deps import Deps
-from openitcockpit_mcp.guides import register_guides
+from openitcockpit_mcp.guides import register_guides, register_toolset_overview
 from openitcockpit_mcp.middleware import CompactContentMiddleware
 from openitcockpit_mcp.tools import register_all
 from openitcockpit_mcp.toolsets import active as active_toolsets
@@ -60,7 +60,11 @@ def create_server(settings: Settings, deps: Deps | None = None) -> tuple[FastMCP
     register_all(mcp, deps)
     # The skills/ Markdown as resources and prompts, so a client that cannot
     # copy folders into ~/.claude/skills still gets the workflows.
-    register_guides(mcp, deps, *active_toolsets(settings))
+    active, toolsets_path = active_toolsets(settings)
+    register_guides(mcp, deps, active, toolsets_path)
+    # The same sets as a resource: instructions exist only where the handshake
+    # does, and the revision from 2026-07-28 removed it.
+    register_toolset_overview(mcp, active)
 
     # Registration first, then narrowing: a toolset only ever removes.
     #
