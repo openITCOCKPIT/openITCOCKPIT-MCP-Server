@@ -33,7 +33,13 @@ def captured_run(monkeypatch):
                 calls.append(kwargs)
 
             async def list_tools(self):  # read by count_tools for the banner
-                return []
+                # One tool, not none: main() treats an empty surface as a
+                # misconfiguration and refuses to serve it.
+                class Tool:
+                    name = "get_host_info"
+                    annotations = None
+
+                return [Tool()]
 
         class FakeDeps:
             class api:

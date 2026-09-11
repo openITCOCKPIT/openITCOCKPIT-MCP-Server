@@ -7,8 +7,7 @@ wrong answers.
 
 | File | Use it for |
 |---|---|
-| [`system-prompt.md`](system-prompt.md) | Baseline behaviour for an openITCOCKPIT assistant. Paste into your client's system prompt. |
-| [`system-prompt.de.md`](system-prompt.de.md) | The same prompt in German, section for section. |
+| [`../systemprompts/`](../systemprompts/) | The system prompts moved next door: a general one per language, plus one supplement per toolset. They belong in a client's system field, not attached to a conversation, which is why they no longer live here. |
 | [`oitc-incident-triage/`](oitc-incident-triage/SKILL.md) | "What is broken?" - from alert to diagnosis, in the order that rules things out |
 | [`oitc-host-onboarding/`](oitc-host-onboarding/SKILL.md) | Adding a host and its services without container-scope rejections |
 | [`oitc-patch-review/`](oitc-patch-review/SKILL.md) | Security and update overview across the estate |

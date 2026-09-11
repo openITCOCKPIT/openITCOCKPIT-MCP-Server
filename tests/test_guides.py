@@ -2,12 +2,26 @@ from __future__ import annotations
 
 import pytest
 
-from openitcockpit_mcp.guides import GUIDES, URI_PREFIX, _read, _split_frontmatter
+from openitcockpit_mcp.guides import (
+    GUIDES,
+    TOOLSET_OVERVIEW_SLUG,
+    URI_PREFIX,
+    _read,
+    _split_frontmatter,
+)
 from openitcockpit_mcp.server import create_server
 
 READ_GUIDE_COUNT = 5
 WRITE_GUIDE_COUNT = 2
 READ_PROMPT_COUNT = 3
+#: The toolsets overview, which is served whatever an instance was limited to
+#: and is not a guide.
+OVERVIEW_COUNT = 1
+
+
+@pytest.fixture(scope="module")
+def shipped_slugs() -> dict[str, str]:
+    return {guide.path: guide.slug for guide in GUIDES}
 
 
 def _guide(slug: str) -> str:
@@ -36,7 +50,7 @@ def test_every_guide_file_ships_with_the_package():
 
 async def test_read_guides_are_registered(settings):
     resources, prompts = await _listed(settings)
-    assert len(resources) == READ_GUIDE_COUNT
+    assert len(resources) == READ_GUIDE_COUNT + OVERVIEW_COUNT
     assert len(prompts) == READ_PROMPT_COUNT
     assert f"{URI_PREFIX}oitc-incident-triage" in resources
     assert "oitc-incident-triage" in prompts
@@ -52,7 +66,7 @@ async def test_write_guides_are_absent_by_default(settings):
 
 async def test_write_guides_appear_when_write_tools_are_enabled(settings):
     resources, prompts = await _listed(settings.model_copy(update={"enable_write_tools": True}))
-    assert len(resources) == READ_GUIDE_COUNT + WRITE_GUIDE_COUNT
+    assert len(resources) == READ_GUIDE_COUNT + WRITE_GUIDE_COUNT + OVERVIEW_COUNT
     assert {f"{URI_PREFIX}oitc-host-onboarding", f"{URI_PREFIX}oitc-config-change"} <= set(resources)
     assert {"oitc-host-onboarding", "oitc-config-change"} <= set(prompts)
 
@@ -117,7 +131,170 @@ def test_split_frontmatter(text, expected_fields, expected_body):
     assert body == expected_body
 
 
-def test_slug_is_the_folder_for_a_skill_and_the_stem_for_a_file():
-    slugs = {guide.path: guide.slug for guide in GUIDES}
-    assert slugs["oitc-incident-triage/SKILL.md"] == "oitc-incident-triage"
-    assert slugs["system-prompt.de.md"] == "system-prompt.de"
+async def test_a_set_serves_what_the_file_names_for_it(settings):
+    """The mapping lives in toolsets.toml, so a set someone invents can carry
+    material they wrote."""
+    limited, deps = create_server(settings.model_copy(update={"toolsets": "triage"}))
+    try:
+        uris = {str(resource.uri) for resource in await limited.list_resources()}
+    finally:
+        deps.api.close()
+    assert {
+        f"{URI_PREFIX}oitc-incident-triage",
+        f"{URI_PREFIX}system-prompt-triage",
+        f"{URI_PREFIX}system-prompt-triage-de",
+    } <= uris
+    assert f"{URI_PREFIX}oitc-patch-review" not in uris
+    assert f"{URI_PREFIX}system-prompt-patch" not in uris
+
+
+async def test_an_unfiltered_server_registers_no_role_supplements(settings):
+    """It is not playing one of these roles, and twelve resources saying
+    otherwise would be noise."""
+    mcp, deps = create_server(settings)
+    try:
+        uris = {str(resource.uri) for resource in await mcp.list_resources()}
+    finally:
+        deps.api.close()
+    assert not [uri for uri in uris if uri.startswith(f"{URI_PREFIX}system-prompt-") and uri != f"{URI_PREFIX}system-prompt-de"]
+
+
+def test_every_shipped_set_names_skills_that_exist():
+    """A name nobody answers to would leave that set without its material, and
+    nothing would say so."""
+    from openitcockpit_mcp.guides import BY_SLUG
+    from openitcockpit_mcp.toolsets import _packaged_file, load
+
+    for name, toolset in load(_packaged_file()).items():
+        assert toolset.systemprompts, f"{name} names no system prompt"
+        unknown = [s for s in (*toolset.skills, *toolset.systemprompts) if s not in BY_SLUG]
+        assert unknown == [], f"{name}: {unknown}"
+
+
+def test_every_shipped_set_has_a_supplement_in_both_languages():
+    from openitcockpit_mcp.toolsets import _packaged_file, load
+
+    for name, toolset in load(_packaged_file()).items():
+        assert f"system-prompt-{name}" in toolset.systemprompts
+        assert f"system-prompt-{name}-de" in toolset.systemprompts
+
+
+async def test_a_limited_instance_serves_only_its_own_skills(settings):
+    """A triage agent has no use for the patch-review workflow, and a guide it
+    cannot act on invites it to try."""
+    mcp, deps = create_server(settings.model_copy(update={"toolsets": "triage"}))
+    try:
+        uris = {str(resource.uri) for resource in await mcp.list_resources()}
+    finally:
+        deps.api.close()
+    assert f"{URI_PREFIX}oitc-incident-triage" in uris
+    assert f"{URI_PREFIX}oitc-patch-review" not in uris
+
+
+async def test_the_capabilities_guide_is_served_whatever_the_limit(settings):
+    """It describes what the server cannot do, which every role needs in order
+    not to invent a tool name."""
+    mcp, deps = create_server(settings.model_copy(update={"toolsets": "patch"}))
+    try:
+        uris = {str(resource.uri) for resource in await mcp.list_resources()}
+    finally:
+        deps.api.close()
+    assert f"{URI_PREFIX}oitc-capabilities" in uris
+    assert f"{URI_PREFIX}system-prompt" in uris
+
+
+async def test_an_unfiltered_instance_still_serves_every_skill(settings):
+    mcp, deps = create_server(settings)
+    try:
+        uris = {str(resource.uri) for resource in await mcp.list_resources()}
+    finally:
+        deps.api.close()
+    assert {f"{URI_PREFIX}oitc-incident-triage", f"{URI_PREFIX}oitc-patch-review"} <= uris
+
+
+async def test_a_set_can_name_a_file_of_its_own(settings, tmp_path, monkeypatch):
+    """The point of the mapping living in the file: an operator's own set with
+    an operator's own material."""
+    (tmp_path / "wachdienst-prompt.md").write_text(
+        "---\nname: wachdienst-prompt\ndescription: Systemprompt fuer den Wachdienst\n---\n\n# Prompt\n",
+        encoding="utf-8",
+    )
+    (tmp_path / "wachdienst.md").write_text(
+        "---\nname: wachdienst\ndescription: Was der Wachdienst tut\n---\n\n# Wachdienst\n",
+        encoding="utf-8",
+    )
+    (tmp_path / "toolsets.toml").write_text(
+        '[wachdienst]\ndescription = "Meine Gruppe"\ntools = ["get_host_info"]\n'
+        'skills = ["./wachdienst.md"]\nsystemprompts = ["./wachdienst-prompt.md"]\n',
+        encoding="utf-8",
+    )
+    monkeypatch.chdir(tmp_path)
+    mcp, deps = create_server(settings.model_copy(update={"toolsets": "wachdienst"}))
+    try:
+        resources = {str(r.uri): r for r in await mcp.list_resources()}
+    finally:
+        deps.api.close()
+    assert f"{URI_PREFIX}wachdienst" in resources
+    assert resources[f"{URI_PREFIX}wachdienst"].description == "Was der Wachdienst tut"
+    assert f"{URI_PREFIX}wachdienst-prompt" in resources
+    # The three that are served whatever the limit come along.
+    assert f"{URI_PREFIX}oitc-capabilities" in resources
+
+
+async def test_a_named_file_that_is_missing_is_an_error(settings, tmp_path, monkeypatch):
+    (tmp_path / "toolsets.toml").write_text(
+        '[mine]\ntools = ["get_host_info"]\nskills = ["./absent.md"]\n', encoding="utf-8"
+    )
+    monkeypatch.chdir(tmp_path)
+    with pytest.raises(ValueError, match="does not exist"):
+        create_server(settings.model_copy(update={"toolsets": "mine"}))
+
+
+async def test_skills_are_annotated_for_the_model_and_prompts_for_the_person(settings):
+    """The only standard say a server has in whether material reaches the
+    model. A client may ignore it - resources are application-driven."""
+    mcp, deps = create_server(settings)
+    try:
+        by_uri = {str(r.uri): r for r in await mcp.list_resources()}
+    finally:
+        deps.api.close()
+    skill = by_uri[f"{URI_PREFIX}oitc-incident-triage"].annotations
+    prompt = by_uri[f"{URI_PREFIX}system-prompt"].annotations
+    assert skill.audience == ["assistant"]
+    assert prompt.audience == ["user"]
+    assert by_uri[f"{URI_PREFIX}oitc-capabilities"].annotations.priority == 0.9
+
+
+async def _read_resource(mcp, uri: str) -> str:
+    result = await mcp.read_resource(uri)
+    return result.contents[0].content
+
+
+async def test_the_toolsets_an_instance_runs_with_are_readable_as_a_resource(settings):
+    """The same descriptions reach a client through the server instructions, but
+    the protocol revision from 2026-07-28 has no handshake and therefore no
+    instructions. A resource is readable on both paths."""
+    limited, deps = create_server(settings.model_copy(update={"toolsets": "triage"}))
+    try:
+        uris = {str(resource.uri) for resource in await limited.list_resources()}
+        body = await _read_resource(limited, f"{URI_PREFIX}{TOOLSET_OVERVIEW_SLUG}")
+    finally:
+        deps.api.close()
+
+    assert f"{URI_PREFIX}{TOOLSET_OVERVIEW_SLUG}" in uris
+    assert "## triage" in body
+    # The description from toolsets.toml, which is what the instructions carried.
+    assert "What is broken, since when" in body
+    # And which tools the set names, which tools/list alone does not say.
+    assert "list_services_by_state" in body
+    assert "## patch" not in body
+
+
+async def test_an_unlimited_instance_says_so(settings):
+    mcp, deps = create_server(settings)
+    try:
+        body = await _read_resource(mcp, f"{URI_PREFIX}{TOOLSET_OVERVIEW_SLUG}")
+    finally:
+        deps.api.close()
+
+    assert "not limited" in body
