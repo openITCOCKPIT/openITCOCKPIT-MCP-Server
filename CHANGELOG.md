@@ -4,7 +4,7 @@ Notable changes to the openITCOCKPIT MCP Server. Versions follow `MCP_VERSION`,
 this server's semver, which is also the image tag. See
 [Versioning](README.md#versioning).
 
-## Unreleased
+## 0.4.0 - 2026-09-16
 
 ### Added
 

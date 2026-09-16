@@ -104,7 +104,7 @@ who just wants to connect a desktop client:
     "-e", "OITC_TRANSPORT=stdio",
     "-e", "OITC_APIKEY",
     "-e", "OITC_BASEURL",
-    "openitcockpit/mcp-server:0.3.0"
+    "openitcockpit/mcp-server:0.4.0"
   ],
   "env": {
     "OITC_APIKEY": "your-openitcockpit-api-key",
@@ -142,10 +142,10 @@ client provides, so neither secret ends up in the process list.
 ### Docker
 
 ```bash
-docker run -d -p 8000:8000 --env-file .env openitcockpit/mcp-server:0.3.0
+docker run -d -p 8000:8000 --env-file .env openitcockpit/mcp-server:0.4.0
 ```
 
-**Which tag?** The tag is this server's own version. `0.3.0` never changes, so a
+**Which tag?** The tag is this server's own version. `0.4.0` never changes, so a
 redeploy gives you exactly what you tested - pin that. `latest` is the only
 other tag and it moves under you. The tag says nothing about your openITCOCKPIT
 version; one image serves 5.6 and newer. See [Versioning](#versioning).
@@ -157,7 +157,7 @@ docker run -d -p 8000:8000 \
   -e MCP_AUTH_TOKEN="..." \
   -e OITC_APIKEY="..." \
   -e OITC_BASEURL="https://openitcockpit.example.org" \
-  openitcockpit/mcp-server:0.3.0
+  openitcockpit/mcp-server:0.4.0
 ```
 
 No secret is baked into the image; configuration is read from the environment
@@ -423,7 +423,7 @@ release, and no others:
 
 | Image tag | Mutable? | Use for |
 |---|---|---|
-| `0.3.0` | no | **Pin this.** Exactly this build. |
+| `0.4.0` | no | **Pin this.** Exactly this build. |
 | `latest` | yes | The newest release, whatever it is |
 
 Semver: patch for fixes, minor for added tools, major for anything that breaks
@@ -440,6 +440,11 @@ openITCOCKPIT API is backwards compatible, so newer instances are expected to
 work. One caveat: `list_installed_software`, `list_pending_updates` and
 `list_pending_security_updates` need the openITCOCKPIT agent's package
 endpoints and fail with an API error where that feature is absent.
+
+**Delegated mode** needs an openITCOCKPIT that issues user tokens: it accepts
+`Authorization: Bearer <token>` and creates its signing key with
+`oitc api_tokens --generate-key`. Against an openITCOCKPIT without them every
+call in delegated mode is rejected; static mode is unaffected.
 
 ---
 
