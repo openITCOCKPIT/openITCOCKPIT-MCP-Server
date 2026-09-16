@@ -28,6 +28,15 @@ this server's semver, which is also the image tag. See
 - The scope cache keeps its entries apart per identity: one partition for a
   service account, one per token in delegated mode.
 
+### Fixed
+
+- `get_container_tree` without a container name starts at the top-most
+  containers the account can see. A user limited to tenants cannot see root and
+  got "No container found matching 'root'".
+- HTTP 403 is reported as a missing permission of the user role, HTTP 401 as an
+  invalid or expired credential. Both used to point at `OITC_APIKEY`, which
+  delegated mode does not have.
+
 ## 0.3.0 - 2026-09-11
 
 ### Added
