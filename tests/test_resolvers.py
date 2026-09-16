@@ -15,6 +15,7 @@ from openitcockpit_mcp.resolvers import (
     lookup_servicetemplate_reference_name,
     resolve_host_id,
     resolve_service_id,
+    resolve_top_container_ids,
 )
 
 BASE_URL = "https://oitc.example.test"
@@ -95,3 +96,39 @@ def test_display_name_maps_to_the_internal_template_name(api):
 def test_unknown_display_name_maps_to_nothing(api):
     responses.add(responses.GET, f"{BASE_URL}/servicetemplates/index.json", json={"all_servicetemplates": []}, status=200)
     assert lookup_servicetemplate_reference_name(api, "nope") is None
+
+
+@responses.activate
+def test_a_tree_without_a_name_starts_at_root_for_whoever_sees_root(api):
+    responses.add(
+        responses.GET,
+        f"{BASE_URL}/containers/loadContainers.json",
+        json={"containers": [{"key": 1, "value": "/root"}, {"key": 9, "value": "/root/Tenant A"}]},
+        status=200,
+    )
+    assert resolve_top_container_ids(api) == [1]
+
+
+@responses.activate
+def test_a_tree_without_a_name_starts_at_the_tenants_of_a_user_without_root(api):
+    """A tenant user does not see root; the tree must not fail with 'No container found matching root'."""
+    responses.add(
+        responses.GET,
+        f"{BASE_URL}/containers/loadContainers.json",
+        json={
+            "containers": [
+                {"key": 10, "value": "/root/Tenant B"},
+                {"key": 9, "value": "/root/Tenant A"},
+                {"key": 12, "value": "/root/Tenant A/Berlin"},
+            ]
+        },
+        status=200,
+    )
+    assert resolve_top_container_ids(api) == [9, 10]
+
+
+@responses.activate
+def test_a_user_who_sees_no_container_is_told_so(api):
+    responses.add(responses.GET, f"{BASE_URL}/containers/loadContainers.json", json={"containers": []}, status=200)
+    with pytest.raises(RuntimeError, match="No container is visible"):
+        resolve_top_container_ids(api)

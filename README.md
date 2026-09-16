@@ -32,13 +32,19 @@ setting `OITC_PORT` there moves both sides at once.
 
 ## Configuration
 
-The server needs **two separate secrets** and refuses to start if they are the
-same value:
+Clients present `MCP_AUTH_TOKEN` to the server. What the server presents to
+openITCOCKPIT depends on `OITC_AUTH_MODE`:
+
+| Mode | The server acts as | Needs |
+|---|---|---|
+| `static` *(default)* | the one user of `OITC_APIKEY` | `OITC_APIKEY`, which must differ from `MCP_AUTH_TOKEN` |
+| `delegated` | the user each request carries a token for | no API key; the http transport |
 
 | Secret | Who presents it to whom |
 |---|---|
 | `MCP_AUTH_TOKEN` | **Clients → this server.** A random token you generate. |
-| `OITC_APIKEY` | **This server → openITCOCKPIT.** The API key of a dedicated, least-privilege openITCOCKPIT user. |
+| `OITC_APIKEY` | **This server → openITCOCKPIT**, static mode. The API key of a dedicated, least-privilege openITCOCKPIT user. |
+| `X-OITC-User-Token` header | **Client → this server → openITCOCKPIT**, delegated mode. A short-lived token openITCOCKPIT issued for one user. |
 
 ```bash
 python -c "import secrets; print(secrets.token_urlsafe(32))"   # generate MCP_AUTH_TOKEN
@@ -51,7 +57,8 @@ and must never be committed.
 | Setting | Env var | Default |
 |---|---|---|
 | Client bearer token | `MCP_AUTH_TOKEN` | *(required for http)* |
-| openITCOCKPIT API key | `OITC_APIKEY` | *(required)* |
+| Whom the server acts as, `static` or `delegated` | `OITC_AUTH_MODE` | `static` |
+| openITCOCKPIT API key | `OITC_APIKEY` | *(required in static mode, must be unset in delegated)* |
 | openITCOCKPIT base URL | `OITC_BASEURL` | *(required)* |
 | Verify the instance's TLS certificate | `OITC_VERIFY_TLS` | `true` |
 | CA bundle for a self-signed instance | `OITC_CA_BUNDLE` | *(unset)* |
@@ -97,7 +104,7 @@ who just wants to connect a desktop client:
     "-e", "OITC_TRANSPORT=stdio",
     "-e", "OITC_APIKEY",
     "-e", "OITC_BASEURL",
-    "openitcockpit/mcp-server:0.3.0"
+    "openitcockpit/mcp-server:0.4.0"
   ],
   "env": {
     "OITC_APIKEY": "your-openitcockpit-api-key",
@@ -135,10 +142,10 @@ client provides, so neither secret ends up in the process list.
 ### Docker
 
 ```bash
-docker run -d -p 8000:8000 --env-file .env openitcockpit/mcp-server:0.3.0
+docker run -d -p 8000:8000 --env-file .env openitcockpit/mcp-server:0.4.0
 ```
 
-**Which tag?** The tag is this server's own version. `0.3.0` never changes, so a
+**Which tag?** The tag is this server's own version. `0.4.0` never changes, so a
 redeploy gives you exactly what you tested - pin that. `latest` is the only
 other tag and it moves under you. The tag says nothing about your openITCOCKPIT
 version; one image serves 5.6 and newer. See [Versioning](#versioning).
@@ -150,7 +157,7 @@ docker run -d -p 8000:8000 \
   -e MCP_AUTH_TOKEN="..." \
   -e OITC_APIKEY="..." \
   -e OITC_BASEURL="https://openitcockpit.example.org" \
-  openitcockpit/mcp-server:0.3.0
+  openitcockpit/mcp-server:0.4.0
 ```
 
 No secret is baked into the image; configuration is read from the environment
@@ -280,7 +287,11 @@ and both general prompts, and none of the per-set supplements - it is not
 playing one of those roles.
 
 `oitc-mcp --list-toolsets` prints each set with its tools, and names anything
-that belongs to no set. Selecting a set never widens what is available: the
+that belongs to no set. It contacts nothing and needs no credentials, so an
+installer can run it first. With `--format json` it prints the same as data,
+including whether each set contains a tool that changes anything - read from
+the tools' annotations - and it follows `OITC_TOOLSETS_FILE` like the server
+does. Selecting a set never widens what is available: the
 write tools stay unregistered without `OITC_ENABLE_WRITE_TOOLS=true`, whatever
 a set names.
 
@@ -375,10 +386,23 @@ it.
 ## Security
 
 > [!IMPORTANT]
-> Every client that passes the bearer check acts with the permissions of the
-> **one** openITCOCKPIT user the API key belongs to. There is no per-client
-> identity. Create that key for a dedicated, least-privilege user and treat
-> `MCP_AUTH_TOKEN` as a shared secret.
+> In **static** mode every client that passes the bearer check acts with the
+> permissions of the **one** openITCOCKPIT user the API key belongs to. There is
+> no per-client identity. Create that key for a dedicated, least-privilege user
+> and treat `MCP_AUTH_TOKEN` as a shared secret.
+
+In **delegated** mode the server holds no openITCOCKPIT credential. Each request
+carries a short-lived token for one user in `X-OITC-User-Token`, and the server
+passes it on with every call it makes, so openITCOCKPIT answers as that user -
+their containers, their permissions. A request without a token is refused before
+anything reaches openITCOCKPIT. The server does not verify the token itself;
+openITCOCKPIT does, on every call.
+
+- The token is attached to each outgoing request separately, never to the shared
+  HTTP session, so concurrent requests for different users cannot pick up each
+  other's token.
+- Cached scope lookups are kept apart per token. A lookup made for one user is
+  never served to another.
 
 - The http transport serves **plain HTTP**. Terminate TLS at a reverse proxy or
   keep the server on a trusted network.
@@ -386,9 +410,9 @@ it.
   the openITCOCKPIT key is never handed to a client.
 - TLS verification against openITCOCKPIT is **on** by default. For a self-signed
   instance set `OITC_CA_BUNDLE` rather than disabling verification.
-- Authentication is a shared static token, not OAuth 2.1 - a deliberate tradeoff
-  for a server that authenticates as a single service user. See
-  `src/openitcockpit_mcp/auth.py`.
+- Admission to the server is a shared static token, not OAuth 2.1. It decides
+  whether a caller may use the server; in delegated mode, whom the server acts
+  for is decided by the user token. See `src/openitcockpit_mcp/auth.py`.
 
 ---
 
@@ -399,7 +423,7 @@ release, and no others:
 
 | Image tag | Mutable? | Use for |
 |---|---|---|
-| `0.3.0` | no | **Pin this.** Exactly this build. |
+| `0.4.0` | no | **Pin this.** Exactly this build. |
 | `latest` | yes | The newest release, whatever it is |
 
 Semver: patch for fixes, minor for added tools, major for anything that breaks
@@ -416,6 +440,11 @@ openITCOCKPIT API is backwards compatible, so newer instances are expected to
 work. One caveat: `list_installed_software`, `list_pending_updates` and
 `list_pending_security_updates` need the openITCOCKPIT agent's package
 endpoints and fail with an API error where that feature is absent.
+
+**Delegated mode** needs an openITCOCKPIT that issues user tokens: it accepts
+`Authorization: Bearer <token>` and creates its signing key with
+`oitc api_tokens --generate-key`. Against an openITCOCKPIT without them every
+call in delegated mode is rejected; static mode is unaffected.
 
 ---
 

@@ -22,7 +22,7 @@ from openitcockpit_mcp.formatting import (
     format_hosttemplate,
     format_servicetemplate,
 )
-from openitcockpit_mcp.resolvers import resolve_container_id
+from openitcockpit_mcp.resolvers import resolve_container_id, resolve_top_container_ids
 from openitcockpit_mcp.tools.annotations import READ_ONLY
 from openitcockpit_mcp.tools.envelope import ListResult, build_result, clamp_limit, fetch_limit
 from openitcockpit_mcp.tools.params import Limit, NameFilter
@@ -131,21 +131,25 @@ def register(mcp: FastMCP, deps: Deps) -> None:
 
     @mcp.tool(title="Container Tree", annotations=READ_ONLY)
     def get_container_tree(container_name: str = "root") -> dict:
-        """Get the organizational structure (containers: tenants, locations, nodes) starting at the given container, including which hosts, host groups and service groups live directly under it. Leave container_name at 'root' for the top-level structure."""
-        container_id = resolve_container_id(api, container_name)
-        resp, code = api.get(f"/containers/showDetails/{container_id}.json", {"asTree": "false"})
-        require_success(resp, code, "retrieving container structure")
+        """Get the organizational structure (containers: tenants, locations, nodes) starting at the given container, including which hosts, host groups and service groups live directly under it. Leave container_name at 'root' for the top-level structure; without access to root that is the top-most containers you can see."""
+        if (container_name or "root").strip().strip("/").lower() == "root":
+            start_ids = resolve_top_container_ids(api)
+        else:
+            start_ids = [resolve_container_id(api, container_name)]
         nodes = []
-        for node in resp.get("containersWithChilds", []):
-            elements = node.get("childsElements", {})
-            nodes.append(
-                {
-                    "id": node.get("id"),
-                    "name": node.get("name"),
-                    "containertypeId": node.get("containertype_id"),
-                    "hosts": list(elements.get("hosts", {}).values()),
-                    "hostgroups": list(elements.get("hostgroups", {}).values()),
-                    "servicegroups": list(elements.get("servicegroups", {}).values()),
-                }
-            )
-        return {"rootContainerId": container_id, "containers": nodes}
+        for container_id in start_ids:
+            resp, code = api.get(f"/containers/showDetails/{container_id}.json", {"asTree": "false"})
+            require_success(resp, code, "retrieving container structure")
+            for node in resp.get("containersWithChilds", []):
+                elements = node.get("childsElements", {})
+                nodes.append(
+                    {
+                        "id": node.get("id"),
+                        "name": node.get("name"),
+                        "containertypeId": node.get("containertype_id"),
+                        "hosts": list(elements.get("hosts", {}).values()),
+                        "hostgroups": list(elements.get("hostgroups", {}).values()),
+                        "servicegroups": list(elements.get("servicegroups", {}).values()),
+                    }
+                )
+        return {"rootContainerId": start_ids[0], "containers": nodes}

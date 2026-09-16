@@ -78,3 +78,30 @@ def test_ca_bundle_wins_over_verify_flag():
 
 def test_verify_tls_defaults_to_on():
     assert Settings(**BASE).requests_verify is True
+
+
+def test_delegated_mode_needs_no_api_key():
+    settings = Settings(mcp_auth_token="mcp-token", baseurl="https://oitc.example.test", auth_mode="delegated")
+    assert settings.apikey == ""
+
+
+def test_delegated_mode_refuses_an_api_key():
+    """An unused key in the configuration reads as if it were in effect."""
+    with pytest.raises(ValueError, match="delegated uses no API key"):
+        Settings(**BASE, auth_mode="delegated")
+
+
+def test_delegated_mode_needs_the_http_transport():
+    with pytest.raises(ValueError, match="needs the http transport"):
+        Settings(baseurl="https://oitc.example.test", auth_mode="delegated", transport="stdio")
+
+
+def test_delegated_mode_still_requires_a_base_url():
+    with pytest.raises(ValueError, match="OITC_BASEURL"):
+        Settings(mcp_auth_token="mcp-token", auth_mode="delegated")
+
+
+def test_static_mode_is_the_default_and_still_requires_an_api_key():
+    assert Settings(**BASE).auth_mode == "static"
+    with pytest.raises(ValueError, match="OITC_APIKEY"):
+        Settings(mcp_auth_token="mcp-token", baseurl="https://oitc.example.test")

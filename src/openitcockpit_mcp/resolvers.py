@@ -149,6 +149,25 @@ def resolve_container_id(api: OITCClient, name: str, default_name: str = "root")
     )
 
 
+def resolve_top_container_ids(api: OITCClient) -> list[int]:
+    """The containers a tree starts at when no container is named.
+
+    That is root for a user who can see it. A user limited to tenants does not
+    see root, so the tree starts at the top-most containers they can see instead.
+    """
+    resp, code = api.get("/containers/loadContainers.json")
+    require_success(resp, code, "resolving container")
+    paths = {item["key"]: item.get("value", "").strip("/").lower() for item in resp.get("containers", [])}
+    top = [
+        key
+        for key, path in paths.items()
+        if not any(other != path and path.startswith(other + "/") for other in paths.values())
+    ]
+    if not top:
+        raise RuntimeError("No container is visible to the account this server acts as.")
+    return sorted(top, key=lambda key: paths[key])
+
+
 def lookup_servicetemplate_reference_name(api: OITCClient, display_name: str) -> str | None:
     """Map a service template's display name onto its internal ``template_name``.
 

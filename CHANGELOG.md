@@ -4,6 +4,39 @@ Notable changes to the openITCOCKPIT MCP Server. Versions follow `MCP_VERSION`,
 this server's semver, which is also the image tag. See
 [Versioning](README.md#versioning).
 
+## 0.4.0 - 2026-09-16
+
+### Added
+
+- **Delegated authentication.** `OITC_AUTH_MODE=delegated` lets the server act
+  as the user each request is for rather than as one service account. A request
+  carries a short-lived token openITCOCKPIT issued for that user in
+  `X-OITC-User-Token`; the server passes it on with every call and holds no API
+  key of its own, so openITCOCKPIT answers with that user's containers and
+  permissions. A request without a token is refused before anything is sent.
+  `static` remains the default and behaves as before.
+
+- **`--list-toolsets --format json`** prints the toolsets as data: name,
+  description, tools, system prompts, skills and whether a set contains a tool
+  that changes anything. An installer can create one instance per set from it
+  without a toolset being named in its own code.
+
+### Changed
+
+- `--list-toolsets` no longer requires `OITC_APIKEY` and `OITC_BASEURL`. It
+  contacts nothing, and an installer runs it before any credential exists.
+- The scope cache keeps its entries apart per identity: one partition for a
+  service account, one per token in delegated mode.
+
+### Fixed
+
+- `get_container_tree` without a container name starts at the top-most
+  containers the account can see. A user limited to tenants cannot see root and
+  got "No container found matching 'root'".
+- HTTP 403 is reported as a missing permission of the user role, HTTP 401 as an
+  invalid or expired credential. Both used to point at `OITC_APIKEY`, which
+  delegated mode does not have.
+
 ## 0.3.0 - 2026-09-11
 
 ### Added
