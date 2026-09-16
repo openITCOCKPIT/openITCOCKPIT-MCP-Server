@@ -287,7 +287,11 @@ and both general prompts, and none of the per-set supplements - it is not
 playing one of those roles.
 
 `oitc-mcp --list-toolsets` prints each set with its tools, and names anything
-that belongs to no set. Selecting a set never widens what is available: the
+that belongs to no set. It contacts nothing and needs no credentials, so an
+installer can run it first. With `--format json` it prints the same as data,
+including whether each set contains a tool that changes anything - read from
+the tools' annotations - and it follows `OITC_TOOLSETS_FILE` like the server
+does. Selecting a set never widens what is available: the
 write tools stay unregistered without `OITC_ENABLE_WRITE_TOOLS=true`, whatever
 a set names.
 

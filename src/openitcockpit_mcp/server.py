@@ -102,18 +102,29 @@ def count_tools(mcp: FastMCP) -> tuple[int, int]:
     return len(tools), mutating
 
 
-def all_tool_names(settings: Settings) -> set[str]:
-    """Every tool this build can register, write tools included.
+def tool_catalogue(settings: Settings) -> dict[str, bool]:
+    """Every tool this build can register, write tools included, and whether it changes anything.
 
     A toolsets file may name a write tool while OITC_ENABLE_WRITE_TOOLS is off,
     which is legitimate - the same file should work either way. Validating
     against the registered subset would then reject the file for naming tools
     that exist. So this builds a throwaway server with the gate open and no
-    toolset filter, and reads the names off it. Nothing is contacted; only
+    toolset filter, and reads the tools off it. Nothing is contacted; only
     registration runs.
+
+    Whether a tool changes anything comes from its annotations, as in
+    :func:`count_tools`.
     """
     probe, deps = create_server(settings.model_copy(update={"enable_write_tools": True, "toolsets": "all"}))
     try:
-        return {tool.name for tool in asyncio.run(probe.list_tools())}
+        return {
+            tool.name: bool(tool.annotations and not tool.annotations.read_only_hint)
+            for tool in asyncio.run(probe.list_tools())
+        }
     finally:
         deps.api.close()
+
+
+def all_tool_names(settings: Settings) -> set[str]:
+    """Every tool this build can register, write tools included. See :func:`tool_catalogue`."""
+    return set(tool_catalogue(settings))

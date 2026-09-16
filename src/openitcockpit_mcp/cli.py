@@ -3,13 +3,14 @@
 from __future__ import annotations
 
 import argparse
+import json
 import sys
 
 from openitcockpit_mcp.banner import show as show_banner
-from openitcockpit_mcp.config import load_settings
+from openitcockpit_mcp.config import load_describing_settings, load_settings
 from openitcockpit_mcp.logging_setup import configure as configure_logging
 from openitcockpit_mcp.logging_setup import uvicorn_log_config
-from openitcockpit_mcp.server import all_tool_names, count_tools, create_server
+from openitcockpit_mcp.server import count_tools, create_server, tool_catalogue
 from openitcockpit_mcp.toolsets import load, resolve_path, validate, validate_selection
 
 
@@ -33,7 +34,13 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument(
         "--list-toolsets",
         action="store_true",
-        help="Print the toolsets and the tools in each, then exit. Contacts nothing.",
+        help="Print the toolsets and the tools in each, then exit. Contacts nothing and needs no credentials.",
+    )
+    parser.add_argument(
+        "--format",
+        choices=("text", "json"),
+        default="text",
+        help="Output of --list-toolsets: text to read, json for an installer to act on.",
     )
     return parser
 
@@ -51,16 +58,42 @@ def _readable_config_error(exc: Exception) -> str:
     return "\n".join(lines) or str(exc)
 
 
+def _describe_toolsets(toolsets: dict, writes: dict[str, bool]) -> dict:
+    """The toolsets as data, for an installer that creates one instance per set.
+
+    ``writes`` says whether a set contains a tool that changes anything, so the
+    instance for it knows to register the write tools. It is derived from the
+    tools' annotations, not declared in the file, so it cannot disagree with
+    what the tools actually do.
+    """
+    return {
+        "toolsets": [
+            {
+                "name": name,
+                "description": toolsets[name].description,
+                "tools": sorted(toolsets[name].tools),
+                "writes": any(writes.get(tool, False) for tool in toolsets[name].tools),
+                "systemprompts": list(toolsets[name].systemprompts),
+                "skills": list(toolsets[name].skills),
+            }
+            for name in sorted(toolsets)
+        ]
+    }
+
+
 def main(argv: list[str] | None = None) -> int:
     args = build_parser().parse_args(argv)
 
     try:
-        settings = load_settings(
-            transport=args.transport,
-            host=args.host,
-            port=args.port,
-            log_level=args.log_level,
-        )
+        if args.list_toolsets:
+            settings = load_describing_settings()
+        else:
+            settings = load_settings(
+                transport=args.transport,
+                host=args.host,
+                port=args.port,
+                log_level=args.log_level,
+            )
     except ValueError as exc:
         # A misconfiguration is a user error, not a stack trace.
         print(f"Configuration error:\n{_readable_config_error(exc)}", file=sys.stderr)
@@ -70,13 +103,18 @@ def main(argv: list[str] | None = None) -> int:
 
     try:
         toolsets = load(resolve_path(settings.toolsets_file))
-        catalogue = all_tool_names(settings)
+        writes = tool_catalogue(settings)
+        catalogue = set(writes)
         validate(toolsets, catalogue)
         validate_selection(settings.toolsets, toolsets, catalogue)
     except ValueError as exc:
         # Same treatment as a bad setting: the file is configuration.
         print(f"Toolset error:\n  - {exc}", file=sys.stderr)
         return 2
+
+    if args.list_toolsets and args.format == "json":
+        print(json.dumps(_describe_toolsets(toolsets, writes), indent=2))
+        return 0
 
     if args.list_toolsets:
         for name in sorted(toolsets):

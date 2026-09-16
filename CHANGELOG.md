@@ -16,8 +16,15 @@ this server's semver, which is also the image tag. See
   permissions. A request without a token is refused before anything is sent.
   `static` remains the default and behaves as before.
 
+- **`--list-toolsets --format json`** prints the toolsets as data: name,
+  description, tools, system prompts, skills and whether a set contains a tool
+  that changes anything. An installer can create one instance per set from it
+  without a toolset being named in its own code.
+
 ### Changed
 
+- `--list-toolsets` no longer requires `OITC_APIKEY` and `OITC_BASEURL`. It
+  contacts nothing, and an installer runs it before any credential exists.
 - The scope cache keeps its entries apart per identity: one partition for a
   service account, one per token in delegated mode.
 

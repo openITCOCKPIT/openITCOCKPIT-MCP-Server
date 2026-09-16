@@ -138,3 +138,50 @@ def test_the_client_is_closed_even_after_serving(configured, captured_run):
 def test_log_level_flag_is_applied(configured, captured_run):
     cli.main(["--log-level", "debug"])
     assert logging.getLogger().level == logging.DEBUG
+
+
+# --- describing the toolsets ----------------------------------------------
+
+
+def test_listing_the_toolsets_needs_no_configuration(capsys):
+    """An installer asks which instances to create before any credential exists."""
+    assert cli.main(["--list-toolsets"]) == 0
+    assert "triage" in capsys.readouterr().out
+
+
+def test_listing_ignores_a_delegated_configuration_without_a_key(monkeypatch, capsys):
+    monkeypatch.setenv("OITC_AUTH_MODE", "delegated")
+    assert cli.main(["--list-toolsets", "--format", "json"]) == 0
+    assert capsys.readouterr().out.lstrip().startswith("{")
+
+
+def test_toolsets_as_json_say_which_sets_write(capsys):
+    import json
+
+    assert cli.main(["--list-toolsets", "--format", "json"]) == 0
+    sets = {toolset["name"]: toolset for toolset in json.loads(capsys.readouterr().out)["toolsets"]}
+
+    assert sets["triage"]["writes"] is False
+    assert sets["config"]["writes"] is True
+    assert "get_host_info" in sets["triage"]["tools"]
+    assert sets["triage"]["description"]
+    assert "system-prompt-triage" in sets["triage"]["systemprompts"]
+
+
+def test_toolsets_as_json_follow_the_configured_file(monkeypatch, tmp_path, capsys):
+    """The file an operator edits is the one an installer reads - nothing is fixed in code."""
+    import json
+
+    custom = tmp_path / "custom.toml"
+    custom.write_text(
+        '[night-shift]\n'
+        'description = "What the night shift needs."\n'
+        'tools = ["get_host_info", "list_services_by_state"]\n'
+    )
+    monkeypatch.setenv("OITC_TOOLSETS_FILE", str(custom))
+
+    assert cli.main(["--list-toolsets", "--format", "json"]) == 0
+    sets = json.loads(capsys.readouterr().out)["toolsets"]
+
+    assert [toolset["name"] for toolset in sets] == ["night-shift"]
+    assert sets[0]["writes"] is False

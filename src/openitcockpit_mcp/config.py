@@ -167,3 +167,20 @@ class Settings(BaseSettings):
 def load_settings(**overrides: Any) -> Settings:
     """Build the settings object. Overrides (from CLI flags) win over every source."""
     return Settings(**{key: value for key, value in overrides.items() if value is not None})
+
+
+#: Stands in for the credentials a describing command never uses.
+_NOT_USED = "not-used-by-this-command"
+
+
+def load_describing_settings() -> Settings:
+    """Settings for a command that describes this build and contacts nothing.
+
+    Listing the toolsets reads the toolsets file and registers the tools on a
+    throwaway server; it never talks to openITCOCKPIT or to a client. Requiring
+    credentials for that would mean an installer has to invent them before it
+    can find out which instances to create. Placeholders satisfy the model and
+    are never sent anywhere. Everything else - above all OITC_TOOLSETS_FILE -
+    is read as usual.
+    """
+    return Settings(auth_mode="static", apikey=_NOT_USED, baseurl="http://not-used.invalid", transport="stdio")
