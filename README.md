@@ -6,6 +6,13 @@ client: host and service status, log entries, downtimes, acknowledgements,
 check history, software inventory and pending updates - plus optional,
 off-by-default tools that change the monitoring configuration.
 
+> [!CAUTION]
+> **Use at your own risk.** This server lets a language model read and - with write
+> tools enabled - change your monitoring configuration. A model can misunderstand a
+> request or pick the wrong call. Review what it proposes before you approve it, and
+> start with read-only access. The software is provided "as is", without warranty
+> or liability of any kind; see the [MIT License](LICENSE).
+
 - **Requires openITCOCKPIT 5.6 or newer.** See [Compatibility](#compatibility).
 - **39 tools**, 24 read-only and 15 write.
 - **Write tools are disabled by default** and are not even registered until you
@@ -38,7 +45,7 @@ openITCOCKPIT depends on `OITC_AUTH_MODE`:
 | Mode | The server acts as | Needs |
 |---|---|---|
 | `static` *(default)* | the one user of `OITC_APIKEY` | `OITC_APIKEY`, which must differ from `MCP_AUTH_TOKEN` |
-| `delegated` | the user each request carries a token for | no API key; the http transport |
+| `delegated` *(preview)* | the user each request carries a token for | no API key; the http transport; an openITCOCKPIT with user tokens, see [Compatibility](#compatibility) |
 
 | Secret | Who presents it to whom |
 |---|---|
@@ -441,7 +448,8 @@ work. One caveat: `list_installed_software`, `list_pending_updates` and
 `list_pending_security_updates` need the openITCOCKPIT agent's package
 endpoints and fail with an API error where that feature is absent.
 
-**Delegated mode** needs an openITCOCKPIT that issues user tokens: it accepts
+**Delegated mode** is a preview. It needs an openITCOCKPIT that issues user tokens, which
+ships with an upcoming openITCOCKPIT release: it accepts
 `Authorization: Bearer <token>` and creates its signing key with
 `oitc api_tokens --generate-key`. Against an openITCOCKPIT without them every
 call in delegated mode is rejected; static mode is unaffected.

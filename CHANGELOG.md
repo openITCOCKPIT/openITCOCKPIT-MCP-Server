@@ -8,13 +8,14 @@ this server's semver, which is also the image tag. See
 
 ### Added
 
-- **Delegated authentication.** `OITC_AUTH_MODE=delegated` lets the server act
+- **Delegated authentication** *(preview)*. `OITC_AUTH_MODE=delegated` lets the server act
   as the user each request is for rather than as one service account. A request
   carries a short-lived token openITCOCKPIT issued for that user in
   `X-OITC-User-Token`; the server passes it on with every call and holds no API
   key of its own, so openITCOCKPIT answers with that user's containers and
   permissions. A request without a token is refused before anything is sent.
-  `static` remains the default and behaves as before.
+  `static` remains the default and behaves as before. It needs user tokens from
+  openITCOCKPIT, which ship with an upcoming openITCOCKPIT release.
 
 - **`--list-toolsets --format json`** prints the toolsets as data: name,
   description, tools, system prompts, skills and whether a set contains a tool
