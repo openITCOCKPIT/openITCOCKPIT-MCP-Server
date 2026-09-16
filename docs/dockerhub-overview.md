@@ -12,6 +12,11 @@ client: host and service status, log entries, downtimes, acknowledgements,
 check history, software inventory and pending updates - plus optional,
 off-by-default tools that change the monitoring configuration.
 
+> **Use at your own risk.** This server lets a language model read and - with
+> write tools enabled - change your monitoring configuration. Review what it
+> proposes before you approve it, and start with read-only access. Provided
+> "as is", without warranty or liability of any kind (MIT License).
+
 39 tools, 24 read-only and 15 write. **Requires openITCOCKPIT 5.6 or newer**;
 one image serves every supported release.
 
