@@ -125,6 +125,12 @@ def render(settings: Settings, total: int, mutating: int) -> str:
 
     tools = f"{total} registered, {mutating} of them mutating" if mutating else f"{total} registered, all read-only (write tools disabled)"
 
+    acting_as = (
+        "the user each request carries a token for"
+        if settings.auth_mode == "delegated"
+        else "the user of OITC_APIKEY"
+    )
+
     if settings.ca_bundle:
         tls = f"verified against {settings.ca_bundle}"
     elif settings.verify_tls:
@@ -140,6 +146,7 @@ def render(settings: Settings, total: int, mutating: int) -> str:
     lines += [
         _field("Version", f"{__version__}  (requires openITCOCKPIT {OITC_MIN_VERSION} or newer)"),
         _field("Instance", settings.baseurl),
+        _field("Acting as", acting_as),
         _field("TLS", tls),
         _field("Listening on", listening),
         _field("Tools", tools),

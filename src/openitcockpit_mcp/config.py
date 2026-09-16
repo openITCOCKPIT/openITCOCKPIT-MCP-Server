@@ -7,14 +7,18 @@ Nothing runs at import time; :func:`load_settings` is called from the CLI.
 Importing this module touches no files and raises nothing for missing
 credentials.
 
-Two independent credentials are required and must differ:
+``MCP_AUTH_TOKEN`` is the bearer token MCP *clients* present to this server.
+What the server presents to *openITCOCKPIT* depends on ``OITC_AUTH_MODE``:
 
-``MCP_AUTH_TOKEN``
-    The bearer token MCP *clients* have to present to this server.
-``OITC_APIKEY``
-    The API key this server presents to *openITCOCKPIT*. Create it for a
-    dedicated, least-privilege openITCOCKPIT user; every MCP client that passes
-    the bearer check acts with that user's permissions.
+``static`` (default)
+    ``OITC_APIKEY``, the API key of a dedicated, least-privilege openITCOCKPIT
+    user. Every MCP client that passes the bearer check acts with that user's
+    permissions. It must differ from ``MCP_AUTH_TOKEN``.
+``delegated``
+    Nothing of its own. Each request carries a token openITCOCKPIT issued for
+    one user, and the server acts as that user. ``OITC_APIKEY`` must be unset,
+    and the transport must be http - a request over stdio has no headers to
+    carry a token in. See :mod:`openitcockpit_mcp.delegation`.
 """
 
 from __future__ import annotations
@@ -47,7 +51,11 @@ class Settings(BaseSettings):
         validation_alias=AliasChoices("MCP_AUTH_TOKEN", "OITC_MCP_AUTH_TOKEN"),
         description="Bearer token MCP clients must present. Must differ from apikey.",
     )
-    apikey: str = Field(default="", description="openITCOCKPIT API key of the MCP service user.")
+    auth_mode: Literal["static", "delegated"] = Field(
+        default="static",
+        description="'static' acts as the user of OITC_APIKEY; 'delegated' as the user each request carries a token for.",
+    )
+    apikey: str = Field(default="", description="openITCOCKPIT API key of the MCP service user. Static mode only.")
     baseurl: str = Field(default="", description="Base URL of the openITCOCKPIT instance.")
 
     # --- Tool surface ------------------------------------------------------
@@ -112,11 +120,10 @@ class Settings(BaseSettings):
 
     @model_validator(mode="after")
     def _check_required(self) -> Settings:
-        missing = [
-            name
-            for name, value in (("OITC_APIKEY", self.apikey), ("OITC_BASEURL", self.baseurl))
-            if not value
-        ]
+        required = [("OITC_BASEURL", self.baseurl)]
+        if self.auth_mode == "static":
+            required.insert(0, ("OITC_APIKEY", self.apikey))
+        missing = [name for name, value in required if not value]
         if missing:
             raise ValueError(
                 f"Missing required setting(s): {', '.join(missing)}. "
@@ -130,7 +137,18 @@ class Settings(BaseSettings):
                 "'python -c \"import secrets; print(secrets.token_urlsafe(32))\"' and put it in .env. "
                 "It is the token MCP clients present to this server and must NOT be the openITCOCKPIT API key."
             )
-        if self.mcp_auth_token and self.mcp_auth_token == self.apikey:
+        if self.auth_mode == "delegated":
+            if self.apikey:
+                raise ValueError(
+                    "OITC_APIKEY is set, but OITC_AUTH_MODE=delegated uses no API key: every request acts "
+                    "as the user it carries a token for. Remove OITC_APIKEY, or use OITC_AUTH_MODE=static."
+                )
+            if self.transport != "http":
+                raise ValueError(
+                    "OITC_AUTH_MODE=delegated needs the http transport. The user token travels in a request "
+                    "header, and stdio has no headers."
+                )
+        if self.apikey and self.mcp_auth_token == self.apikey:
             raise ValueError(
                 "MCP_AUTH_TOKEN must not be the same value as OITC_APIKEY. Handing the openITCOCKPIT "
                 "API key to every MCP client would give each of them direct API access outside this server."

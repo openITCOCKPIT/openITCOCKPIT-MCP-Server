@@ -8,12 +8,23 @@ Every openITCOCKPIT endpoint this server uses expects ``angular=true``. The
 client adds it to every request; a caller can override it through ``params``.
 
 TLS verification follows the ``verify`` argument and is on by default.
+
+A client authenticates in one of two ways, fixed when it is built:
+
+static
+    One openITCOCKPIT API key, set once on the session.
+delegated
+    No credential of its own. Each request asks ``user_token`` for the token of
+    the user it is made for and sends it with that request alone. It is never
+    written to the session: requests from different users share the session
+    concurrently, and a header set there would be sent on all of them.
 """
 
 from __future__ import annotations
 
 import json
 import logging
+from collections.abc import Callable
 from typing import Any
 from urllib.parse import urlencode
 
@@ -21,6 +32,7 @@ import requests
 import urllib3
 
 from openitcockpit_mcp.config import Settings
+from openitcockpit_mcp.delegation import identity_of, user_token_from_request
 from openitcockpit_mcp.errors import OITCUnreachableError
 
 log = logging.getLogger(__name__)
@@ -39,9 +51,23 @@ def _query_value(value: Any) -> str:
 class OITCClient:
     """Thin, synchronous wrapper around the openITCOCKPIT JSON API."""
 
-    def __init__(self, base_url: str, api_key: str, *, timeout: int = 20, verify: bool | str = True) -> None:
+    #: The cache partition of a client that always acts as the same account.
+    SERVICE_ACCOUNT = "service-account"
+
+    def __init__(
+        self,
+        base_url: str,
+        api_key: str | None = None,
+        *,
+        user_token: Callable[[], str] | None = None,
+        timeout: int = 20,
+        verify: bool | str = True,
+    ) -> None:
+        if bool(api_key) == (user_token is not None):
+            raise ValueError("An OITCClient needs exactly one of api_key and user_token.")
         self._base_url = base_url.rstrip("/")
         self._timeout = timeout
+        self._user_token = user_token
         self._session = requests.Session()
         self._session.verify = verify
         if verify is False:
@@ -51,21 +77,46 @@ class OITCClient:
                 "Prefer OITC_CA_BUNDLE pointing at the instance's CA certificate."
             )
             urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
-        self._session.headers.update(
-            {
-                "Authorization": f"X-OITC-API {api_key}",
-                "Content-Type": "application/json",
-            }
-        )
+        self._session.headers.update({"Content-Type": "application/json"})
+        if api_key:
+            self._session.headers.update({"Authorization": f"X-OITC-API {api_key}"})
 
     @classmethod
     def from_settings(cls, settings: Settings) -> OITCClient:
+        if settings.auth_mode == "delegated":
+            return cls(
+                settings.baseurl,
+                user_token=user_token_from_request,
+                timeout=settings.timeout_seconds,
+                verify=settings.requests_verify,
+            )
         return cls(
             settings.baseurl,
             settings.apikey,
             timeout=settings.timeout_seconds,
             verify=settings.requests_verify,
         )
+
+    @property
+    def delegated(self) -> bool:
+        return self._user_token is not None
+
+    def cache_partition(self) -> str:
+        """Which cached data this client may see.
+
+        A client acting as a service account sees the same data on every call.
+        One acting for users has to keep each user's apart, so it gets one
+        partition per token. Raises in delegated mode if there is no token.
+        """
+        if self._user_token is None:
+            return self.SERVICE_ACCOUNT
+        return identity_of(self._user_token())
+
+    def _request_headers(self) -> dict[str, str] | None:
+        """Headers that belong to this request only. None in static mode."""
+        if self._user_token is None:
+            return None
+        return {"Authorization": f"Bearer {self._user_token()}"}
 
     def close(self) -> None:
         self._session.close()
@@ -86,13 +137,19 @@ class OITCClient:
         params: dict[str, Any] | None = None,
         json_body: Any = None,
     ) -> tuple[dict, int]:
-        """Return ``(parsed_body, status_code)``. Raises only if the instance is unreachable."""
+        """Return ``(parsed_body, status_code)``.
+
+        Raises if the instance is unreachable, or in delegated mode if the
+        request being handled carries no user token.
+        """
         url = self.build_url(path, params)
         body = json.dumps(json_body) if json_body is not None else None
+        # Resolved before anything is sent, so a missing token fails without a request.
+        headers = self._request_headers()
         log.debug("%s %s", method, url)
 
         try:
-            response = self._session.request(method, url, data=body, timeout=self._timeout)
+            response = self._session.request(method, url, data=body, headers=headers, timeout=self._timeout)
         except requests.exceptions.Timeout as exc:
             raise OITCUnreachableError(
                 f"openITCOCKPIT did not respond within {self._timeout}s. "

@@ -2,6 +2,11 @@
 
 One :class:`ScopeService` instance is shared by every write tool and owns the
 cache; a successful write invalidates it.
+
+What a scope bundle contains depends on who asks. Every cache key therefore
+starts with the client's cache partition: one for a service account, one per
+user in delegated mode, so a bundle fetched for one user is never served to
+another.
 """
 
 from __future__ import annotations
@@ -45,14 +50,24 @@ class ScopeService:
         with self._lock:
             self._cache.clear()
 
-    def _fetch_cached(self, cache_key: str, method: str, path: str, json_body: Any = None) -> dict:
+    def _fetch_cached(
+        self,
+        cache_key: str,
+        method: str,
+        path: str,
+        json_body: Any = None,
+        params: dict[str, Any] | None = None,
+    ) -> dict:
+        """The one place a scope bundle is read from or written to the cache."""
+        cache_key = f"{self._api.cache_partition()}:{cache_key}"
+
         if self._cache_enabled:
             with self._lock:
                 cached = self._cache.get(cache_key)
                 if cached is not None and (time.monotonic() - cached[0]) < self._cache_ttl:
                     return cached[1]
 
-        resp, code = self._api.request(method, path, json_body=json_body)
+        resp, code = self._api.request(method, path, params=params, json_body=json_body)
         require_success(resp, code, "loading allowed elements for the target scope")
 
         if self._cache_enabled:
@@ -86,21 +101,12 @@ class ScopeService:
 
     def servicetemplategroup_servicetemplates(self, parent_container_id: int) -> dict:
         # This one takes the container as a query parameter, not a path segment.
-        cache_key = f"servicetemplategroup-members:{parent_container_id}"
-        if self._cache_enabled:
-            with self._lock:
-                cached = self._cache.get(cache_key)
-                if cached is not None and (time.monotonic() - cached[0]) < self._cache_ttl:
-                    return cached[1]
-        resp, code = self._api.get(
+        return self._fetch_cached(
+            f"servicetemplategroup-members:{parent_container_id}",
+            "GET",
             "/servicetemplategroups/loadServicetemplatesByContainerId.json",
-            {"containerId": parent_container_id},
+            params={"containerId": parent_container_id},
         )
-        require_success(resp, code, "loading allowed elements for the target scope")
-        if self._cache_enabled:
-            with self._lock:
-                self._cache[cache_key] = (time.monotonic(), resp)
-        return resp
 
     def contact_timeperiods(self, container_ids: list[int]) -> dict:
         # POST-only. With container_ids omitted the backend returns an empty list.

@@ -4,6 +4,23 @@ Notable changes to the openITCOCKPIT MCP Server. Versions follow `MCP_VERSION`,
 this server's semver, which is also the image tag. See
 [Versioning](README.md#versioning).
 
+## Unreleased
+
+### Added
+
+- **Delegated authentication.** `OITC_AUTH_MODE=delegated` lets the server act
+  as the user each request is for rather than as one service account. A request
+  carries a short-lived token openITCOCKPIT issued for that user in
+  `X-OITC-User-Token`; the server passes it on with every call and holds no API
+  key of its own, so openITCOCKPIT answers with that user's containers and
+  permissions. A request without a token is refused before anything is sent.
+  `static` remains the default and behaves as before.
+
+### Changed
+
+- The scope cache keeps its entries apart per identity: one partition for a
+  service account, one per token in delegated mode.
+
 ## 0.3.0 - 2026-09-11
 
 ### Added

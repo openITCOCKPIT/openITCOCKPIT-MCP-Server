@@ -12,11 +12,19 @@ def test_200_passes():
     require_write_success({}, 200, "writing")
 
 
-@pytest.mark.parametrize("code", [401, 403])
 @pytest.mark.parametrize("checker", [require_success, require_write_success])
-def test_auth_failures_name_the_setting_to_check(checker, code):
-    with pytest.raises(RuntimeError, match="OITC_APIKEY"):
-        checker({}, code, "reading hosts")
+def test_a_rejected_credential_names_both_kinds_of_credential(checker):
+    with pytest.raises(RuntimeError, match="API key, or in delegated mode the user token"):
+        checker({}, 401, "reading hosts")
+
+
+@pytest.mark.parametrize("checker", [require_success, require_write_success])
+def test_a_missing_permission_is_not_reported_as_a_bad_credential(checker):
+    """A user role without the right answers 403. The credential is fine; a retry will not help."""
+    with pytest.raises(RuntimeError, match="denied permission") as raised:
+        checker({}, 403, "reading hosts")
+    assert "OITC_APIKEY" not in str(raised.value)
+    assert "invalid" not in str(raised.value)
 
 
 @pytest.mark.parametrize("checker", [require_success, require_write_success])
