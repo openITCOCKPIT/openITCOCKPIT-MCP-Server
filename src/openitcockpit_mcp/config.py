@@ -67,6 +67,10 @@ class Settings(BaseSettings):
         default=None,
         description="Path to a toolsets.toml. Defaults to ./toolsets.toml, else the file shipped with the package.",
     )
+    prompt_style_file: str | None = Field(
+        default=None,
+        description="Path to a Markdown file of house style rules, added to the general system prompts. Defaults to ./prompt-style.md when it exists.",
+    )
 
     # --- openITCOCKPIT connection -----------------------------------------
     verify_tls: bool = Field(default=True, description="Verify the openITCOCKPIT TLS certificate.")

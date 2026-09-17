@@ -39,3 +39,27 @@ skills directory still gets them:
 registered only when `OITC_ENABLE_WRITE_TOOLS=true`, exactly as the write tools
 are - offering a sequence the server cannot run would be worse than not offering
 it.
+
+## Your own rules about language and form
+
+The shipped prompts already say how an answer should read: plain sentences, no
+emojis, object names in backticks, numbers quoted as they came. Those live
+inside the package, so editing them there is lost on the next update, and they
+say nothing about the things that differ per installation - how to address the
+reader, which language to answer in, what your team calls things.
+
+Put those in a file of your own:
+
+```bash
+cp prompt-style.example.md prompt-style.md     # or point OITC_PROMPT_STYLE_FILE anywhere
+```
+
+Its contents are added to the end of the style section of both general system
+prompts, inside the block a client copies, with a line saying they take
+precedence where they contradict what the server ships. One file, every agent,
+both languages.
+
+It is read when the server starts, so a change takes effect on restart. It is
+not added to the per-toolset supplements: a supplement is used alongside the
+general prompt, so the rules already reach it, and adding them twice would only
+spend context.

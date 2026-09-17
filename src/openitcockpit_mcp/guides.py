@@ -216,6 +216,58 @@ def _read_file(path: Path) -> tuple[str, str, str]:
     return slug, fields.get("description") or slug, body
 
 
+#: The two prompts every instance serves, whatever it is limited to. House style
+#: goes into these and nowhere else: the per-toolset supplements are documented
+#: as additions to them, so a client that follows that would otherwise carry the
+#: same rules twice.
+GENERAL_PROMPTS = ("system-prompt", "system-prompt-de")
+
+#: What the operator's own rules are wrapped in, per language of the prompt they
+#: are added to. The tag is English in both, like every other tag in these files.
+_HOUSE_STYLE = {
+    "system-prompt": (
+        "<house_style>\n"
+        "These rules come from the operator of this instance. Where they "
+        "contradict anything above, follow these.\n\n"
+    ),
+    "system-prompt-de": (
+        "<house_style>\n"
+        "Diese Regeln kommen vom Betreiber dieser Instanz. Widersprechen sie "
+        "etwas weiter oben, gelten diese Regeln.\n\n"
+    ),
+}
+
+
+def house_style_path(settings_path: str | None) -> Path | None:
+    """The operator's style file: the one named, else ./prompt-style.md if it is there."""
+    if settings_path:
+        return Path(settings_path)
+    default = Path("prompt-style.md")
+    return default if default.is_file() else None
+
+
+def with_house_style(slug: str, body: str, style: str) -> str:
+    """The prompt with the operator's rules inside the block a client copies.
+
+    They go at the end of the ``<style>`` section, which is where a reader looks
+    for them. A prompt that has no such section - one someone replaced - takes
+    them at the end of the fenced block instead, which is still inside what is
+    copied. Anything outside that block is explanation for a person and would
+    never reach a model.
+    """
+    text = style.strip()
+    if not text:
+        return body
+    block = "\n" + _HOUSE_STYLE.get(slug, _HOUSE_STYLE["system-prompt"]) + text + "\n</house_style>\n"
+
+    if "</style>" in body:
+        return body.replace("</style>", f"{block}</style>", 1)
+    fence = body.rfind("```")
+    if fence == -1:
+        return body.rstrip() + "\n\n" + block
+    return body[:fence] + block + body[fence:]
+
+
 def _register(
     mcp: FastMCP,
     slug: str,
@@ -266,12 +318,21 @@ def register_guides(
         base = (toolsets_path or Path("toolsets.toml")).parent
         own = [base / name for name in named if name not in BY_SLUG]
 
+    style_file = house_style_path(deps.settings.prompt_style_file)
+    if style_file is not None and not style_file.is_file():
+        raise ValueError(f"OITC_PROMPT_STYLE_FILE points at {style_file}, which does not exist.")
+    style = style_file.read_text(encoding="utf-8") if style_file else ""
+    if style.strip():
+        log.info("adding house style from %s to the general system prompts", style_file)
+
     seen: set[str] = set()
     for guide in wanted:
         if guide.slug in seen or (guide.needs_write_tools and not deps.settings.enable_write_tools):
             continue
         seen.add(guide.slug)
         description, body = _read(guide)
+        if guide.slug in GENERAL_PROMPTS:
+            body = with_house_style(guide.slug, body, style)
         _register(mcp, guide.slug, guide.title, description, body, guide.as_prompt, guide.audience, guide.priority)
 
     for path in own:

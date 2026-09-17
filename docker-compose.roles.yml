@@ -22,6 +22,8 @@
 x-role: &role
   image: openitcockpit/mcp-server:latest
   restart: unless-stopped
+  #volumes:
+  #  - ./prompt-style.md:/etc/oitc-mcp/prompt-style.md:ro
   healthcheck:
     # An unauthenticated request answering 401 is the healthy response: the
     # server is up and rejecting correctly. A dead container answers nothing.
@@ -47,6 +49,10 @@ x-role-env: &role-env
   # roles that change something turn it on for themselves below.
   OITC_ENABLE_WRITE_TOOLS: "false"
   OITC_SHOW_BANNER: "false"
+  # One file of house style - how to address the reader, which wording to use -
+  # for every role at once. Mount it into each container and uncomment both
+  # lines. See prompt-style.example.md.
+  #OITC_PROMPT_STYLE_FILE: "/etc/oitc-mcp/prompt-style.md"
 
 services:
   # ---------------------------------------------------------------- reading --

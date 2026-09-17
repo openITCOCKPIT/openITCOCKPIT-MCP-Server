@@ -16,6 +16,10 @@ build/
 coverage.xml
 htmlcov/
 
+# The operator's own house style and toolsets, next to the server they run.
+prompt-style.md
+/toolsets.toml
+
 # Where oitc-mcp-eval writes its runs by default.
 eval-results/
 
