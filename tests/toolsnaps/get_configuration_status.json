@@ -1,0 +1,25 @@
+{
+  "_meta": {
+    "fastmcp": {
+      "tags": []
+    }
+  },
+  "annotations": {
+    "destructiveHint": false,
+    "idempotentHint": true,
+    "openWorldHint": true,
+    "readOnlyHint": true
+  },
+  "description": "Whether the monitoring engine runs the configuration as it stands: when it was last exported, what was changed since, what is configured but not monitored yet, and whether an export is running or even possible. Use it before and after a configuration change.",
+  "inputSchema": {
+    "additionalProperties": false,
+    "properties": {},
+    "type": "object"
+  },
+  "name": "get_configuration_status",
+  "outputSchema": {
+    "additionalProperties": true,
+    "type": "object"
+  },
+  "title": "Configuration Status"
+}

@@ -5,7 +5,8 @@ recording does not hold fails with a KeyError instead of being answered with
 something else. Left out of the match: the ``angular`` flag, and the time window
 ``filter[from]``/``filter[to]``, which depends on when the test runs - the clock
 tests cover how it is computed. A test that freezes the clock at the recording
-time matches the window too, with ``match_window=True``.
+time can match the start of the window with ``match_window=True``; the end stays
+out, since it is rounded up to the minute the request is made in.
 """
 
 from __future__ import annotations
@@ -31,7 +32,7 @@ def key(path: str, params: dict, unmatched: set[str] = UNMATCHED) -> str:
 
 class Cassette:
     def __init__(self, recording: Path, match_window: bool = False) -> None:
-        self.unmatched = {"angular"} if match_window else UNMATCHED
+        self.unmatched = {"angular", "filter[to]"} if match_window else UNMATCHED
         self.tape = {key(entry["path"], entry["params"], self.unmatched): entry for entry in json.loads(recording.read_text())}
         self.requests: list[str] = []
         self.status_map_allowed = True

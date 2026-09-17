@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-from collections import Counter
 from dataclasses import asdict, replace
 from datetime import datetime, timedelta
 from typing import Annotated, Any
@@ -25,6 +24,7 @@ from openitcockpit_mcp.tools.support.annotations import READ_ONLY
 from openitcockpit_mcp.tools.support.params import Hostname
 from openitcockpit_mcp.tools.support.results import Result
 from openitcockpit_mcp.tools.support.times import parse
+from openitcockpit_mcp.tools.support.topology import behind
 
 ANNOTATIONS = READ_ONLY
 
@@ -257,22 +257,13 @@ def _same_time(
 
 def _topology(topology: Topology, name: str) -> dict[str, Any]:
     """Its parents with their state, and every host behind it, counted by state."""
-    behind: set[str] = set()
-    queue = list(topology.children.get(name, []))
-    while queue:
-        child = queue.pop()
-        if child not in behind and child != name:
-            behind.add(child)
-            queue += topology.children.get(child, [])
-    by_state = Counter(topology.nodes[h].state for h in behind if h in topology.nodes)
+    covered = behind(topology, name)
     return {
         "parents": [
             {"host": parent, "state": topology.nodes[parent].state if parent in topology.nodes else "unknown"}
             for parent in topology.parents.get(name, [])
         ],
-        "hosts_behind": len(behind),
-        **({"hosts_behind_by_state": dict(by_state)} if behind else {}),
-        **({"in_downtime_behind": n} if (n := sum(1 for h in behind if h in topology.nodes and topology.nodes[h].in_downtime)) else {}),
+        **{key: value for key, value in covered.items() if key != "examples"},
     }
 
 

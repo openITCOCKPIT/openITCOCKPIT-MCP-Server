@@ -9,6 +9,7 @@ zone themselves. ``hideExpired`` does not hide cancelled downtimes - that takes
 from __future__ import annotations
 
 from dataclasses import dataclass
+from datetime import datetime
 from typing import Any, Literal
 
 from openitcockpit_mcp.api.client import OITCClient
@@ -103,3 +104,48 @@ def count_downtimes(api: OITCClient, kind: Kind, query: DowntimeQuery) -> int:
     resp, code = api.get(_ENDPOINT[kind][0], {**query.params(kind), "scroll": "false", "limit": 1, "page": 1})
     require_success(resp, code, f"counting {kind} downtimes")
     return int((resp.get("paging") or {}).get("count") or 0)
+
+
+def schedule(api: OITCClient, kind: Kind, object_id: int, comment: str, start: datetime, end: datetime, with_services: bool) -> None:
+    """Put one host or service into a downtime from ``start`` to ``end``.
+
+    The times go out as the user's wall clock; openITCOCKPIT reads them in the
+    user's zone (``SystemdowntimesController::addHostdowntime``). For a host,
+    ``downtimetype_id`` 1 covers its services too, 0 only the host itself; a
+    host downtime including services showed up as 1 host and 10 service
+    downtimes, measured.
+    """
+    path = "/systemdowntimes/addHostdowntime.json" if kind == "host" else "/systemdowntimes/addServicedowntime.json"
+    body = {
+        "Systemdowntime": {
+            "object_id": [object_id],
+            "downtimetype_id": 1 if (kind == "host" and with_services) else 0,
+            "is_recurring": 0,
+            "comment": comment,
+            "from_date": start.strftime("%Y-%m-%d"),
+            "from_time": start.strftime("%H:%M"),
+            "to_date": end.strftime("%Y-%m-%d"),
+            "to_time": end.strftime("%H:%M"),
+            "duration": max(int((end - start).total_seconds() // 60), 1),
+            "weekdays": [],
+            "day_of_month": "",
+        }
+    }
+    resp, code = api.post(path, body)
+    require_success(resp, code, f"scheduling the {kind} downtime")
+
+
+def cancel(api: OITCClient, kind: Kind, downtime_id: int, include_services: bool) -> None:
+    """Cancel one downtime by the id a row reports as ``downtime_id``."""
+    body: dict[str, Any] = {"type": kind}
+    if kind == "host":
+        body["includeServices"] = include_services
+    resp, code = api.post(f"/downtimes/delete/{downtime_id}.json", body)
+    require_success(resp, code, f"cancelling the {kind} downtime")
+
+
+def on_object(api: OITCClient, kind: Kind, host: str, service: str, limit: int, running_only: bool = False) -> list[DowntimeRow]:
+    """The downtimes of one host or service that are neither cancelled nor over."""
+    query = DowntimeQuery(host=host, service=service, running_only=running_only)
+    rows, _ = find_downtimes(api, kind, query, limit)
+    return rows

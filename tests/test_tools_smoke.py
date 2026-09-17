@@ -118,6 +118,8 @@ READ_CALLS = {
     "find_services": {},
     "get_host_health": {"hostname": "web01"},
     "get_service_health": {"hostname": "web01", "servicename": "Ping"},
+    "get_impact": {"hostname": "web01"},
+    "get_configuration_status": {},
     "list_catalog": {"kind": "hostgroup"},
     "get_problem_overview": {},
     "find_noisy_checks": {},
@@ -158,6 +160,12 @@ WRITE_CALLS = {
     "update_service": {"hostname": "web01", "servicename": "Ping", "fields": {"check_interval": 60}},
     "update_contact": {"name": "oncall", "fields": {"description": "d"}},
     "update_contactgroup": {"name": "admins", "fields": {"description": "d"}},
+    "acknowledge_problem": {"hostname": "web01", "comment": "known"},
+    "remove_acknowledgement": {"hostname": "web01"},
+    "reschedule_check": {"hostname": "web01"},
+    "apply_configuration": {},
+    "schedule_downtime": {"hostname": "web01", "hours": 2, "comment": "maintenance"},
+    "cancel_downtime": {"hostname": "web01"},
 }
 
 

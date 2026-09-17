@@ -4,8 +4,8 @@ import pytest
 
 from openitcockpit_mcp.server import create_server
 
-READ_TOOL_COUNT = 36
-WRITE_TOOL_COUNT = 14
+READ_TOOL_COUNT = 38
+WRITE_TOOL_COUNT = 20
 
 
 async def _tool_names(settings) -> set[str]:

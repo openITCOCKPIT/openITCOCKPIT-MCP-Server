@@ -36,3 +36,31 @@ UPDATE = {
     "idempotentHint": True,
     "openWorldHint": True,
 }
+
+# A command to the monitoring engine that adds to an object's state, such as an
+# acknowledgement or a check run now. Nothing is lost, and sending it again
+# leaves the same state.
+COMMAND = {
+    "readOnlyHint": False,
+    "destructiveHint": False,
+    "idempotentHint": True,
+    "openWorldHint": True,
+}
+
+# A command that takes something away someone else put there, such as their
+# acknowledgement. Sending it again changes nothing more.
+REMOVE = {
+    "readOnlyHint": False,
+    "destructiveHint": True,
+    "idempotentHint": True,
+    "openWorldHint": True,
+}
+
+# Writing the configuration to the monitoring engine and reloading it. It
+# replaces what the engine runs, and sending it again leads to the same state.
+APPLY = {
+    "readOnlyHint": False,
+    "destructiveHint": True,
+    "idempotentHint": True,
+    "openWorldHint": True,
+}

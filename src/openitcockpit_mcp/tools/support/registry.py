@@ -14,6 +14,9 @@ from fastmcp import FastMCP
 
 from openitcockpit_mcp.deps import Deps
 from openitcockpit_mcp.tools import (
+    acknowledge_problem,
+    apply_configuration,
+    cancel_downtime,
     create_command,
     create_contact,
     create_contactgroup,
@@ -30,9 +33,11 @@ from openitcockpit_mcp.tools import (
     find_noisy_checks,
     find_services,
     get_allowed_elements_for_container,
+    get_configuration_status,
     get_container_tree,
     get_host_health,
     get_host_info,
+    get_impact,
     get_monitoring_engine_stats,
     get_problem_overview,
     get_service_health,
@@ -60,6 +65,9 @@ from openitcockpit_mcp.tools import (
     list_services_by_state,
     list_servicetemplategroups,
     list_servicetemplates,
+    remove_acknowledgement,
+    reschedule_check,
+    schedule_downtime,
     update_contact,
     update_contactgroup,
     update_host,
@@ -67,6 +75,9 @@ from openitcockpit_mcp.tools import (
 )
 
 TOOLS: tuple[ModuleType, ...] = (
+    acknowledge_problem,
+    apply_configuration,
+    cancel_downtime,
     create_command,
     create_contact,
     create_contactgroup,
@@ -83,8 +94,10 @@ TOOLS: tuple[ModuleType, ...] = (
     find_noisy_checks,
     find_services,
     get_allowed_elements_for_container,
+    get_configuration_status,
     get_container_tree,
     get_host_health,
+    get_impact,
     get_service_health,
     get_host_info,
     get_monitoring_engine_stats,
@@ -113,6 +126,9 @@ TOOLS: tuple[ModuleType, ...] = (
     list_services_by_state,
     list_servicetemplategroups,
     list_servicetemplates,
+    remove_acknowledgement,
+    reschedule_check,
+    schedule_downtime,
     update_contact,
     update_contactgroup,
     update_host,

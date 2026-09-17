@@ -95,6 +95,24 @@ tools = [
     "investigate_problem",
 ]
 
+[operations]
+description = "Act on problems as the user asking: acknowledge them, take a maintenance window, run a check again now."
+systemprompts = ["system-prompt-operations", "system-prompt-operations-de"]
+tools = [
+    "get_problem_overview",
+    "find_hosts",
+    "get_host_health",
+    "get_service_health",
+    "get_impact",
+    "get_configuration_status",
+    "acknowledge_problem",
+    "remove_acknowledgement",
+    "reschedule_check",
+    "schedule_downtime",
+    "cancel_downtime",
+    "find_downtimes",
+]
+
 # The sets below name write tools. They take effect only with
 # OITC_ENABLE_WRITE_TOOLS=true; otherwise they resolve to their read tools.
 
@@ -111,6 +129,8 @@ tools = [
     "list_hosttemplates",
     "list_servicetemplates",
     "get_host_info",
+    "get_configuration_status",
+    "apply_configuration",
 ]
 
 [config]

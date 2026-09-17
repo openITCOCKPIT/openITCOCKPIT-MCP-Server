@@ -308,7 +308,7 @@ def test_tool_names_in_the_shipped_prompts_are_registered_tools():
 
     from openitcockpit_mcp.tools.support.registry import TOOLS
 
-    tool_name = re.compile(r"`((?:find|get|list|create|update|delete|schedule|cancel|acknowledge|apply)_[a-z_]+)`")
+    tool_name = re.compile(r"`((?:find|get|list|create|update|delete|schedule|cancel|acknowledge|apply|remove|reschedule|investigate|explain)_[a-z_]+)`")
     registered = {tool.__name__.rsplit(".", 1)[-1] for tool in TOOLS}
     root = files("openitcockpit_mcp")
     named = set()

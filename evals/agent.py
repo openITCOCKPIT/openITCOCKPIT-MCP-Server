@@ -10,6 +10,10 @@ final answer is checked against what the dataset holds (see the file).
     OITC_BASEURL=https://127.0.0.1 OITC_APIKEY=... \\
     python evals/agent.py --model h200-heavy-think-01-01 --samples 3
 
+Cases that act (``--cases agent_write_cases.toml --write``) change the instance.
+Each case's ``setup`` calls run before a sample and its ``reset`` calls after,
+and the samples run one after another, since they act on the same objects.
+
 Needs OITC_EVAL_BASE_URL, OITC_EVAL_API_KEY, OITC_BASEURL and OITC_APIKEY.
 Writes evals/results/<run>-agent.json.
 """
@@ -41,14 +45,28 @@ from openitcockpit_mcp.server import create_server
 HERE = Path(__file__).parent
 
 
-def settings(toolsets: str) -> Settings:
+def settings(toolsets: str, write: bool = False) -> Settings:
     return Settings(
         mcp_auth_token="eval",
         apikey=os.environ["OITC_APIKEY"],
         baseurl=os.environ["OITC_BASEURL"],
         verify_tls=False,
         toolsets=toolsets,
+        enable_write_tools=write,
     )
+
+
+async def run_calls(calls: list[dict[str, Any]]) -> None:
+    """Tool calls that put the instance into the state a case expects, with every tool available."""
+    if not calls:
+        return
+    mcp, deps = create_server(settings("all", write=True))
+    try:
+        async with Client(mcp) as client:
+            for call in calls:
+                await client.call_tool(call["tool"], call.get("arguments", {}))
+    finally:
+        deps.api.close()
 
 
 async def check_dataset(expected: dict[str, Any]) -> None:
@@ -142,7 +160,7 @@ def correction(found: list[dict[str, str]]) -> str:
 
 
 async def converse(model: str, case: dict[str, Any], args: argparse.Namespace, system: str) -> dict[str, Any]:
-    mcp, deps = create_server(settings(args.toolsets))
+    mcp, deps = create_server(settings(args.toolsets, args.write))
     try:
         async with Client(mcp) as client:
             tools = [
@@ -225,6 +243,29 @@ def unsupported_numbers(answer: str, question: str, calls: list[dict[str, Any]])
     return sorted({n for n in NUMBER.findall(answer) if n not in seen}, key=int)
 
 
+def called(expected: dict[str, Any], call: dict[str, Any]) -> bool:
+    """Whether ``call`` is the expected tool with the expected arguments and, if given, outcome.
+
+    A string argument is a regular expression the value has to match; any other
+    value has to be equal.
+    """
+    if call["tool"] != expected["tool"] or call["error"]:
+        return False
+    arguments = call["arguments"] or {}
+    for name, want in expected.get("arguments", {}).items():
+        have = arguments.get(name)
+        if isinstance(want, str):
+            if not isinstance(have, str) or not re.search(want, have, flags=re.I):
+                return False
+        elif have != want:
+            return False
+    if "outcome" in expected:
+        with contextlib.suppress(json.JSONDecodeError, AttributeError, TypeError):
+            return bool(json.loads(call["result"]).get("outcome") == expected["outcome"])
+        return False
+    return True
+
+
 def grade(case: dict[str, Any], answer: str | None, calls: list[dict[str, Any]] | None = None) -> dict[str, Any]:
     if answer is None:
         return {"passed": False, "failed": ["no answer within the step limit"]}
@@ -244,6 +285,8 @@ def grade(case: dict[str, Any], answer: str | None, calls: list[dict[str, Any]] 
                 "failed": [f"must quote {quote['tool']}.{quote['field']} ({values[-1] if values else 'never called'})"],
             }
     failed = [" | ".join(check) for check in case.get("must", []) if not any(re.search(pattern, answer, flags=re.I) for pattern in check)]
+    failed += [f"must call: {expected}" for expected in case.get("must_call", []) if not any(called(expected, c) for c in calls or [])]
+    failed += [f"must not call: {c['tool']}" for c in calls or [] if c["tool"] in case.get("must_not_call", [])]
     failed += [f"must not: {pattern}" for pattern in case.get("must_not", []) if re.search(pattern, answer, flags=re.I)]
     return {"passed": not failed, "failed": failed}
 
@@ -260,6 +303,8 @@ def main() -> None:
     )
     parser.add_argument("--max-tokens", type=int, default=8000)
     parser.add_argument("--case", action="append", help="run only these case ids")
+    parser.add_argument("--cases", default="agent_cases.toml", help="the case file, next to this script")
+    parser.add_argument("--write", action="store_true", help="register the write tools; needed for cases that act")
     parser.add_argument(
         "--system-prompt",
         action="append",
@@ -267,7 +312,10 @@ def main() -> None:
     )
     args = parser.parse_args()
 
-    spec = tomllib.loads((HERE / "agent_cases.toml").read_text())
+    spec = tomllib.loads((HERE / args.cases).read_text())
+    acting = any(c.get("setup") or c.get("reset") for c in spec["case"])
+    if acting and args.workers != 1:
+        raise SystemExit("These cases change the instance; run them with --workers 1.")
     cases = [c for c in spec["case"] if not args.case or c["id"] in args.case]
     asyncio.run(check_dataset(spec["dataset"]))
     prompts = args.system_prompt or ["en/general", "en/health"]
@@ -279,7 +327,11 @@ def main() -> None:
         model, case, n = item
         started = time.monotonic()
         try:
-            outcome = asyncio.run(converse(model, case, args, system))
+            asyncio.run(run_calls(case.get("setup", [])))
+            try:
+                outcome = asyncio.run(converse(model, case, args, system))
+            finally:
+                asyncio.run(run_calls(case.get("reset", [])))
             outcome.update(grade(case, outcome["answer"], outcome["calls"]))
             outcome["unsupported"] = unsupported_names(outcome["answer"] or "", case["question"], outcome["calls"])
             outcome["unsupported_numbers"] = unsupported_numbers(outcome["answer"] or "", case["question"], outcome["calls"])
