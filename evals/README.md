@@ -11,11 +11,18 @@ The cases here are ours: they are written for the scale test dataset
 (`scripts/seed_scale_dataset.py`) and they are a **test set**. Keep them out of
 anything a model is trained on.
 
+The two models we measure against, named once here and by label everywhere else:
+
+```bash
+MODEL_A=h200-heavy-think-01-01      # DeepSeek V4 Flash, the reference
+MODEL_B=h200-light-no-think-02-02   # Qwen 3.6 35B-A3B, the small one
+```
+
 ```bash
 set -a; . ~/.config/oitc-evals/env; set +a          # OITC_EVAL_BASE_URL, OITC_EVAL_API_KEY
 set -a; . ~/.config/oitc-evals/local-stack.env; set +a
 OITC_APIKEY=$OITC_LOCAL_APIKEY OITC_BASEURL=$OITC_LOCAL_BASEURL \
-  oitc-mcp-eval --model h200-heavy-think-01-01 --samples 5 --yes \
+  oitc-mcp-eval --model "$MODEL_A" --samples 5 --yes \
     --toolsets health --system-prompt en/general --system-prompt en/health \
     --cases evals/agent_cases.toml --results evals/results
 ```

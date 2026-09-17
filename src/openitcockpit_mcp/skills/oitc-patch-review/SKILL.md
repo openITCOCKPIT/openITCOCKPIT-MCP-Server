@@ -34,7 +34,7 @@ list_pending_security_updates()
   -> items: [{ hostname: "db02", os_type: "linux", available_security_updates: 3 }]
 
 # Carry that hostname into the per-host calls - it is required and has no
-# estate-wide form. get_container_tree() also reports host names.
+# estate-wide form. find_hosts() reports host names.
 list_installed_software(hostname="db02", name_filter="openssl")
 list_installed_software(hostname="db02", only_updatable=True)
 ```
@@ -50,8 +50,8 @@ packages.
 An update count alone does not tell an operator what to do. Enrich it:
 
 ```
-get_container_tree()          # which tenant/location does the host belong to
-get_host_info(hostname)       # is the host even up right now
+find_hosts(name="db02")       # which container it belongs to, and its state
+get_host_health(hostname)     # is the host even up right now, and what ails it
 ```
 
 A host that is down cannot be patched; a host in a production tenant is a

@@ -2,7 +2,7 @@
 
 `evals/agent.py --cases agent_lifecycle_cases.toml --write --workers 1`, toolset
 `lifecycle` (8 tools), system prompts `en/general` and `en/lifecycle`, DeepSeek
-(`h200-heavy-think-01-01`), 5 samples per case, scale test dataset.
+(Model A), 5 samples per case, scale test dataset.
 
 ## The tools
 

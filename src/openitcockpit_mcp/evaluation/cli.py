@@ -33,9 +33,11 @@ it again."""
 
 WRITE_WARNING = """
 
---write is set, so the model can also change that instance: acknowledge
-problems, set downtimes, take objects out of the monitoring, export the
-configuration. Cases clean up after themselves, but a wrong answer can leave
+--write is set, so the model can call these tools on that instance:
+
+  {tools}
+
+Cases clean up after themselves, but a model that answers wrongly can leave
 something behind. Do not point this at production."""
 
 
@@ -58,6 +60,11 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--toolsets", default="health", help=f"Which tools the model sees. Shipped: {', '.join(SHIPPED_TOOLSETS)}, or all.")
     parser.add_argument("--system-prompt", action="append", help="Shipped prompts to use, e.g. en/general en/health.")
     parser.add_argument("--write", action="store_true", help="Let the model use tools that change the instance.")
+    parser.add_argument(
+        "--allow-deletes",
+        action="store_true",
+        help="Also let it use tools whose effect cannot be undone. Off even with --write; only for a throwaway instance.",
+    )
     parser.add_argument("--max-steps", type=int, default=runner.MAX_STEPS, help="Turns a model may take before a case counts unanswered.")
     parser.add_argument("--max-tokens", type=int, default=8000)
     parser.add_argument("--case", action="append", help="Run only these case ids.")
@@ -83,8 +90,9 @@ def shipped_prompt(names: list[str]) -> str:
     return "\n\n".join(blocks)
 
 
-def confirm(url: str, write: bool, assume_yes: bool) -> bool:
-    print(WARNING.format(url=url, writes=WRITE_WARNING if write else ""), file=sys.stderr)
+def confirm(url: str, write: bool, assume_yes: bool, tools: list[str]) -> bool:
+    listed = "\n  ".join(tools) if tools else "none - no tool in this toolset changes anything"
+    print(WARNING.format(url=url, writes=WRITE_WARNING.format(tools=listed) if write else ""), file=sys.stderr)
     if assume_yes:
         return True
     if not sys.stdin.isatty():
@@ -138,7 +146,17 @@ def main(argv: list[str] | None = None) -> int:
             file=sys.stderr,
         )
         return 2
-    if not confirm(settings.baseurl, args.write, args.yes):
+    tool_settings = runner.settings_for(settings, args.toolsets, args.write)
+    changing, permanent = asyncio.run(runner.reach(tool_settings))
+    if permanent and not args.allow_deletes:
+        print(
+            f"'{args.toolsets}' contains tools whose effect cannot be undone: {', '.join(permanent)}.\n"
+            "A model that picks one of those on a real instance leaves you with nothing to restore from.\n"
+            "Pick a smaller toolset, or pass --allow-deletes if this instance is yours to lose.",
+            file=sys.stderr,
+        )
+        return 2
+    if not confirm(settings.baseurl, args.write, args.yes, changing):
         return 1
 
     prompts = args.system_prompt or ["en/general"] + ([f"en/{args.toolsets}"] if args.toolsets in SHIPPED_TOOLSETS else [])
@@ -152,7 +170,6 @@ def main(argv: list[str] | None = None) -> int:
         )
 
     endpoint = Endpoint(base_url=args.api_base, api_key=args.api_key)
-    tool_settings = runner.settings_for(settings, args.toolsets, args.write)
     # A case that sets the instance up has to have it to itself; the ones that
     # only read do not, and making them wait for it would double a run.
     reading = [c for c in cases if not (c.get("setup") or c.get("reset"))]

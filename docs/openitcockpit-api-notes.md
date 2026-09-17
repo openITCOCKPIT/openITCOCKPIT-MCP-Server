@@ -66,7 +66,7 @@ contact or timeperiod is visible from the target container. That validation
 exists only in the endpoints the web UI calls to populate its form dropdowns.
 
 This server calls those endpoints before writing. See
-[write-tools.md](write-tools.md).
+[using-the-tools.md](using-the-tools.md).
 
 ## Endpoint-specific behaviour
 

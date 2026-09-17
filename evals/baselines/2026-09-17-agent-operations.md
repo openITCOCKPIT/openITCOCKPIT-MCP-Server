@@ -2,7 +2,7 @@
 
 `evals/agent.py --cases agent_write_cases.toml --write --workers 1`, toolset
 `operations` (8 tools), system prompts `en/general` and `en/operations`,
-DeepSeek (`h200-heavy-think-01-01`), 5 samples per case, scale test dataset.
+Model A (DeepSeek V4 Flash), 5 samples per case, scale test dataset.
 
 Five cases: acknowledge with a ticket, acknowledge a problem that already is,
 a question that must not act, check again after a fix, and remove a host's

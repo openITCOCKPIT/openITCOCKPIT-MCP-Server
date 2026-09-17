@@ -2,7 +2,7 @@
 
 A model told to use a tool its instance does not have calls it anyway, or says it
 has no way to answer. Observed: the hostname parameter of get_host_health sent a
-model to list_log_entries and get_container_tree, neither of which the health
+model to a log tool and get_container_tree, neither of which the health
 toolset has.
 
 Where a text is served decides what it may name:
@@ -41,6 +41,14 @@ SETS = load(resolve_path(None))
 
 #: Modules whose job is to name tools.
 NAMING_MODULES = {"lookup_hints.py", "tools/support/registry.py"}
+
+#: A name shaped like a tool of this server. MENTION only matches tools that
+#: exist, so a text left behind by a renamed or removed tool reads as prose to
+#: it. This catches that: anything of this shape has to be a tool we ship.
+TOOL_SHAPED = re.compile(
+    r"\b(?:acknowledge|apply|cancel|create|delete|explain|find|get|investigate|list|"
+    r"remove|reschedule|resume|schedule|stop|update)_[a-z][a-z_]*\b"
+)
 
 
 def mentions(text: str) -> set[str]:
@@ -120,6 +128,16 @@ def test_a_sets_skills_and_supplements_name_only_its_own_tools(set_name):
         missing = mentions((PACKAGE / guide.path).read_text(encoding="utf-8")) - toolset.tools
         if missing:
             wrong[slug] = sorted(missing)
+    assert not wrong, wrong
+
+
+def test_no_served_text_names_a_tool_this_server_does_not_have():
+    """A skill or prompt that outlived a tool sends a model after something gone."""
+    wrong = {}
+    for slug, guide in guides.BY_SLUG.items():
+        gone = set(TOOL_SHAPED.findall((PACKAGE / guide.path).read_text(encoding="utf-8"))) - TOOL_NAMES
+        if gone:
+            wrong[slug] = sorted(gone)
     assert not wrong, wrong
 
 

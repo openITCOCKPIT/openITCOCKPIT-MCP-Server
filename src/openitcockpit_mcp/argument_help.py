@@ -47,14 +47,11 @@ SUGGESTION_LIMIT = 25
 #: How long the host-name list is reused. Only ever read on the error path.
 CACHE_TTL_SECONDS = 60
 
+#: Hints for parameters whose values cannot be read off the schema. A parameter
+#: with a closed set of values needs no entry: :func:`_choices` reads those from
+#: the tool's own schema, so they cannot drift from the code.
 _GENERIC_HINT = {
     "servicename": "the exact service name on that host.",
-    "state": "one of: ok, warning, critical, unknown.",
-    "object_type": (
-        "one of: host, hosttemplate, servicetemplate, hostgroup, contactgroup, "
-        "servicetemplategroup, contact."
-    ),
-    "command_type": "one of: check, hostcheck, notification, eventhandler.",
     "servicetemplate_name": "a service template name: its display name or its template name.",
     "check_command_name": "a command name.",
     "address": "the host's IP address or DNS name.",
@@ -93,22 +90,23 @@ class ArgumentHelpMiddleware(Middleware):
         self._hosts = (time.monotonic(), names)
         return names
 
-    def _hint_for(self, parameter: str, available: list[str]) -> str:
+    def _hint_for(self, parameter: str, available: list[str], choices: list[str] | None = None) -> str:
         if parameter == "hostname":
             names = self._host_names()
             if names:
                 return "one of these hosts: " + ", ".join(names)
             text = "an exact host name."
+        elif choices:
+            text = "one of: " + ", ".join(choices) + "."
         else:
             text = _GENERIC_HINT.get(parameter, "a value for this parameter.")
         return text + lookup_hints.hint(_LOOKUP_KIND.get(parameter, ""), available)
 
-    def _message(self, tool_name: str, missing: list[str], available: list[str]) -> str:
+    def _message(self, tool_name: str, missing: list[str], available: list[str], schema: dict[str, Any] | None = None) -> str:
         lines = [
-            f"{tool_name} needs {len(missing)} argument(s) that were not supplied. "
-            "Call it again with them, do not repeat the same call:"
+            f"{tool_name} needs {len(missing)} argument(s) that were not supplied. Call it again with them, do not repeat the same call:"
         ]
-        lines += [f"  {name}: {self._hint_for(name, available)}" for name in missing]
+        lines += [f"  {name}: {self._hint_for(name, available, _choices(schema, name))}" for name in missing]
         return "\n".join(lines)
 
     async def on_call_tool(
@@ -119,13 +117,16 @@ class ArgumentHelpMiddleware(Middleware):
         raw = context.message.arguments
         log.debug("tool=%s raw arguments (%s): %r", context.message.name, type(raw).__name__, raw)
 
-        missing = await self._missing_arguments(context)
+        missing, schema = await self._missing_arguments(context)
         if missing:
             log.warning(
                 "tool=%s missing %s; received arguments (%s): %r",
-                context.message.name, missing, type(raw).__name__, raw,
+                context.message.name,
+                missing,
+                type(raw).__name__,
+                raw,
             )
-            raise ToolError(self._message(context.message.name, missing, await _registered(context)))
+            raise ToolError(self._message(context.message.name, missing, await _registered(context), schema))
         try:
             return await call_next(context)
         except ToolError as exc:
@@ -137,17 +138,17 @@ class ArgumentHelpMiddleware(Middleware):
                 raise
             raise ToolError(f"{exc}{extra}") from exc.__cause__
 
-    async def _missing_arguments(self, context: MiddlewareContext[mt.CallToolRequestParams]) -> list[str]:
-        """Required parameters of the tool that the call did not supply."""
+    async def _missing_arguments(self, context: MiddlewareContext[mt.CallToolRequestParams]) -> tuple[list[str], dict[str, Any] | None]:
+        """Required parameters of the tool that the call did not supply, with its schema."""
         server = getattr(getattr(context, "fastmcp_context", None), "fastmcp", None)
         if server is None:
-            return []
+            return [], None
         tool = await server.get_tool(context.message.name)
         schema: dict[str, Any] | None = getattr(tool, "parameters", None)
         if not schema:
-            return []
+            return [], None
         supplied = context.message.arguments or {}
-        return [name for name in schema.get("required", []) if name not in supplied]
+        return [name for name in schema.get("required", []) if name not in supplied], schema
 
 
 async def _registered(context: MiddlewareContext[mt.CallToolRequestParams]) -> list[str]:
@@ -156,3 +157,26 @@ async def _registered(context: MiddlewareContext[mt.CallToolRequestParams]) -> l
     if server is None:
         return []
     return [tool.name for tool in await server.list_tools()]
+
+
+def _choices(schema: dict[str, Any] | None, parameter: str) -> list[str]:
+    """The values a parameter accepts, where its schema names them.
+
+    A Literal reaches the schema as an ``enum``, directly or behind ``anyOf``
+    or a ``$ref`` into ``$defs``; all three shapes are read here so a closed set
+    is quoted back without a hand-written copy of it.
+    """
+    if not schema:
+        return []
+    field = (schema.get("properties") or {}).get(parameter)
+    if not isinstance(field, dict):
+        return []
+    for candidate in [field, *(c for c in field.get("anyOf", []) if isinstance(c, dict))]:
+        if candidate.get("enum"):
+            return [str(value) for value in candidate["enum"]]
+        ref = candidate.get("$ref", "")
+        if ref.startswith("#/$defs/"):
+            definition = (schema.get("$defs") or {}).get(ref.rsplit("/", 1)[-1], {})
+            if definition.get("enum"):
+                return [str(value) for value in definition["enum"]]
+    return []

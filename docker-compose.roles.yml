@@ -48,14 +48,14 @@ x-role-env: &role-env
 
 services:
   # What is broken, since when, and whether someone is already on it.
-  oitc-mcp-triage:
+  oitc-mcp-health:
     <<: *role
-    container_name: oitc-mcp-triage
+    container_name: oitc-mcp-health
     ports:
       - "8801:8000"
     environment:
       <<: *role-env
-      OITC_TOOLSETS: "triage"
+      OITC_TOOLSETS: "health"
       MCP_AUTH_TOKEN: "change-me-token-triage"
       OITC_APIKEY: "api-key-of-a-read-only-account"
 

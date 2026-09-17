@@ -15,6 +15,41 @@ this server's semver, which is also the image tag. See
   `scripts/eval-throwaway.sh` creates an instance for the run and removes it
   again. See [docs/evals.md](docs/evals.md).
 
+### Removed
+
+Twenty tools whose work the reorganised surface does better, with what replaces
+them. The server offers 41 tools instead of 61, so every request carries less.
+
+| gone | use instead |
+|---|---|
+| `get_host_info` | `get_host_health` (state and what explains it) or `find_hosts` |
+| `list_services_by_state` | `find_services`, which counts every match per state |
+| `list_log_entries` | `investigate_problem` and `get_shift_summary` |
+| `get_monitoring_engine_stats` | `get_problem_overview`, which says when the engine itself is behind |
+| `list_host_checks`, `list_service_checks`, `list_host_state_changes`, `list_service_state_changes` | `get_host_health`, `get_service_health`, `investigate_problem` |
+| `list_host_downtimes`, `list_service_downtimes` | `find_downtimes` |
+| `list_host_acknowledgements`, `list_service_acknowledgements` | `get_host_health`, `get_service_health`, `get_shift_summary` |
+| `list_hosttemplates`, `list_servicetemplates`, `list_commands`, `list_contacts`, `list_contactgroups`, `list_hostgroups`, `list_servicegroups`, `list_servicetemplategroups` | `list_catalog(kind=...)`, which covers all of those plus time periods |
+
+The `triage` toolset is gone with them: it was built entirely on those tools,
+and `health` is what the task became. Its skill (`oitc-incident-triage`) is
+served with `health` now. `catalog` is three tools instead of ten.
+
+### Changed
+
+- `create_host_with_agent_pull_mode` is gone; `create_host` takes
+  `agent_pull_port` (plus HTTPS and basic-auth arguments) and does both steps in
+  one call, picking the agent host template unless another is named. One tool
+  fewer in the onboarding set, and the context it cost with every request.
+- A missing argument whose values are a closed set is answered with those
+  values, read from the tool's own schema rather than a hand-written list that
+  could drift from it.
+- `docs/read-tools.md` and `docs/write-tools.md` are replaced by
+  [docs/tools.md](docs/tools.md), generated from the registered tools, and
+  [docs/using-the-tools.md](docs/using-the-tools.md), which keeps what a listing
+  cannot say: what a result looks like, container scope, and how
+  read-modify-write and inheritance behave.
+
 ### Fixed
 
 - `create_hosttemplate` and `create_servicetemplate` enable notifications. The

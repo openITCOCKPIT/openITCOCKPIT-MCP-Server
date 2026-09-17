@@ -136,15 +136,15 @@ def test_split_frontmatter(text, expected_fields, expected_body):
 async def test_a_set_serves_what_the_file_names_for_it(settings):
     """The mapping lives in toolsets.toml, so a set someone invents can carry
     material they wrote."""
-    limited, deps = create_server(settings.model_copy(update={"toolsets": "triage"}))
+    limited, deps = create_server(settings.model_copy(update={"toolsets": "health"}))
     try:
         uris = {str(resource.uri) for resource in await limited.list_resources()}
     finally:
         deps.api.close()
     assert {
         f"{URI_PREFIX}oitc-incident-triage",
-        f"{URI_PREFIX}system-prompt-triage",
-        f"{URI_PREFIX}system-prompt-triage-de",
+        f"{URI_PREFIX}system-prompt-health",
+        f"{URI_PREFIX}system-prompt-health-de",
     } <= uris
     assert f"{URI_PREFIX}oitc-patch-review" not in uris
     assert f"{URI_PREFIX}system-prompt-patch" not in uris
@@ -182,9 +182,9 @@ def test_every_shipped_set_has_a_supplement_in_both_languages():
 
 
 async def test_a_limited_instance_serves_only_its_own_skills(settings):
-    """A triage agent has no use for the patch-review workflow, and a guide it
-    cannot act on invites it to try."""
-    mcp, deps = create_server(settings.model_copy(update={"toolsets": "triage"}))
+    """An agent that only looks at health has no use for the patch-review
+    workflow, and a guide it cannot act on invites it to try."""
+    mcp, deps = create_server(settings.model_copy(update={"toolsets": "health"}))
     try:
         uris = {str(resource.uri) for resource in await mcp.list_resources()}
     finally:
@@ -226,7 +226,7 @@ async def test_a_set_can_name_a_file_of_its_own(settings, tmp_path, monkeypatch)
         encoding="utf-8",
     )
     (tmp_path / "toolsets.toml").write_text(
-        '[wachdienst]\ndescription = "Meine Gruppe"\ntools = ["get_host_info"]\n'
+        '[wachdienst]\ndescription = "Meine Gruppe"\ntools = ["get_host_health"]\n'
         'skills = ["./wachdienst.md"]\nsystemprompts = ["./wachdienst-prompt.md"]\n',
         encoding="utf-8",
     )
@@ -245,7 +245,7 @@ async def test_a_set_can_name_a_file_of_its_own(settings, tmp_path, monkeypatch)
 
 async def test_a_named_file_that_is_missing_is_an_error(settings, tmp_path, monkeypatch):
     (tmp_path / "toolsets.toml").write_text(
-        '[mine]\ntools = ["get_host_info"]\nskills = ["./absent.md"]\n', encoding="utf-8"
+        '[mine]\ntools = ["get_host_health"]\nskills = ["./absent.md"]\n', encoding="utf-8"
     )
     monkeypatch.chdir(tmp_path)
     with pytest.raises(ValueError, match="does not exist"):
@@ -276,7 +276,7 @@ async def test_the_toolsets_an_instance_runs_with_are_readable_as_a_resource(set
     """The same descriptions reach a client through the server instructions, but
     the protocol revision from 2026-07-28 has no handshake and therefore no
     instructions. A resource is readable on both paths."""
-    limited, deps = create_server(settings.model_copy(update={"toolsets": "triage"}))
+    limited, deps = create_server(settings.model_copy(update={"toolsets": "health"}))
     try:
         uris = {str(resource.uri) for resource in await limited.list_resources()}
         body = await _read_resource(limited, f"{URI_PREFIX}{TOOLSET_OVERVIEW_SLUG}")
@@ -284,11 +284,11 @@ async def test_the_toolsets_an_instance_runs_with_are_readable_as_a_resource(set
         deps.api.close()
 
     assert f"{URI_PREFIX}{TOOLSET_OVERVIEW_SLUG}" in uris
-    assert "## triage" in body
+    assert "## health" in body
     # The description from toolsets.toml, which is what the instructions carried.
-    assert "What is broken, since when" in body
+    assert "Find hosts and services across the estate" in body, "the set's own description belongs in the overview"
     # And which tools the set names, which tools/list alone does not say.
-    assert "list_services_by_state" in body
+    assert "find_services" in body
     assert "## patch" not in body
 
 

@@ -10,11 +10,33 @@
     "openWorldHint": true,
     "readOnlyHint": false
   },
-  "description": "Use this function to create a new host in openITCOCKPIT. container_name defaults to the root container if not given; hosttemplate_name defaults to the built-in 'default host' template. hosttemplate_name must be visible from container_name's scope - use get_allowed_elements_for_container(object_type=\"host\", container_name=...) to see which host templates qualify.",
+  "description": "Create a host in openITCOCKPIT. With agent_pull_port it is also set up for the openITCOCKPIT agent in pull mode, in one call; services are not discovered from the agent, add them separately once it is reachable. container_name defaults to root. hosttemplate_name defaults to the agent template when a port is given and to 'default host' otherwise; it has to be visible from the container - get_allowed_elements_for_container lists which ones are.",
   "inputSchema": {
     "additionalProperties": false,
     "properties": {
       "address": {
+        "type": "string"
+      },
+      "agent_pull_https": {
+        "default": false,
+        "description": "Reach that agent over HTTPS.",
+        "type": "boolean"
+      },
+      "agent_pull_password": {
+        "default": "",
+        "description": "Password for that user.",
+        "type": "string"
+      },
+      "agent_pull_port": {
+        "default": 0,
+        "description": "Port the openITCOCKPIT agent answers on, for a host monitored in pull mode (openITCOCKPIT connects to the agent). 0: no agent connection. The usual port is 3333.",
+        "maximum": 65535,
+        "minimum": 0,
+        "type": "integer"
+      },
+      "agent_pull_user": {
+        "default": "",
+        "description": "User for the agent's basic auth, if it asks for one.",
         "type": "string"
       },
       "container_name": {
@@ -28,7 +50,7 @@
         "type": "string"
       },
       "hosttemplate_name": {
-        "default": "default host",
+        "default": "",
         "type": "string"
       },
       "name": {

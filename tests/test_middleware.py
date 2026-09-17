@@ -50,7 +50,7 @@ async def test_payload_is_no_longer_duplicated_into_content(settings):
     mcp, deps = create_server(settings.model_copy(update={"compact_content": True}))
     try:
         async with Client(mcp) as client:
-            result = await client.call_tool("list_hostgroups", {})
+            result = await client.call_tool("list_catalog", {"kind": "hostgroup"})
     finally:
         deps.api.close()
 
@@ -58,7 +58,7 @@ async def test_payload_is_no_longer_duplicated_into_content(settings):
     structured = json.dumps(result.structured_content)
     assert len(text) < 200, "content should be a summary, not the payload"
     assert len(structured) > 1000, "the data itself still has to be there"
-    assert "30 rows" in text
+    assert "list_catalog" in text and "fields" in text
 
 
 @responses.activate
@@ -68,7 +68,7 @@ async def test_tool_errors_keep_their_message(settings):
     try:
         async with Client(mcp) as client:
             with pytest.raises(Exception, match="openITCOCKPIT"):
-                await client.call_tool("list_hostgroups", {})
+                await client.call_tool("list_catalog", {"kind": "hostgroup"})
     finally:
         deps.api.close()
 
@@ -85,7 +85,7 @@ async def test_content_carries_the_data_when_compaction_is_off(settings):
     mcp, deps = create_server(settings)
     try:
         async with Client(mcp) as client:
-            result = await client.call_tool("list_hostgroups", {})
+            result = await client.call_tool("list_catalog", {"kind": "hostgroup"})
     finally:
         deps.api.close()
 

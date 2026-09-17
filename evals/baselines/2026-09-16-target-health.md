@@ -7,7 +7,7 @@ per case, neutral system prompt. 14 cases have one of these tools as target.
 
 ## Covered tasks
 
-| | Qwen 3.6 35B-A3B (`h200-light-no-think-02-02`) | DeepSeek V4 Flash (`h200-heavy-think-01-01`) |
+| | Model B (Qwen 3.6 35B-A3B) | Model A (DeepSeek V4 Flash) |
 |---|---|---|
 | right tool first | 95.7 % | 97.1 % |
 | right tool and arguments | 95.7 % | 92.9 % |

@@ -36,7 +36,7 @@ def captured_run(monkeypatch):
                 # One tool, not none: main() treats an empty surface as a
                 # misconfiguration and refuses to serve it.
                 class Tool:
-                    name = "get_host_info"
+                    name = "get_host_health"
                     annotations = None
 
                 return [Tool()]
@@ -146,7 +146,7 @@ def test_log_level_flag_is_applied(configured, captured_run):
 def test_listing_the_toolsets_needs_no_configuration(capsys):
     """An installer asks which instances to create before any credential exists."""
     assert cli.main(["--list-toolsets"]) == 0
-    assert "triage" in capsys.readouterr().out
+    assert "health" in capsys.readouterr().out
 
 
 def test_listing_ignores_a_delegated_configuration_without_a_key(monkeypatch, capsys):
@@ -161,11 +161,11 @@ def test_toolsets_as_json_say_which_sets_write(capsys):
     assert cli.main(["--list-toolsets", "--format", "json"]) == 0
     sets = {toolset["name"]: toolset for toolset in json.loads(capsys.readouterr().out)["toolsets"]}
 
-    assert sets["triage"]["writes"] is False
+    assert sets["health"]["writes"] is False
     assert sets["config"]["writes"] is True
-    assert "get_host_info" in sets["triage"]["tools"]
-    assert sets["triage"]["description"]
-    assert "system-prompt-triage" in sets["triage"]["systemprompts"]
+    assert "get_host_health" in sets["health"]["tools"]
+    assert sets["health"]["description"]
+    assert "system-prompt-health" in sets["health"]["systemprompts"]
 
 
 def test_toolsets_as_json_follow_the_configured_file(monkeypatch, tmp_path, capsys):
@@ -176,7 +176,7 @@ def test_toolsets_as_json_follow_the_configured_file(monkeypatch, tmp_path, caps
     custom.write_text(
         '[night-shift]\n'
         'description = "What the night shift needs."\n'
-        'tools = ["get_host_info", "list_services_by_state"]\n'
+        'tools = ["get_host_health", "find_services"]\n'
     )
     monkeypatch.setenv("OITC_TOOLSETS_FILE", str(custom))
 

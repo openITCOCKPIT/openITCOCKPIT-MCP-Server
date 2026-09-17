@@ -7,7 +7,8 @@ import pytest
 from openitcockpit_mcp import toolsets
 from openitcockpit_mcp.server import all_tool_names, create_server
 
-TRIAGE_TOOL_COUNT = 12
+#: Tools in the health set, the one a limited instance is tested with.
+HEALTH_TOOL_COUNT = 11
 
 
 @pytest.fixture(scope="module")
@@ -39,15 +40,15 @@ def test_every_toolset_carries_a_description(shipped):
 
 
 def test_selection_resolves_to_the_named_tools(shipped):
-    assert toolsets.select("triage", shipped) == set(shipped["triage"].tools)
+    assert toolsets.select("health", shipped) == set(shipped["health"].tools)
 
 
 def test_several_sets_are_unioned(shipped):
-    both = toolsets.select("triage,patch", shipped)
-    assert both == set(shipped["triage"].tools) | set(shipped["patch"].tools)
+    both = toolsets.select("health,patch", shipped)
+    assert both == set(shipped["health"].tools) | set(shipped["patch"].tools)
 
 
-@pytest.mark.parametrize("selection", ["all", "triage,all"])
+@pytest.mark.parametrize("selection", ["all", "health,all"])
 def test_all_means_no_filter(selection, shipped):
     assert toolsets.select(selection, shipped) is None
 
@@ -62,17 +63,17 @@ def test_an_empty_selection_is_a_configuration_error(value, settings):
 
 def test_unknown_tool_name_is_rejected(shipped):
     with pytest.raises(ValueError, match="unknown tool"):
-        toolsets.validate(shipped, {"get_host_info"})
+        toolsets.validate(shipped, {"get_host_health"})
 
 
 @pytest.mark.parametrize(
     ("body", "message"),
     [
-        ("[triage]\ntools = []\n", "lists no tools"),
-        ("[triage]\ntools = 'not-a-list'\n", "tools list of strings"),
-        ("[all]\ntools = ['get_host_info']\n", "reserved keyword"),
-        ("triage = 'nope'\n", "must be a table"),
-        ("[triage\n", "not valid TOML"),
+        ("[health]\ntools = []\n", "lists no tools"),
+        ("[health]\ntools = 'not-a-list'\n", "tools list of strings"),
+        ("[all]\ntools = ['get_host_health']\n", "reserved keyword"),
+        ("health = 'nope'\n", "must be a table"),
+        ("[health\n", "not valid TOML"),
         ("", "defines no toolsets"),
     ],
     ids=["empty", "wrong-type", "reserved", "not-a-table", "broken-toml", "no-sets"],
@@ -87,15 +88,15 @@ def test_a_broken_file_is_reported_not_raised_raw(tmp_path: Path, body: str, mes
 def test_a_local_file_replaces_the_packaged_one(tmp_path: Path, monkeypatch):
     """The rule is 'this file is what applies' - a merge would raise a question
     about precedence at every difference."""
-    (tmp_path / "toolsets.toml").write_text("[mine]\ntools = ['get_host_info']\n", encoding="utf-8")
+    (tmp_path / "toolsets.toml").write_text("[mine]\ntools = ['get_host_health']\n", encoding="utf-8")
     monkeypatch.chdir(tmp_path)
     assert list(toolsets.load(toolsets.resolve_path(None))) == ["mine"]
 
 
 def test_a_configured_path_wins_over_the_working_directory(tmp_path: Path, monkeypatch):
-    (tmp_path / "toolsets.toml").write_text("[local]\ntools = ['get_host_info']\n", encoding="utf-8")
+    (tmp_path / "toolsets.toml").write_text("[local]\ntools = ['get_host_health']\n", encoding="utf-8")
     elsewhere = tmp_path / "other.toml"
-    elsewhere.write_text("[configured]\ntools = ['get_host_info']\n", encoding="utf-8")
+    elsewhere.write_text("[configured]\ntools = ['get_host_health']\n", encoding="utf-8")
     monkeypatch.chdir(tmp_path)
     assert list(toolsets.load(toolsets.resolve_path(str(elsewhere)))) == ["configured"]
 
@@ -106,12 +107,12 @@ def test_a_missing_configured_path_is_an_error(tmp_path: Path):
 
 
 async def test_the_server_registers_only_the_selected_tools(settings):
-    mcp, deps = create_server(settings.model_copy(update={"toolsets": "triage"}))
+    mcp, deps = create_server(settings.model_copy(update={"toolsets": "health"}))
     try:
         names = {tool.name for tool in await mcp.list_tools()}
     finally:
         deps.api.close()
-    assert len(names) == TRIAGE_TOOL_COUNT
+    assert len(names) == HEALTH_TOOL_COUNT
     assert "list_installed_software" not in names
 
 
@@ -124,13 +125,13 @@ async def test_a_toolset_cannot_open_the_write_gate(settings):
     finally:
         deps.api.close()
     assert "create_host" not in names
-    assert "list_hosttemplates" in names
+    assert "list_catalog" in names
 
 
 async def test_resources_survive_a_narrowed_tool_surface(settings):
     """The guides describe workflows across the whole surface; a client limited
     to one toolset still benefits from reading them."""
-    mcp, deps = create_server(settings.model_copy(update={"toolsets": "triage"}))
+    mcp, deps = create_server(settings.model_copy(update={"toolsets": "health"}))
     try:
         assert await mcp.list_resources()
     finally:
@@ -138,10 +139,10 @@ async def test_resources_survive_a_narrowed_tool_surface(settings):
 
 
 def test_instructions_name_the_active_toolsets(settings):
-    mcp, deps = create_server(settings.model_copy(update={"toolsets": "triage"}))
+    mcp, deps = create_server(settings.model_copy(update={"toolsets": "health"}))
     deps.api.close()
     assert "This instance is limited to the tools of:" in (mcp.instructions or "")
-    assert "triage" in (mcp.instructions or "")
+    assert "health" in (mcp.instructions or "")
 
 
 def test_instructions_are_unchanged_without_a_filter(settings):

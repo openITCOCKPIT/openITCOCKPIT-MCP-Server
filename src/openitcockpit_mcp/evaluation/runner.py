@@ -90,6 +90,29 @@ async def tool_definitions(settings: Settings) -> list[dict[str, Any]]:
         deps.api.close()
 
 
+async def reach(settings: Settings) -> tuple[list[str], list[str]]:
+    """What a run could do to the instance, by what the tools claim about themselves.
+
+    Returns the registered tools that change something, and of those the ones a
+    second call cannot put back: destructive and not idempotent, which is how a
+    deletion is annotated. A downtime or an acknowledgement is reversible and
+    stays out of the second list.
+    """
+    mcp, deps = create_server(settings)
+    try:
+        async with Client(mcp) as client:
+            tools = [tool for tool in await client.list_tools() if not (tool.annotations and tool.annotations.read_only_hint)]
+            changing = sorted(tool.name for tool in tools)
+            permanent = sorted(
+                tool.name
+                for tool in tools
+                if tool.annotations and tool.annotations.destructive_hint and not tool.annotations.idempotent_hint
+            )
+            return changing, permanent
+    finally:
+        deps.api.close()
+
+
 async def prepare(settings: Settings, steps: list[dict[str, Any]]) -> None:
     """Put the instance into the state a case expects, or clean up after it.
 

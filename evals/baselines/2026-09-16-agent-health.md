@@ -5,7 +5,7 @@
 dataset. Every tool call runs against the live instance; the final answer is
 checked with the patterns in `agent_cases.toml`.
 
-| | DeepSeek V4 Flash (`h200-heavy-think-01-01`) | Qwen 3.6 35B-A3B (`h200-light-no-think-02-02`) |
+| | Model A (DeepSeek V4 Flash) | Model B (Qwen 3.6 35B-A3B) |
 |---|---|---|
 | answers passing the checks | 27/27 | 24/27 |
 | tool calls per answer, median | 2 | 1 |

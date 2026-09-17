@@ -1,54 +1,27 @@
-# Write tools
+# Working with the tools
 
-The 14 write tools, the read-only helper they rely on, and the two openITCOCKPIT behaviours that decide what they
-actually do: cross-references are scoped to a container, and the edit endpoints
-want the whole object on every save.
+Which tools exist, what they take and what they cost is generated from the code
+into [tools.md](tools.md). This page is the part that cannot be generated: what
+a result looks like, and what happens when you write.
 
-> [!IMPORTANT]
-> These change your monitoring configuration. They are not registered at all
-> unless `OITC_ENABLE_WRITE_TOOLS=true`. `get_allowed_elements_for_container`
-> only reads and is always registered.
+## What a result looks like
 
-## The tools
+List tools answer with an envelope, never a bare array:
+`{items, count, truncated, hint}`. `truncated` matters - openITCOCKPIT caps its
+list endpoints and, in the scroll mode these tools use, reports no total, so without it a partial answer is
+indistinguishable from a complete one. Every list tool takes `limit`
+(default 50, max 500).
 
-All of them take human-readable names, never a database id. A contact group's
-`name` is its container's name, since a contact group has no name column of its
-own.
+`hostname` and `servicename` are required where they appear and have no
+estate-wide form. A call that omits one is answered with the values that would
+have worked - for `hostname`, the instance's actual host names - so the caller
+can correct it instead of retrying.
 
-### Before you write
-
-| Tool | What it does |
-|---|---|
-| `get_allowed_elements_for_container(object_type, container_name="")` | Lists the values a create call would accept in that container. Read-only. Call it instead of guessing and retrying. |
-
-### Hosts and services
-
-| Tool | What it does |
-|---|---|
-| `create_host(name, address, ...)` | New host from a host template |
-| `create_host_with_agent_pull_mode(name, address, ..., port=3333)` | New host plus its agent pull-mode connection, in one call. Does not discover services from the live agent; add those separately. |
-| `create_service(hostname, servicetemplate_name, name="", fields=None)` | New service on an existing host |
-| `update_host(hostname, fields=None, container_name=None)` | Read-modify-write. `container_name` moves the host, see below. |
-| `update_service(hostname, servicename, fields=None)` | Read-modify-write |
-
-### Templates, commands and groups
-
-| Tool | What it does |
-|---|---|
-| `create_hosttemplate(name, check_command_name, ...)` | Needs at least one contact or contact group |
-| `create_servicetemplate(name, template_name, check_command_name, ...)` | `template_name` is the internal reference name |
-| `create_command(name, command_line, command_type, ...)` | `check`/`hostcheck`/`notification`/`eventhandler`; global, not container-scoped |
-| `create_hostgroup(name, ...)` | New host group under a Tenant/Location/Node |
-| `create_servicetemplategroup(name, servicetemplate_names, ...)` | Needs at least one service template |
-
-### Contacts
-
-| Tool | What it does |
-|---|---|
-| `create_contact(name, email="", phone="", ...)` | Needs at least one of email/phone |
-| `create_contactgroup(name, contact_names, ...)` | Needs at least one contact |
-| `update_contact(name, fields=None)` | Read-modify-write, no inheritance |
-| `update_contactgroup(name, fields=None)` | Read-modify-write, no inheritance |
+Results are delivered twice: JSON text in `content`, and `structuredContent`
+for clients on MCP revision 2025-06-18 or later. `OITC_COMPACT_CONTENT=true`
+roughly halves each response by reducing `content` to a summary - but then
+**only clients that read `structuredContent` see the data**. Leave it off for
+Open WebUI and anything else that reads `content` only.
 
 ## Container scope
 
@@ -148,6 +121,6 @@ of valid ones - never a bare "failed".
 
 ---
 
-Read tools are in [read-tools.md](read-tools.md). Response shapes and the other
-API quirks this server works around are in
-[openitcockpit-api-notes.md](openitcockpit-api-notes.md).
+The API behaviour this server works around is in
+[openitcockpit-api-notes.md](openitcockpit-api-notes.md); how the pieces fit
+together is in [architecture.md](architecture.md).

@@ -19,7 +19,7 @@ Cases without one - ``tools = []``, or a target tool not built yet - are
 reported separately, with what the model called instead.
 
     set -a; . ~/.config/oitc-evals/env; set +a
-    python evals/run.py --surface current --model h200-light-no-think-02-02 --samples 5
+    python evals/run.py --model "$MODEL_B" --samples 5
 
 Needs OITC_EVAL_BASE_URL and OITC_EVAL_API_KEY. Writes evals/results/<run>.json.
 """
@@ -119,15 +119,15 @@ def same(expected: Any, actual: Any) -> bool:
     return expected == actual
 
 
-def covered(case: dict[str, Any], surface: str, schemas: dict[str, dict[str, Any]]) -> bool:
-    return any(tool in schemas for tool in case["expect"][surface]["tools"])
+def covered(case: dict[str, Any], schemas: dict[str, dict[str, Any]]) -> bool:
+    return any(tool in schemas for tool in case["expect"]["tools"])
 
 
-def score(case: dict[str, Any], surface: str, response: dict[str, Any], schemas: dict[str, dict[str, Any]]) -> dict[str, Any]:
-    expect = case["expect"][surface]
+def score(case: dict[str, Any], response: dict[str, Any], schemas: dict[str, dict[str, Any]]) -> dict[str, Any]:
+    expect = case["expect"]
     message = response["choices"][0]["message"]
     calls = message.get("tool_calls") or []
-    result: dict[str, Any] = {"covered": covered(case, surface, schemas), "called": None, "arguments": None}
+    result: dict[str, Any] = {"covered": covered(case, schemas), "called": None, "arguments": None}
     if not calls:
         result.update(no_call=True, tool=False, args=False, invented=False)
         return result
@@ -156,11 +156,10 @@ def score(case: dict[str, Any], surface: str, response: dict[str, Any], schemas:
 
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
-    parser.add_argument("--surface", choices=["current", "target"], default="current")
     parser.add_argument("--model", action="append", required=True)
     parser.add_argument("--samples", type=int, default=5)
     parser.add_argument("--workers", type=int, default=8)
-    parser.add_argument("--toolsets", default="all", help="limit the tools as an instance would, e.g. triage")
+    parser.add_argument("--toolsets", default="all", help="limit the tools as an instance would, e.g. health")
     parser.add_argument("--max-tokens", type=int, default=4000)
     parser.add_argument("--case", action="append", help="run only these case ids")
     parser.add_argument(
@@ -182,10 +181,10 @@ def main() -> None:
         started = time.monotonic()
         try:
             response = complete(model, case["question"], tools, args.max_tokens, system)
-            outcome = score(case, args.surface, response, schemas)
+            outcome = score(case, response, schemas)
             outcome["usage"] = response.get("usage", {})
         except Exception as error:  # a failed request is a result too, not a crash
-            outcome = {"error": f"{type(error).__name__}: {error}", "covered": covered(case, args.surface, schemas)}
+            outcome = {"error": f"{type(error).__name__}: {error}", "covered": covered(case, schemas)}
         outcome.update(model=model, case=case["id"], task=case["task"], lang=case["lang"], sample=n)
         outcome["seconds"] = round(time.monotonic() - started, 2)
         return outcome
@@ -194,12 +193,11 @@ def main() -> None:
         results = list(pool.map(run, jobs))
 
     stamp = datetime.now(UTC).strftime("%Y%m%dT%H%M%SZ")
-    out = HERE / "results" / f"{stamp}-{args.surface}.json"
+    out = HERE / "results" / f"{stamp}-tool-choice.json"
     out.parent.mkdir(exist_ok=True)
     out.write_text(
         json.dumps(
             {
-                "surface": args.surface,
                 "toolsets": args.toolsets,
                 "system_prompt": args.system_prompt or "neutral",
                 "tools": len(tools),
@@ -212,8 +210,8 @@ def main() -> None:
     )
 
     print(f"system prompt={args.system_prompt or 'neutral'}")
-    print(f"surface={args.surface} toolsets={args.toolsets} tools={len(tools)} cases={len(cases)} samples={args.samples}")
-    print(f"covered cases: {sum(1 for c in cases if covered(c, args.surface, schemas))}/{len(cases)}")
+    print(f"toolsets={args.toolsets} tools={len(tools)} cases={len(cases)} samples={args.samples}")
+    print(f"covered cases: {sum(1 for c in cases if covered(c, schemas))}/{len(cases)}")
     for model in args.model:
         mine = [r for r in results if r["model"] == model]
         errors = [r for r in mine if "error" in r]
