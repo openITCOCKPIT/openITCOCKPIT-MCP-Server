@@ -1,0 +1,43 @@
+{
+  "_meta": {
+    "fastmcp": {
+      "tags": []
+    }
+  },
+  "annotations": {
+    "destructiveHint": false,
+    "idempotentHint": true,
+    "openWorldHint": true,
+    "readOnlyHint": true
+  },
+  "description": "What is broken and what is only a consequence: down hosts and the unreachable hosts and services behind them, the remaining unhandled service problems grouped by service, and what is already in a downtime or acknowledged. Use it first for \"what is broken\" or \"give me an overview\".",
+  "inputSchema": {
+    "additionalProperties": false,
+    "properties": {
+      "container": {
+        "default": "",
+        "description": "Only this container: its exact name or path, e.g. tenant-a.",
+        "type": "string"
+      },
+      "groups": {
+        "default": 10,
+        "description": "How many problem groups to list.",
+        "maximum": 50,
+        "minimum": 1,
+        "type": "integer"
+      },
+      "hostgroup": {
+        "default": "",
+        "description": "Only hosts of this host group: its exact name.",
+        "type": "string"
+      }
+    },
+    "type": "object"
+  },
+  "name": "get_problem_overview",
+  "outputSchema": {
+    "additionalProperties": true,
+    "type": "object"
+  },
+  "title": "Problem Overview"
+}

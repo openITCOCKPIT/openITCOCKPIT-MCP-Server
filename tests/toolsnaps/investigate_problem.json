@@ -1,0 +1,52 @@
+{
+  "_meta": {
+    "fastmcp": {
+      "tags": []
+    }
+  },
+  "annotations": {
+    "destructiveHint": false,
+    "idempotentHint": true,
+    "openWorldHint": true,
+    "readOnlyHint": true
+  },
+  "description": "What happened around a problem: when it began, whether it happened before and how long it lasted then, which other hosts and services failed in the same minutes, and which configuration changes and exports came before. Works on the current problem, or on the last one when the object is fine again. Use it for \"why did web01 go down\" or \"has Backup on db01 failed before\".",
+  "inputSchema": {
+    "additionalProperties": false,
+    "properties": {
+      "around_minutes": {
+        "default": 15,
+        "description": "What counts as the same time as the start of the problem.",
+        "maximum": 240,
+        "minimum": 1,
+        "type": "integer"
+      },
+      "days": {
+        "default": 7,
+        "description": "How far back to look for earlier problems.",
+        "maximum": 30,
+        "minimum": 1,
+        "type": "integer"
+      },
+      "hostname": {
+        "description": "Exact host name. Required - there is no estate-wide form of this tool. A name that matches no host is answered with the tools that can find the right one.",
+        "type": "string"
+      },
+      "servicename": {
+        "default": "",
+        "description": "Exact service name on that host. Empty: investigate the host itself.",
+        "type": "string"
+      }
+    },
+    "required": [
+      "hostname"
+    ],
+    "type": "object"
+  },
+  "name": "investigate_problem",
+  "outputSchema": {
+    "additionalProperties": true,
+    "type": "object"
+  },
+  "title": "Investigate Problem"
+}

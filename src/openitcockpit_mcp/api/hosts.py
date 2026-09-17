@@ -13,6 +13,7 @@ from typing import Any
 
 from openitcockpit_mcp.api.client import OITCClient
 from openitcockpit_mcp.api.errors import NameNotFoundError, require_success
+from openitcockpit_mcp.api.notification_settings import settings_from_browser
 
 HOST_STATES = ("up", "down", "unreachable")
 
@@ -38,6 +39,10 @@ class HostQuery:
     hostgroup_id: int | None = None
     acknowledged: bool | None = None
     in_downtime: bool | None = None
+    #: Only hosts whose current state began at least this many hours ago.
+    state_older_than_hours: int | None = None
+    #: Only those whose current state began at least this many seconds ago.
+    state_older_than_seconds: int | None = None
 
     def with_states(self, *states: str) -> HostQuery:
         return replace(self, states=tuple(states))
@@ -58,6 +63,11 @@ class HostQuery:
             params["filter[Hoststatus.problem_has_been_acknowledged]"] = int(self.acknowledged)
         if self.in_downtime is not None:
             params["filter[Hoststatus.scheduled_downtime_depth]"] = int(self.in_downtime)
+        if self.state_older_than_hours is not None:
+            # interval_older: last_state_change <= NOW() - INTERVAL n HOUR (Filter.php).
+            params["filter[Hoststatus.last_state_change][]"] = [self.state_older_than_hours, "HOUR"]
+        if self.state_older_than_seconds is not None:
+            params["filter[Hoststatus.last_state_change][]"] = [self.state_older_than_seconds, "SECOND"]
         return params
 
 
@@ -125,6 +135,25 @@ def find_hosts(api: OITCClient, query: HostQuery, limit: int, containers: dict[i
     return rows
 
 
+def failed_hosts(api: OITCClient, query: HostQuery, limit: int) -> list[tuple[int, HostRow]]:
+    """Down and unreachable hosts with their ids, up to ``limit``, in one request."""
+    resp, code = api.get(
+        "/hosts/index.json", {**query.with_states("down", "unreachable").params(), "scroll": "true", "limit": limit, "page": 1}
+    )
+    require_success(resp, code, "reading failed hosts")
+    return [(int(item["Host"]["id"]), _row(item, {})) for item in resp.get("all_hosts", [])]
+
+
+def latest_changes(api: OITCClient, query: HostQuery, limit: int) -> list[HostRow]:
+    """The ``limit`` hosts of ``query`` whose current state began most recently."""
+    resp, code = api.get(
+        "/hosts/index.json",
+        {**query.params(), "scroll": "true", "limit": limit, "page": 1, "sort": "Hoststatus.last_state_change", "direction": "desc"},
+    )
+    require_success(resp, code, "reading the latest host state changes")
+    return [_row(item, {}) for item in resp.get("all_hosts", [])]
+
+
 def handling(api: OITCClient, query: HostQuery) -> dict[str, int] | None:
     """Of the matches: how many are in a downtime, acknowledged, or neither.
 
@@ -187,6 +216,8 @@ class HostDetail:
     parents: list[tuple[str, str]]
     downtime: dict[str, Any] | None
     acknowledgement: dict[str, Any] | None
+    #: See api/notification_settings.py.
+    notification: dict[str, Any]
 
 
 def get_host_detail(api: OITCClient, host_id: int) -> HostDetail:
@@ -234,6 +265,7 @@ def get_host_detail(api: OITCClient, host_id: int) -> HostDetail:
         }
         if isinstance(acknowledgement, dict)
         else None,
+        notification=settings_from_browser(resp, "host"),
     )
 
 

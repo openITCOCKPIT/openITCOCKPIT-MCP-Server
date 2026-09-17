@@ -75,7 +75,7 @@ def register(mcp: FastMCP, deps: Deps) -> None:
         )
 
         service = asdict(detail)
-        for key in ("id", "downtime", "acknowledgement"):
+        for key in ("id", "downtime", "acknowledgement", "notification"):
             service.pop(key)
         return ServiceHealth(
             summary=summary,

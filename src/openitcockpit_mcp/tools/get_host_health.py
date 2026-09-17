@@ -92,7 +92,7 @@ def register(mcp: FastMCP, deps: Deps) -> None:
         )
 
         host = asdict(detail)
-        for key in ("id", "parents", "downtime", "acknowledgement"):
+        for key in ("id", "parents", "downtime", "acknowledgement", "notification"):
             host.pop(key)
         return HostHealth(
             summary=summary,

@@ -88,6 +88,11 @@ tools = [
     "get_host_health",
     "get_service_health",
     "list_catalog",
+    "get_problem_overview",
+    "find_noisy_checks",
+    "explain_notification",
+    "get_shift_summary",
+    "investigate_problem",
 ]
 
 # The sets below name write tools. They take effect only with
