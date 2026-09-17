@@ -30,7 +30,7 @@ who just wants to connect a desktop client:
     "-e", "OITC_TRANSPORT=stdio",
     "-e", "OITC_APIKEY",
     "-e", "OITC_BASEURL",
-    "openitcockpit/mcp-server:0.4.0"
+    "openitcockpit/mcp-server:0.5.0"
   ],
   "env": {
     "OITC_APIKEY": "your-openitcockpit-api-key",
