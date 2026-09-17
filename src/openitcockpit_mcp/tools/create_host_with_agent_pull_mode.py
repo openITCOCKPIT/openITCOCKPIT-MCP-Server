@@ -29,7 +29,7 @@ def register(mcp: FastMCP, deps: Deps) -> None:
         basic_auth_username: str = "",
         basic_auth_password: str = "",
     ) -> dict:
-        """Create a new host monitored via the openITCOCKPIT agent in Pull mode (openITCOCKPIT connects to the agent, rather than the agent pushing data). This is a two-step operation: it creates the host, then configures the agent connection for it. Does not auto-discover/create services from the agent - use list_installed_software etc. once the agent is reachable, and add services separately. hosttemplate_name must be visible from container_name's scope - use get_allowed_elements_for_container(object_type="host", container_name=...) to see which host templates qualify."""
+        """Create a new host monitored via the openITCOCKPIT agent in Pull mode (openITCOCKPIT connects to the agent, rather than the agent pushing data). This is a two-step operation: it creates the host, then configures the agent connection for it. Does not discover or create services from the agent - add services separately once the agent is reachable. hosttemplate_name must be visible from container_name's scope - use get_allowed_elements_for_container(object_type="host", container_name=...) to see which host templates qualify."""
         container_id = resolve_container_id(api, container_name)
         scope_label = f"container '{container_name or 'root'}'"
         resolved = scope.validate_and_resolve(

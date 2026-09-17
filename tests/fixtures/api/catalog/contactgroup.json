@@ -1,0 +1,49 @@
+{
+ "request": {
+  "path": "/contactgroups/index.json",
+  "params": {
+   "scroll": "false",
+   "limit": 3,
+   "page": 1,
+   "sort": "Containers.name",
+   "direction": "asc",
+   "filter[Containers.name]": "oncall"
+  }
+ },
+ "response": {
+  "all_contactgroups": [
+   {
+    "Contactgroup": {
+     "id": 1,
+     "uuid": "5256d32b-7681-4427-ab2f-b12c549c3a0b",
+     "container_id": 23,
+     "description": "scale dataset: on-call contacts",
+     "allow_edit": true,
+     "contact_count": 1
+    },
+    "Container": {
+     "id": 23,
+     "containertype_id": 6,
+     "name": "scale-oncall",
+     "parent_id": 1,
+     "lft": 42,
+     "rght": 43
+    }
+   }
+  ],
+  "_csrfToken": "WCYTiojm1+OBA7mW+63V670DnBz+X7rWLLTv0CfBEgMZjV289hGI/+NFJaIMJd+/Jt8T+irBwDyVzScRm/8A+gAYDXMV0vdv2TurLMo7grBI0t3kFaV2MyC5bISQJL/J1yYXkjsT744R6XHDHPH1BQ==",
+  "paging": {
+   "page": 1,
+   "current": 1,
+   "count": 1,
+   "prevPage": false,
+   "nextPage": false,
+   "pageCount": 1,
+   "limit": 3,
+   "options": [],
+   "paramType": "named",
+   "queryScope": null
+  },
+  "username": "John Doe"
+ }
+}

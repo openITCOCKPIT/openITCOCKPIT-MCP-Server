@@ -9,7 +9,6 @@ from openitcockpit_mcp.api.names import resolve_service_id
 from openitcockpit_mcp.deps import Deps
 from openitcockpit_mcp.formatting import (
     format_servicecheck,
-    time_filter_params,
 )
 from openitcockpit_mcp.tools.support.annotations import READ_ONLY
 from openitcockpit_mcp.tools.support.history import CHECK_HISTORY_DEFAULT, NARROW_HINT
@@ -21,6 +20,7 @@ ANNOTATIONS = READ_ONLY
 
 def register(mcp: FastMCP, deps: Deps) -> None:
     api = deps.api
+    clock = deps.clock
 
     @mcp.tool(title="Service Check History", annotations=ANNOTATIONS)
     def list_service_checks(hostname: Hostname, servicename: Servicename, hours: Hours = 24, limit: Limit = None) -> ListResult:
@@ -44,7 +44,7 @@ def register(mcp: FastMCP, deps: Deps) -> None:
                 "limit": fetch_limit(capped),
                 "sort": "Servicechecks.start_time",
                 "direction": "desc",
-                **time_filter_params(hours),
+                **clock.window(hours),
             },
         )
         require_success(resp, code, "retrieving service check history")

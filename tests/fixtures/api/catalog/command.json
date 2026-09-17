@@ -1,0 +1,67 @@
+{
+ "request": {
+  "path": "/commands/index.json",
+  "params": {
+   "scroll": "false",
+   "limit": 3,
+   "page": 1,
+   "sort": "Commands.name",
+   "direction": "asc",
+   "filter[Commands.name]": "scale"
+  }
+ },
+ "response": {
+  "all_commands": [
+   {
+    "Command": {
+     "id": 118,
+     "name": "scale_disk_trend",
+     "command_line": "/bin/sh -c 'u=$$(( $$(date +%H) * 4 )) && printf \"DISK OK - used %s%% | used=%s%%\\07390\\07395\\0730\\073100\\n\" $$u $$u'",
+     "command_type": 1,
+     "human_args": null,
+     "uuid": "b36d7c2d-0c67-4eb6-86d6-55d26c37d11c",
+     "description": "",
+     "type": "Service check command"
+    }
+   },
+   {
+    "Command": {
+     "id": 120,
+     "name": "scale_host_down",
+     "command_line": "$USER1$/check_dummy 2 \"scale: host down\"",
+     "command_type": 2,
+     "human_args": null,
+     "uuid": "c1b2163f-fd6b-44b4-a16d-1437002cf50d",
+     "description": "",
+     "type": "Host check command"
+    }
+   },
+   {
+    "Command": {
+     "id": 119,
+     "name": "scale_host_up",
+     "command_line": "$USER1$/check_dummy 0 \"scale: host up\"",
+     "command_type": 2,
+     "human_args": null,
+     "uuid": "de4c0dd1-f034-448e-b8a4-c16b79d09403",
+     "description": "",
+     "type": "Host check command"
+    }
+   }
+  ],
+  "_csrfToken": "VLC61YyhQ8lWMgpJK4i1AN4UGuDJ16eWdp4KIfADtDoLh80ekEGKaifdWHXrkUocEiZE6IEzFA2ZW45On7iU0NcpvqzF95eEuiwt0P2zn/AS+DgVwmfQCjKz/Cb2dL1cE75qRdynei0lECbRtwMhNA==",
+  "paging": {
+   "page": 1,
+   "current": 3,
+   "count": 7,
+   "prevPage": false,
+   "nextPage": true,
+   "pageCount": 3,
+   "limit": 3,
+   "options": [],
+   "paramType": "named",
+   "queryScope": null
+  },
+  "username": "John Doe"
+ }
+}

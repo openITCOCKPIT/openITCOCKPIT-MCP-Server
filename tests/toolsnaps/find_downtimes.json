@@ -1,0 +1,63 @@
+{
+  "_meta": {
+    "fastmcp": {
+      "tags": []
+    }
+  },
+  "annotations": {
+    "destructiveHint": false,
+    "idempotentHint": true,
+    "openWorldHint": true,
+    "readOnlyHint": true
+  },
+  "description": "Find running and planned downtimes of hosts and services, by host, service or comment. Cancelled and expired ones are left out. Use it for \"is web01 in maintenance\" or \"what is planned for tonight\".",
+  "inputSchema": {
+    "additionalProperties": false,
+    "properties": {
+      "comment": {
+        "default": "",
+        "description": "Part of the downtime comment, e.g. a ticket number.",
+        "type": "string"
+      },
+      "host": {
+        "default": "",
+        "description": "Part of the host name. Empty: any host.",
+        "type": "string"
+      },
+      "kind": {
+        "default": "both",
+        "description": "Which downtimes to look at.",
+        "enum": [
+          "hosts",
+          "services",
+          "both"
+        ],
+        "type": "string"
+      },
+      "limit": {
+        "default": 20,
+        "description": "How many downtimes to list per kind. The counts cover every match.",
+        "maximum": 100,
+        "minimum": 1,
+        "type": "integer"
+      },
+      "running_only": {
+        "default": false,
+        "description": "true: only downtimes in effect now. false: also planned ones.",
+        "type": "boolean"
+      },
+      "service": {
+        "default": "",
+        "description": "Part of the service name. Empty: any service.",
+        "type": "string"
+      }
+    },
+    "type": "object"
+  },
+  "name": "find_downtimes",
+  "outputSchema": {
+    "additionalProperties": true,
+    "type": "object"
+  },
+  "title": "Find Downtimes"
+}

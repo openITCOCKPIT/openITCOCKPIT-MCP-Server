@@ -12,6 +12,8 @@ from __future__ import annotations
 import difflib
 from typing import Any
 
+from openitcockpit_mcp.api.errors import OutOfScopeError
+
 # How many valid names to echo back before switching to "and N more".
 _SAMPLE_SIZE = 10
 # difflib cutoff for "did you mean" suggestions - low enough to catch typos,
@@ -74,10 +76,9 @@ def resolve_scoped_names(
         problems.append(f"'{name}' is not visible in scope.{hint}")
 
     if problems:
-        raise ValueError(
+        raise OutOfScopeError(
             f"Field '{field_label}' has {len(problems)} invalid value(s) within {scope_label} "
-            f"({len(all_names)} values allowed there in total): {' | '.join(problems)} "
-            f"Call get_allowed_elements_for_container to see the full allowed list before retrying."
+            f"({len(all_names)} values allowed there in total): {' | '.join(problems)}"
         )
     return resolved[0] if single_name is not None else resolved
 

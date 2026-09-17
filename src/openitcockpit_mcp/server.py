@@ -27,13 +27,16 @@ Tools for an openITCOCKPIT monitoring instance (requires openITCOCKPIT \
 {OITC_MIN_VERSION} or newer).
 
 All tools take human-readable names - hostnames, template names, container \
-paths - never database ids. List results are capped and not paginated, so never \
-present one as complete; narrow with the filter parameters instead.
+paths - never database ids. A result that says it is truncated is not complete; \
+narrow with the filter parameters instead of presenting it as the whole set.
 
 Before reporting a critical host or service as a new problem, check whether it \
 is already acknowledged or in a downtime window. If many unrelated things fail \
-at once, call get_monitoring_engine_stats first: a backlogged engine returns \
-stale results that look exactly like an outage.
+at once and a tool reports on the monitoring engine itself, check it first: a \
+backlogged engine returns stale results that look exactly like an outage.
+
+A name that matches nothing is answered with the tools of this instance that \
+can find the right one.
 """
 
 

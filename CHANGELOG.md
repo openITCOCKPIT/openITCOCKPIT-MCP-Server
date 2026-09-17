@@ -6,6 +6,17 @@ this server's semver, which is also the image tag. See
 
 ## Unreleased
 
+### Fixed
+
+- `create_hosttemplate` and `create_servicetemplate` enable notifications. The
+  payload left `notifications_enabled` out, openITCOCKPIT stored 0, and no host
+  or service created from such a template ever notified.
+- The `hours` window of the history tools (`list_log_entries`, `list_host_checks`,
+  `list_service_checks`, `list_host_state_changes`, `list_service_state_changes`)
+  is computed in the time zone of the user the server acts as. openITCOCKPIT
+  reads it there; computed in the server's own zone, a server in UTC and a user
+  in Europe/Berlin got nothing for the last 24 hours.
+
 ### Changed
 
 - `get_allowed_elements_for_container` is available without

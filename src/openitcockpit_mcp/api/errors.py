@@ -19,6 +19,29 @@ class OITCUnreachableError(RuntimeError):
     """openITCOCKPIT could not be reached at all (timeout, DNS, refused connection)."""
 
 
+class NameNotFoundError(RuntimeError):
+    """A name the caller gave matches no object of the kind ``lookup_kind``.
+
+    The message names no tool: which tools can report such names depends on the
+    toolsets an instance runs with, and the server adds them when it answers the
+    call (see ``lookup_hints``).
+    """
+
+    def __init__(self, message: str, lookup_kind: str) -> None:
+        super().__init__(message)
+        self.lookup_kind = lookup_kind
+
+
+class OutOfScopeError(ValueError):
+    """Names that exist but are not allowed in the target container.
+
+    Like :class:`NameNotFoundError`, it names no tool; the server adds the tool
+    that lists what a container allows, where the instance has it.
+    """
+
+    lookup_kind = "allowed_in_container"
+
+
 class MissingUserTokenError(RuntimeError):
     """In delegated mode, a request arrived without the token of the user it acts for.
 

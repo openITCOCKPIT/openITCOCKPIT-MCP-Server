@@ -1,0 +1,117 @@
+{
+ "request": {
+  "path": "/hosts/index.json",
+  "params": {
+   "filter[Hoststatus.current_state][]": [
+    "down",
+    "unreachable"
+   ],
+   "filter[Hoststatus.problem_has_been_acknowledged]": 0,
+   "filter[Hoststatus.scheduled_downtime_depth]": 0,
+   "scroll": "false",
+   "limit": 1,
+   "page": 1
+  }
+ },
+ "response": {
+  "all_hosts": [
+   {
+    "Host": {
+     "id": 27,
+     "uuid": "f42968fe-43d9-4572-970e-c26bb252508c",
+     "hostname": "scale-srv-012",
+     "address": "127.0.0.1",
+     "description": "",
+     "hosttemplate_id": 6,
+     "active_checks_enabled": true,
+     "satelliteId": 0,
+     "containerId": 11,
+     "containerIds": [
+      11
+     ],
+     "tags": null,
+     "usageFlag": null,
+     "allow_edit": true,
+     "disabled": false,
+     "priority": 3,
+     "notes": "",
+     "hostType": 1,
+     "is_satellite_host": false,
+     "name": "scale-srv-012",
+     "allow_sharing": true,
+     "satelliteName": "Mastersystem",
+     "satelliteRestricted": false,
+     "type": {
+      "title": "Generic host",
+      "color": "text-generic",
+      "class": "border-generic",
+      "icon": [
+       "fas",
+       "cog"
+      ],
+      "rotate": 0
+     },
+     "additionalInformationExists": false,
+     "additionalInformation": null
+    },
+    "Hoststatus": {
+     "currentState": 2,
+     "isFlapping": false,
+     "problemHasBeenAcknowledged": false,
+     "scheduledDowntimeDepth": 0,
+     "lastCheck": "20:39:43 - 16.09.2026",
+     "nextCheck": "20:44:43 - 16.09.2026",
+     "activeChecksEnabled": true,
+     "lastHardState": null,
+     "lastHardStateChange": "18:32:56 - 16.09.2026",
+     "last_state_change": "18:32:56 - 16.09.2026",
+     "output": "CRITICAL: scale: host down",
+     "long_output": null,
+     "acknowledgement_type": 0,
+     "state_type": 1,
+     "flap_detection_enabled": null,
+     "notifications_enabled": false,
+     "current_check_attempt": null,
+     "max_check_attempts": null,
+     "latency": null,
+     "last_time_up": "01:00:00 - 01.01.1970",
+     "lastHardStateChangeInWords": "2h 8m 33s",
+     "last_state_change_in_words": "2h 8m 33s",
+     "lastCheckInWords": "1 minute ago",
+     "nextCheckInWords": "3 minutes",
+     "isHardstate": true,
+     "isInMonitoring": true,
+     "humanState": "unreachable",
+     "cssClass": "bg-unreachable",
+     "textClass": "unreachable",
+     "outputHtml": "CRITICAL: scale: host down"
+    },
+    "ServicestatusSummary": {
+     "state": {
+      "ok": 10,
+      "warning": 0,
+      "critical": 0,
+      "unknown": 0
+     },
+     "total": 10
+    },
+    "Downtime": [],
+    "Acknowledgement": []
+   }
+  ],
+  "username": "John Doe",
+  "_csrfToken": "QVrXHcZ5FcxZtUpDkELOtpvG1lmJ6FtpEQHOf6TPWMhYIuNZUOfOooeMT2A/eAHgnK7+rCq6mljoJjGvsVlt0JV0NMfUFkIPo/XjO73cOl5zZPpIwqxq8T0Q2j9i1PnE4bkqVAYeMIKqm52bGYL7aw==",
+  "paging": {
+   "page": 1,
+   "current": 1,
+   "count": 145,
+   "prevPage": false,
+   "nextPage": true,
+   "pageCount": 145,
+   "limit": 1,
+   "options": [],
+   "paramType": "named",
+   "queryScope": null
+  }
+ }
+}

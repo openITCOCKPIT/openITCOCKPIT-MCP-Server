@@ -1,0 +1,85 @@
+{
+ "request": {
+  "path": "/statehistories/host/18.json",
+  "params": {
+   "scroll": "false",
+   "limit": 5
+  }
+ },
+ "response": {
+  "all_statehistories": [
+   {
+    "StatehistoryHost": {
+     "current_check_attempt": 3,
+     "last_hard_state": 0,
+     "last_state": 2,
+     "long_output": "CRITICAL: scale: host down",
+     "max_check_attempts": 3,
+     "output": "CRITICAL: scale: host down",
+     "state": 2,
+     "state_change": false,
+     "state_time": "18:35:15 - 16.09.2026",
+     "is_hardstate": true,
+     "outputHtml": "CRITICAL: scale: host down"
+    }
+   },
+   {
+    "StatehistoryHost": {
+     "current_check_attempt": 2,
+     "last_hard_state": 0,
+     "last_state": 2,
+     "long_output": "CRITICAL: scale: host down",
+     "max_check_attempts": 3,
+     "output": "CRITICAL: scale: host down",
+     "state": 2,
+     "state_change": false,
+     "state_time": "18:34:32 - 16.09.2026",
+     "is_hardstate": false,
+     "outputHtml": "CRITICAL: scale: host down"
+    }
+   },
+   {
+    "StatehistoryHost": {
+     "current_check_attempt": 1,
+     "last_hard_state": 0,
+     "last_state": 0,
+     "long_output": "CRITICAL: scale: host down",
+     "max_check_attempts": 3,
+     "output": "CRITICAL: scale: host down",
+     "state": 2,
+     "state_change": false,
+     "state_time": "18:34:01 - 16.09.2026",
+     "is_hardstate": false,
+     "outputHtml": "CRITICAL: scale: host down"
+    }
+   },
+   {
+    "StatehistoryHost": {
+     "current_check_attempt": 1,
+     "last_hard_state": 2,
+     "last_state": 2,
+     "long_output": "OK: scale: host up",
+     "max_check_attempts": 3,
+     "output": "OK: scale: host up",
+     "state": 0,
+     "state_change": false,
+     "state_time": "18:05:16 - 16.09.2026",
+     "is_hardstate": true,
+     "outputHtml": "OK: scale: host up"
+    }
+   }
+  ],
+  "paging": {
+   "page": 1,
+   "current": 4,
+   "count": 4,
+   "prevPage": false,
+   "nextPage": false,
+   "pageCount": 1,
+   "limit": 5,
+   "options": [],
+   "paramType": "named",
+   "queryScope": null
+  }
+ }
+}

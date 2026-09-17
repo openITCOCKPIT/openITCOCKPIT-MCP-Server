@@ -1,0 +1,24 @@
+{
+ "response": {
+  "services": [
+   {
+    "key": 239,
+    "value": {
+     "Service": {
+      "id": 239,
+      "name": "Backup",
+      "servicename": "Backup",
+      "disabled": 0
+     },
+     "Host": {
+      "id": 35,
+      "name": "scale-srv-021"
+     },
+     "Servicetemplate": {
+      "name": "scale-critical"
+     }
+    }
+   }
+  ]
+ }
+}

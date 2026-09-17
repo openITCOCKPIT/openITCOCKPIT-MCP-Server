@@ -1,0 +1,143 @@
+{
+ "request": {
+  "path": "/services/index.json",
+  "params": {
+   "filter[Hosts.id]": 23,
+   "states": "problems"
+  }
+ },
+ "response": {
+  "all_services": [
+   {
+    "Service": {
+     "id": 81,
+     "uuid": "0da15853-b174-4e6b-9658-e4ee5558f272",
+     "servicename": "Backup",
+     "hostname": "scale-srv-007",
+     "description": "",
+     "active_checks_enabled": true,
+     "tags": null,
+     "host_id": 23,
+     "allow_edit": true,
+     "disabled": false,
+     "serviceType": 1,
+     "priority": 3,
+     "has_graph": false
+    },
+    "Host": {
+     "id": 23,
+     "uuid": "acfe42ad-c206-402e-b813-b31bfa09753b",
+     "hostname": "scale-srv-007",
+     "address": "127.0.0.1",
+     "description": null,
+     "hosttemplate_id": null,
+     "active_checks_enabled": null,
+     "satelliteId": 0,
+     "containerId": null,
+     "containerIds": null,
+     "tags": null,
+     "usageFlag": null,
+     "allow_edit": true,
+     "disabled": false,
+     "priority": null,
+     "notes": null,
+     "hostType": 1,
+     "is_satellite_host": false,
+     "name": "scale-srv-007",
+     "satelliteName": "Mastersystem"
+    },
+    "Hoststatus": {
+     "currentState": 0,
+     "isFlapping": false,
+     "problemHasBeenAcknowledged": false,
+     "scheduledDowntimeDepth": null,
+     "lastCheck": "01:00:00 - 01.01.1970",
+     "nextCheck": "01:00:00 - 01.01.1970",
+     "activeChecksEnabled": null,
+     "lastHardState": null,
+     "lastHardStateChange": "18:04:40 - 16.09.2026",
+     "last_state_change": "18:04:40 - 16.09.2026",
+     "output": null,
+     "long_output": null,
+     "acknowledgement_type": null,
+     "state_type": true,
+     "flap_detection_enabled": null,
+     "notifications_enabled": null,
+     "current_check_attempt": null,
+     "max_check_attempts": null,
+     "latency": null,
+     "last_time_up": "01:00:00 - 01.01.1970",
+     "lastHardStateChangeInWords": "45m 28s",
+     "last_state_change_in_words": "45m 28s",
+     "lastCheckInWords": "on 1/1/70",
+     "nextCheckInWords": "on 1/1/70",
+     "isHardstate": true,
+     "isInMonitoring": true,
+     "humanState": "up",
+     "cssClass": "bg-up",
+     "textClass": "up",
+     "outputHtml": ""
+    },
+    "Servicestatus": {
+     "currentState": 2,
+     "lastHardState": null,
+     "isFlapping": false,
+     "problemHasBeenAcknowledged": false,
+     "scheduledDowntimeDepth": 1,
+     "lastCheck": "18:46:03 - 16.09.2026",
+     "nextCheck": "18:51:03 - 16.09.2026",
+     "activeChecksEnabled": 1,
+     "lastHardStateChange": "18:06:03 - 16.09.2026",
+     "last_state_change": "18:06:03 - 16.09.2026",
+     "processPerformanceData": null,
+     "state_type": 1,
+     "acknowledgement_type": 0,
+     "flap_detection_enabled": null,
+     "notifications_enabled": false,
+     "current_check_attempt": null,
+     "output": "CRITICAL: scale: failing",
+     "long_output": null,
+     "perfdata": "",
+     "latency": null,
+     "max_check_attempts": null,
+     "last_time_ok": "01:00:00 - 01.01.1970",
+     "lastHardStateChangeInWords": "44m 5s",
+     "last_state_change_in_words": "44m 5s",
+     "lastCheckInWords": "4 minutes ago",
+     "nextCheckInWords": "55 seconds",
+     "isHardstate": true,
+     "isInMonitoring": true,
+     "humanState": "critical",
+     "cssClass": "bg-critical",
+     "textClass": "critical",
+     "outputHtml": "CRITICAL: scale: failing"
+    },
+    "ServiceType": {
+     "title": "Generic service",
+     "color": "text-generic",
+     "class": "border-generic",
+     "icon": [
+      "fas",
+      "cog"
+     ]
+    },
+    "Downtime": [],
+    "Acknowledgement": []
+   }
+  ],
+  "username": "John Doe",
+  "satellites": [],
+  "paging": {
+   "page": 1,
+   "current": 1,
+   "count": 1,
+   "prevPage": false,
+   "nextPage": false,
+   "pageCount": 1,
+   "limit": 10,
+   "options": [],
+   "paramType": "named",
+   "queryScope": null
+  }
+ }
+}

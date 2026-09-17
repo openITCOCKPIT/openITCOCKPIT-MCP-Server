@@ -1,0 +1,52 @@
+{
+ "request": {
+  "path": "/hosts/loadHostsByString.json",
+  "params": {
+   "filter[Hosts.name]": "scale-srv-09"
+  }
+ },
+ "response": {
+  "hosts": [
+   {
+    "key": 105,
+    "value": "scale-srv-090"
+   },
+   {
+    "key": 107,
+    "value": "scale-srv-091"
+   },
+   {
+    "key": 106,
+    "value": "scale-srv-092"
+   },
+   {
+    "key": 108,
+    "value": "scale-srv-093"
+   },
+   {
+    "key": 110,
+    "value": "scale-srv-094"
+   },
+   {
+    "key": 109,
+    "value": "scale-srv-095"
+   },
+   {
+    "key": 111,
+    "value": "scale-srv-096"
+   },
+   {
+    "key": 112,
+    "value": "scale-srv-097"
+   },
+   {
+    "key": 114,
+    "value": "scale-srv-098"
+   },
+   {
+    "key": 113,
+    "value": "scale-srv-099"
+   }
+  ]
+ }
+}

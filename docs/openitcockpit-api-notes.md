@@ -92,8 +92,59 @@ A Host or Service inherits `contacts` and `contactgroups` only as a pair
 state; the untouched side materialises at whatever level it currently resolves
 from.
 
-## No total row count
+## Totals only in paging mode
 
-List endpoints cap results server-side and report no total. Truncation is
-detected here by requesting one row more than needed - see
-`tools/support/results.py`.
+With `scroll=true` a list endpoint reports no total, so truncation is detected
+by requesting one row more than needed - see `tools/support/results.py`.
+
+With `scroll=false` the response carries `paging.count`, the number of matching
+rows. Asking for `limit=1` makes that a cheap count: against 500 hosts and
+4,900 services, counting critical services took 43 ms, while fetching 1,000
+service rows took 8 s and 2.5 MB (about 2.5 KiB per row).
+
+## Filters that only work as a list
+
+`hosts/index.json` and `services/index.json` declare `Hostgroups.id` as an
+equals filter, but only the list form works. `filter[Hostgroups.id][]=2`
+becomes `Hostgroups.id IN (2)`, which the tables rewrite into a host group
+join. `filter[Hostgroups.id]=2` reaches the SQL unchanged and fails with HTTP
+500, "Unknown column 'Hostgroups.id'".
+
+## Group rows are not shaped alike
+
+Host and service groups come back flat (`id`, `description`,
+`container.name`). Contact groups come back nested as `Contactgroup` and
+`Container`. On all three, `filter[Containers.name]` narrows by name.
+
+## Parents in one request: the status map
+
+`statusmaps/index.json?showAll=true` returns every host the caller may see as a
+node and every parent relation as an edge (`from` child, `to` parent) - 53 ms and
+112 KiB for 504 hosts. A node's `group` carries the state: `host`,
+`isInDowntime`, `isAcknowledged` or `isAcknowledgedAndIsInDowntime` followed by
+`Up`, `Down` or `Unreachable`, or `notMonitored`/`disabled`. It takes the
+`statusmaps/index` permission, which is an action of its own.
+
+## Flapping: sortable, not filterable
+
+Neither `HostFilter` nor `ServiceFilter` accepts `is_flapping`, but
+`sort=Servicestatus.is_flapping&direction=desc` puts the flapping services
+first. The flapping ones are the rows up to the first one that does not flap.
+
+## Absolute times on the browser pages
+
+`hosts/browser` and `services/browser` report `last_state_change`, `lastCheck`
+and `nextCheck` relative ("45m 27s", "4 minutes ago"). The same moments as
+timestamps in the user's time zone are in `last_state_change_user`,
+`lastCheckUser` and `nextCheckUser`.
+
+## Sorting by state code is not sorting by severity
+
+`sort=Hoststatus.current_state&direction=desc` puts unreachable (2) before down
+(1): of 150 down or unreachable hosts, the first 20 were all unreachable and the
+three down hosts behind them were not listed. For services it puts unknown (3)
+before critical (2). A list in severity order is read state by state.
+
+Without a sort, `downtimes/host.json` lists planned downtimes before running
+ones; `sort=DowntimeHosts.scheduled_start_time&direction=asc` puts the running
+ones first.

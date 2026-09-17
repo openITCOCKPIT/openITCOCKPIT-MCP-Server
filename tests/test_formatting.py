@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-from datetime import datetime
-
 from openitcockpit_mcp.formatting import (
     format_contactgroup,
     format_group,
@@ -13,7 +11,6 @@ from openitcockpit_mcp.formatting import (
     format_service,
     format_windows_app,
     get_update_ids,
-    time_filter_params,
 )
 
 
@@ -97,16 +94,3 @@ def test_update_ids_are_read_per_os_and_severity():
 def test_missing_update_ids_yield_an_empty_list():
     assert get_update_ids({"os_type": "windows"}, security=True) == []
 
-
-def test_time_filter_uses_the_format_openitcockpit_parses():
-    params = time_filter_params(24)
-    assert set(params) == {"filter[from]", "filter[to]"}
-    for value in params.values():
-        datetime.strptime(value, "%d.%m.%Y %H:%M")
-
-
-def test_time_filter_window_matches_the_requested_hours():
-    params = time_filter_params(1)
-    start = datetime.strptime(params["filter[from]"], "%d.%m.%Y %H:%M")
-    end = datetime.strptime(params["filter[to]"], "%d.%m.%Y %H:%M")
-    assert 55 <= (end - start).total_seconds() / 60 <= 65

@@ -1,6 +1,6 @@
 """The response shape every list-returning tool uses.
 
-openITCOCKPIT's list endpoints are capped server-side and report no total, so a
+openITCOCKPIT's list endpoints are capped server-side and, with scroll=true, report no total, so a
 truncated result is otherwise indistinguishable from a complete one.
 :class:`ListResult` carries the rows together with a ``truncated`` flag.
 
@@ -10,9 +10,12 @@ that extra row arrives, more data exists; the row is dropped before returning.
 
 from __future__ import annotations
 
-from typing import Any
+from typing import Any, Self
+from zoneinfo import ZoneInfo
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, PrivateAttr, SerializerFunctionWrapHandler, model_serializer
+
+from openitcockpit_mcp.tools.support.times import localize
 
 #: Rows returned when the caller does not ask for a specific number.
 DEFAULT_LIMIT = 50
@@ -58,3 +61,46 @@ def build_result(rows: list[Any], limit: int, narrow_with: str) -> ListResult:
             f"or raise limit (max {MAX_LIMIT})."
         )
     return ListResult(items=items, count=len(items), truncated=truncated, hint=hint)
+
+
+class Result(BaseModel):
+    """A tool result that leaves out what is empty.
+
+    A model reads the result, never its output schema - chat completion requests
+    carry no field for it - so a ``null`` field is a question the model cannot
+    look up. Leaving it out declares nothing false: every such field is
+    optional in the schema.
+
+    For the same reason every time goes out as ISO 8601 with its offset once
+    :meth:`in_zone` has named the zone openITCOCKPIT rendered it in.
+    """
+
+    _zone: ZoneInfo | None = PrivateAttr(default=None)
+
+    def in_zone(self, zone: ZoneInfo) -> Self:
+        self._zone = zone
+        return self
+
+    @model_serializer(mode="wrap")
+    def _readable(self, handler: SerializerFunctionWrapHandler) -> dict[str, Any]:
+        data = {key: value for key, value in handler(self).items() if value is not None}
+        return localize(data, self._zone) if self._zone is not None else data
+
+
+class SearchResult(Result):
+    """A search over a large set: counts over every match, and the first rows of it.
+
+    Counts are cheap and rows are not, so a search never returns every match -
+    `total` and `by_state` describe all of them, `items` the most important few.
+    """
+
+    summary: str = Field(description="One sentence describing what matched.")
+    total: int = Field(description="How many objects match, all of them.")
+    by_state: dict[str, int] = Field(description="Matches per state, with every filter except the state filter applied.")
+    handling: dict[str, int] | None = Field(
+        default=None,
+        description="Of all matches: in_downtime, acknowledged, and neither_in_downtime_nor_acknowledged. Quote these rather than counting items.",
+    )
+    items: list[Any] = Field(description="The first matches, most severe state first.")
+    not_listed: int | None = Field(default=None, description="How many matches `items` leaves out. Absent when it lists all.")
+    hint: str | None = Field(default=None, description="Which matches are listed, and how to see others.")

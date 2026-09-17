@@ -1,0 +1,92 @@
+{
+  "_meta": {
+    "fastmcp": {
+      "tags": []
+    }
+  },
+  "annotations": {
+    "destructiveHint": false,
+    "idempotentHint": true,
+    "openWorldHint": true,
+    "readOnlyHint": true
+  },
+  "description": "Find hosts by name, state, container or host group, and count them per state. For unreachable hosts it names the down hosts they sit behind. Use it for \"which hosts are down\" or \"how many hosts does tenant X have\". For how one known host is doing, use get_host_health.",
+  "inputSchema": {
+    "additionalProperties": false,
+    "properties": {
+      "acknowledged": {
+        "anyOf": [
+          {
+            "type": "boolean"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "description": "true: only acknowledged problems. false: only unacknowledged."
+      },
+      "container": {
+        "default": "",
+        "description": "Only hosts in this container: its exact name or path, e.g. tenant-a.",
+        "type": "string"
+      },
+      "hostgroup": {
+        "default": "",
+        "description": "Only hosts in this host group: its exact name.",
+        "type": "string"
+      },
+      "in_downtime": {
+        "anyOf": [
+          {
+            "type": "boolean"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "description": "true: only hosts in a downtime. false: only hosts outside one."
+      },
+      "limit": {
+        "default": 20,
+        "description": "How many hosts to list. The counts always cover every match.",
+        "maximum": 100,
+        "minimum": 1,
+        "type": "integer"
+      },
+      "name": {
+        "default": "",
+        "description": "Part of the host name. Empty: any name.",
+        "type": "string"
+      },
+      "state": {
+        "anyOf": [
+          {
+            "items": {
+              "enum": [
+                "up",
+                "down",
+                "unreachable"
+              ],
+              "type": "string"
+            },
+            "type": "array"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "description": "Only hosts in these states, e.g. [\"down\", \"unreachable\"]."
+      }
+    },
+    "type": "object"
+  },
+  "name": "find_hosts",
+  "outputSchema": {
+    "additionalProperties": true,
+    "type": "object"
+  },
+  "title": "Find Hosts"
+}

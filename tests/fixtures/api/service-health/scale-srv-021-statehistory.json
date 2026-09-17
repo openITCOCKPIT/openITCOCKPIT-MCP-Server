@@ -1,0 +1,33 @@
+{
+ "response": {
+  "all_statehistories": [
+   {
+    "StatehistoryService": {
+     "current_check_attempt": 3,
+     "last_hard_state": 3,
+     "last_state": 3,
+     "long_output": "CRITICAL: scale: failing",
+     "max_check_attempts": 3,
+     "output": "CRITICAL: scale: failing",
+     "state": 2,
+     "state_change": true,
+     "state_time": "18:09:02 - 16.09.2026",
+     "is_hardstate": true,
+     "outputHtml": "CRITICAL: scale: failing"
+    }
+   }
+  ],
+  "paging": {
+   "page": 1,
+   "current": 1,
+   "count": 1,
+   "prevPage": false,
+   "nextPage": false,
+   "pageCount": 1,
+   "limit": 5,
+   "options": [],
+   "paramType": "named",
+   "queryScope": null
+  }
+ }
+}

@@ -1,0 +1,11 @@
+{
+ "request": {
+  "path": "/hosts/loadHostsByString.json",
+  "params": {
+   "filter[Hosts.name]": "nope-host"
+  }
+ },
+ "response": {
+  "hosts": []
+ }
+}

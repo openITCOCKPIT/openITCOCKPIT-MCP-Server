@@ -1,0 +1,40 @@
+{
+ "request": {
+  "path": "/statehistories/host/23.json",
+  "params": {
+   "scroll": "false",
+   "limit": 5
+  }
+ },
+ "response": {
+  "all_statehistories": [
+   {
+    "StatehistoryHost": {
+     "current_check_attempt": 1,
+     "last_hard_state": 2,
+     "last_state": 2,
+     "long_output": "OK: scale: host up",
+     "max_check_attempts": 3,
+     "output": "OK: scale: host up",
+     "state": 0,
+     "state_change": false,
+     "state_time": "18:04:40 - 16.09.2026",
+     "is_hardstate": true,
+     "outputHtml": "OK: scale: host up"
+    }
+   }
+  ],
+  "paging": {
+   "page": 1,
+   "current": 1,
+   "count": 1,
+   "prevPage": false,
+   "nextPage": false,
+   "pageCount": 1,
+   "limit": 5,
+   "options": [],
+   "paramType": "named",
+   "queryScope": null
+  }
+ }
+}

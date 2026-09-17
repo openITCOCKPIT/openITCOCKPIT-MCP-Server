@@ -1,0 +1,126 @@
+# Operator questions for the agent eval: the model calls the tools against the
+# scale test dataset (scripts/seed_scale_dataset.py) over several turns, and its
+# final answer is checked against what the dataset holds.
+#
+# `must` lists checks that all have to hold. A check is a list of regular
+# expressions, matched case-insensitively against the final answer; one match
+# is enough. `must_not` lists expressions that must not match.
+#
+# `must_quote` names a tool and a field of its result, for truths that change
+# while the dataset runs: the answer has to state the value that tool returned in
+# the same conversation, as a number of its own.
+#
+# `[dataset]` states what the dataset has to look like for the checks to be
+# true. The run stops before asking a model when it does not.
+#
+# These questions are a test set. They must never be used as training data.
+
+[dataset]
+hosts_by_state = { up = 354, down = 3, unreachable = 147 }
+# Warning comes from a template with a fixed state. Critical does not stay put:
+# the flapping services move between ok and critical.
+services_warning = 98
+
+[[case]]
+id = "hosts-down-cause"
+lang = "en"
+question = "Which hosts are down right now, and what is the cause?"
+must = [
+    ["scale-sw-1-1"],
+    ["scale-sw-3-2"],
+    ["scale-sw-5-1"],
+    ["\\b147\\b"],
+]
+# Only 5 of the 147 unreachable servers are in a downtime (the even ones up to
+# scale-srv-010); scale-srv-001 to 010 are all in one, but half of them are up.
+must_not = ["\\b137\\b"]
+
+[[case]]
+id = "host-unreachable-why"
+lang = "de"
+question = "Warum ist scale-srv-012 nicht erreichbar?"
+must = [
+    ["scale-sw-1-1"],
+]
+
+[[case]]
+id = "host-maintenance-until"
+lang = "en"
+question = "Is scale-srv-003 in maintenance, and until when?"
+must = [
+    ["23\\.0?9\\.", "2026-09-23", "23(rd)? sep", "sep\\w* 23", "23\\. sep"],
+]
+
+[[case]]
+id = "tenant-warning-count"
+lang = "de"
+question = "Wie viele Services stehen im Mandanten scale-tenant-2 gerade auf Warning?"
+must = [
+    ["\\b20\\b", "\\bzwanzig\\b"],
+]
+
+[[case]]
+id = "hostgroup-not-up"
+lang = "en"
+question = "Which hosts in the host group scale-hg-core-3 are not up?"
+must = [
+    ["scale-srv-197"],
+    ["scale-srv-199"],
+    ["scale-srv-201"],
+    ["scale-srv-203"],
+    ["scale-sw-3-2"],
+]
+
+[[case]]
+id = "hostgroup-inexact-name"
+lang = "de"
+question = "Wie viele Hosts hat die Hostgruppe core 3?"
+must = [
+    ["\\b10\\b", "\\bzehn\\b"],
+]
+
+[[case]]
+id = "maintenance-planned-tonight"
+lang = "de"
+question = "Welche Wartungen sind für morgen Nacht geplant?"
+must = [
+    ["22:00", "22 uhr"],
+    ["\\b5\\b", "\\bfünf\\b", "(?s)scale-srv-011.*scale-srv-012.*scale-srv-013.*scale-srv-014.*scale-srv-015"],
+]
+
+[[case]]
+id = "host-whats-wrong"
+lang = "en"
+question = "What is wrong with scale-srv-007?"
+must = [
+    ["backup"],
+    ["downtime", "maintenance"],
+]
+
+[[case]]
+id = "host-does-not-exist"
+lang = "en"
+question = "How is the host scale-srv-999 doing?"
+must = [
+    ["not found", "does not exist", "doesn't exist", "no host", "could not find", "couldn't find", "unknown host", "no such"],
+]
+must_not = ["\\bis up\\b"]
+
+# The data says a switch is down and has no failed parent, nothing about why.
+# A good answer quotes what the check said and says the cause is not visible.
+[[case]]
+id = "why-switch-down"
+lang = "en"
+question = "Why did scale-sw-1-1 go down?"
+must = [
+    ["scale: host down", "no failed parent"],
+    ["(no|not|nothing)\\b.{0,40}\\b(cause|reason|explain)", "not (known|visible|available|shown|say|tell)", "cannot (tell|determine|see|say)", "can't (tell|determine|see|say)", "unclear", "unknown"],
+]
+
+# How many services flap changes from minute to minute, so the answer is held
+# against the count the tool returned.
+[[case]]
+id = "flapping-services"
+lang = "de"
+question = "Welche Services flattern gerade?"
+must_quote = { tool = "find_services", field = "total" }

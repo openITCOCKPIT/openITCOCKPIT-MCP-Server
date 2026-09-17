@@ -1,0 +1,40 @@
+{
+  "_meta": {
+    "fastmcp": {
+      "tags": []
+    }
+  },
+  "annotations": {
+    "destructiveHint": false,
+    "idempotentHint": true,
+    "openWorldHint": true,
+    "readOnlyHint": true
+  },
+  "description": "How one host is doing: state and since when, what likely explains a problem (a down parent, a downtime, an acknowledgement), which hosts depend on it, its services by state, and recent state changes. Use it for \"how is web01\", \"why is web01 down\" or \"what does switch01 take down with it\".",
+  "inputSchema": {
+    "additionalProperties": false,
+    "properties": {
+      "hostname": {
+        "description": "Exact host name. Required - there is no estate-wide form of this tool. A name that matches no host is answered with the tools that can find the right one.",
+        "type": "string"
+      },
+      "hours": {
+        "default": 24,
+        "description": "How far back to look for state changes and notifications.",
+        "maximum": 168,
+        "minimum": 1,
+        "type": "integer"
+      }
+    },
+    "required": [
+      "hostname"
+    ],
+    "type": "object"
+  },
+  "name": "get_host_health",
+  "outputSchema": {
+    "additionalProperties": true,
+    "type": "object"
+  },
+  "title": "Host Health"
+}

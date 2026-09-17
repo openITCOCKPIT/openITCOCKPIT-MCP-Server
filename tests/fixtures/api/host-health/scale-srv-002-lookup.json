@@ -1,0 +1,16 @@
+{
+ "request": {
+  "path": "/hosts/loadHostsByString.json",
+  "params": {
+   "filter[Hosts.name]": "scale-srv-002"
+  }
+ },
+ "response": {
+  "hosts": [
+   {
+    "key": 18,
+    "value": "scale-srv-002"
+   }
+  ]
+ }
+}

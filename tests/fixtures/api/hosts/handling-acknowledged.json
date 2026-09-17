@@ -1,0 +1,32 @@
+{
+ "request": {
+  "path": "/hosts/index.json",
+  "params": {
+   "filter[Hoststatus.current_state][]": [
+    "down",
+    "unreachable"
+   ],
+   "filter[Hoststatus.problem_has_been_acknowledged]": 1,
+   "scroll": "false",
+   "limit": 1,
+   "page": 1
+  }
+ },
+ "response": {
+  "all_hosts": [],
+  "username": "John Doe",
+  "_csrfToken": "+mjqbhCtIBZ16M6YED6G/o2V+wI6oVJuJl6TqbvNvL0iuZlh42c9zpEhWHdUGDPiuuHzgztOFuRTFAzcZ41YCrkpsBxUagpHtabOYA6VM1lEO6ee3a6OhEeLoAfRVAqo9xQ9Q21+AoCM1JC0CHZ31w==",
+  "paging": {
+   "page": 1,
+   "current": 0,
+   "count": 0,
+   "prevPage": false,
+   "nextPage": false,
+   "pageCount": 1,
+   "limit": 1,
+   "options": [],
+   "paramType": "named",
+   "queryScope": null
+  }
+ }
+}

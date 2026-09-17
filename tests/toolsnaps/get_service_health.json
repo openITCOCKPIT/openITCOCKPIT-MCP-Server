@@ -1,0 +1,45 @@
+{
+  "_meta": {
+    "fastmcp": {
+      "tags": []
+    }
+  },
+  "annotations": {
+    "destructiveHint": false,
+    "idempotentHint": true,
+    "openWorldHint": true,
+    "readOnlyHint": true
+  },
+  "description": "How one service is doing: state and since when, what likely explains a problem (its host down, a downtime, an acknowledgement), and recent state changes. Use it for \"why is Backup on db01 critical\".",
+  "inputSchema": {
+    "additionalProperties": false,
+    "properties": {
+      "hostname": {
+        "description": "Exact host name. Required - there is no estate-wide form of this tool. A name that matches no host is answered with the tools that can find the right one.",
+        "type": "string"
+      },
+      "hours": {
+        "default": 24,
+        "description": "How far back to look for state changes and notifications.",
+        "maximum": 168,
+        "minimum": 1,
+        "type": "integer"
+      },
+      "servicename": {
+        "description": "Exact service name on that host. Required. A name that matches no service is answered with the tools that can find the right one.",
+        "type": "string"
+      }
+    },
+    "required": [
+      "hostname",
+      "servicename"
+    ],
+    "type": "object"
+  },
+  "name": "get_service_health",
+  "outputSchema": {
+    "additionalProperties": true,
+    "type": "object"
+  },
+  "title": "Service Health"
+}

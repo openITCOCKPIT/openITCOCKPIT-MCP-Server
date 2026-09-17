@@ -1,0 +1,48 @@
+{
+ "request": {
+  "path": "/servicegroups/index.json",
+  "params": {
+   "scroll": "false",
+   "limit": 3,
+   "page": 1,
+   "sort": "Containers.name",
+   "direction": "asc",
+   "filter[Containers.name]": "backups"
+  }
+ },
+ "response": {
+  "all_servicegroups": [
+   {
+    "id": 1,
+    "uuid": "ac6df1b5-78c1-489e-9f1f-6d8ce1fe90de",
+    "container_id": 22,
+    "description": "scale dataset: every Backup service of tenant 1",
+    "servicegroup_url": null,
+    "tags": null,
+    "container": {
+     "id": 22,
+     "containertype_id": 8,
+     "name": "scale-sg-backups-1",
+     "parent_id": 11,
+     "lft": 23,
+     "rght": 24
+    },
+    "allow_edit": true
+   }
+  ],
+  "paging": {
+   "page": 1,
+   "current": 1,
+   "count": 1,
+   "prevPage": false,
+   "nextPage": false,
+   "pageCount": 1,
+   "limit": 3,
+   "options": [],
+   "paramType": "named",
+   "queryScope": null
+  },
+  "_csrfToken": "Aw0w5Fe/JRXueVa7SAM0AzPbSw65t9lwmEEU6OXd8DhJjJHgzge536XodIj7OVATvwcOFI430DXO5gR/RKbyDG9i4l6mfBaHV+N8Po3T4Rb8Jybc17mUCHC4oNioMo7pkYtGuMwPYCKIMWwtuAflDA==",
+  "username": "John Doe"
+ }
+}

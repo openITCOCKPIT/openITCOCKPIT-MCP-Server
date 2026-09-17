@@ -48,7 +48,7 @@ Hostname = Annotated[
     Field(
         description=(
             "Exact host name. Required - there is no estate-wide form of this tool. "
-            "Get a name from list_services_by_state, list_log_entries or get_container_tree first."
+            "A name that matches no host is answered with the tools that can find the right one."
         )
     ),
 ]
@@ -62,8 +62,8 @@ Servicename = Annotated[
     str,
     Field(
         description=(
-            "Exact service name on that host. Required. get_host_info lists the services of a host, "
-            "and list_services_by_state reports host and service together."
+            "Exact service name on that host. Required. "
+            "A name that matches no service is answered with the tools that can find the right one."
         )
     ),
 ]

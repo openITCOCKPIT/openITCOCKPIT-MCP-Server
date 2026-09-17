@@ -9,6 +9,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 
 from openitcockpit_mcp.api.client import OITCClient
+from openitcockpit_mcp.api.clock import UserClock
 from openitcockpit_mcp.api.scope import ScopeService
 from openitcockpit_mcp.config import Settings
 
@@ -18,6 +19,7 @@ class Deps:
     settings: Settings
     api: OITCClient
     scope: ScopeService
+    clock: UserClock
 
     @classmethod
     def from_settings(cls, settings: Settings) -> Deps:
@@ -27,4 +29,4 @@ class Deps:
             cache_enabled=settings.scope_cache_enabled,
             cache_ttl_seconds=settings.scope_cache_ttl_seconds,
         )
-        return cls(settings=settings, api=api, scope=scope)
+        return cls(settings=settings, api=api, scope=scope, clock=UserClock(api))

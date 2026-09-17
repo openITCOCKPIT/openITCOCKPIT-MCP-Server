@@ -93,3 +93,9 @@ def test_enabled_tls_verification_is_silent(caplog):
     with caplog.at_level("WARNING"):
         OITCClient(BASE_URL, "key", verify=True).close()
     assert "TLS verification" not in caplog.text
+
+
+def test_a_list_becomes_one_parameter_per_element(api):
+    """str() of a list is "['down', 'unreachable']", which openITCOCKPIT ignores without an error."""
+    query = _query(api.build_url("/hosts/index.json", {"filter[Hoststatus.current_state][]": ["down", "unreachable"]}))
+    assert query["filter[Hoststatus.current_state][]"] == ["down", "unreachable"]

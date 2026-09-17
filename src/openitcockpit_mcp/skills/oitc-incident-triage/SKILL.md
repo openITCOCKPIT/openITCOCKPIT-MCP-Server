@@ -34,7 +34,6 @@ If you have no name yet and nothing is critical, these report them:
 
 | Need | Call |
 |---|---|
-| Any host name | `get_container_tree()` - lists the hosts under each container |
 | Hosts with problems | `list_services_by_state(state="critical")`, then `"warning"` |
 | The services of one host | `get_host_info(hostname="web01")` |
 | Hosts that alerted recently | `list_log_entries(hours=24)` |

@@ -1,0 +1,88 @@
+{
+ "request": {
+  "path": "/hostgroups/index.json",
+  "params": {
+   "scroll": "false",
+   "limit": 3,
+   "page": 1,
+   "sort": "Containers.name",
+   "direction": "asc",
+   "filter[Containers.name]": "core"
+  }
+ },
+ "response": {
+  "all_hostgroups": [
+   {
+    "id": 2,
+    "uuid": "732ba811-68b8-4aaf-a703-81d51c50eb53",
+    "container_id": 17,
+    "description": "scale dataset: switches and the first servers",
+    "hostgroup_url": null,
+    "tags": null,
+    "container": {
+     "id": 17,
+     "containertype_id": 7,
+     "name": "scale-hg-core-1",
+     "parent_id": 11,
+     "lft": 21,
+     "rght": 22
+    },
+    "allowEdit": true,
+    "hasSLAHosts": false,
+    "additionalInformationExists": false
+   },
+   {
+    "id": 3,
+    "uuid": "1d588548-1919-440a-9dce-162e3ee5d678",
+    "container_id": 18,
+    "description": "scale dataset: switches and the first servers",
+    "hostgroup_url": null,
+    "tags": null,
+    "container": {
+     "id": 18,
+     "containertype_id": 7,
+     "name": "scale-hg-core-2",
+     "parent_id": 12,
+     "lft": 27,
+     "rght": 28
+    },
+    "allowEdit": true,
+    "hasSLAHosts": false,
+    "additionalInformationExists": false
+   },
+   {
+    "id": 4,
+    "uuid": "25bd79a3-31cb-4e65-b518-52bf2814a0df",
+    "container_id": 19,
+    "description": "scale dataset: switches and the first servers",
+    "hostgroup_url": null,
+    "tags": null,
+    "container": {
+     "id": 19,
+     "containertype_id": 7,
+     "name": "scale-hg-core-3",
+     "parent_id": 13,
+     "lft": 31,
+     "rght": 32
+    },
+    "allowEdit": true,
+    "hasSLAHosts": false,
+    "additionalInformationExists": false
+   }
+  ],
+  "_csrfToken": "2zA1zJNx3Bvks9SKbwLexT3fCXuNdUV/TP4+B1dwg4pE3CG38sKovUiFMYILI+wKAllo/V6z9VsW2wFXgGgLAmWoYG+BffxBWec+S7kRfRkomAwzZRTnun3oEI+U95+LfOYDsjwV3Ds1bwrEaIPAYg==",
+  "paging": {
+   "page": 1,
+   "current": 3,
+   "count": 5,
+   "prevPage": false,
+   "nextPage": true,
+   "pageCount": 2,
+   "limit": 3,
+   "options": [],
+   "paramType": "named",
+   "queryScope": null
+  },
+  "username": "John Doe"
+ }
+}

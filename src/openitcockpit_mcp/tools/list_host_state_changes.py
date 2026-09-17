@@ -9,7 +9,6 @@ from openitcockpit_mcp.api.names import resolve_host_id
 from openitcockpit_mcp.deps import Deps
 from openitcockpit_mcp.formatting import (
     format_statehistory,
-    time_filter_params,
 )
 from openitcockpit_mcp.tools.support.annotations import READ_ONLY
 from openitcockpit_mcp.tools.support.history import NARROW_HINT
@@ -21,6 +20,7 @@ ANNOTATIONS = READ_ONLY
 
 def register(mcp: FastMCP, deps: Deps) -> None:
     api = deps.api
+    clock = deps.clock
 
     @mcp.tool(title="Host State Changes", annotations=ANNOTATIONS)
     def list_host_state_changes(hostname: Hostname, hours: Hours = 24, limit: Limit = None) -> ListResult:
@@ -29,7 +29,7 @@ def register(mcp: FastMCP, deps: Deps) -> None:
         host_id = resolve_host_id(api, hostname)
         resp, code = api.get(
             f"/statehistories/host/{host_id}.json",
-            {"scroll": "true", "limit": fetch_limit(capped), **time_filter_params(hours)},
+            {"scroll": "true", "limit": fetch_limit(capped), **clock.window(hours)},
         )
         require_success(resp, code, "retrieving host state history")
         rows = [format_statehistory(item, "StatehistoryHost") for item in resp.get("all_statehistories", [])]
