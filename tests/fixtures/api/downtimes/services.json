@@ -1,0 +1,193 @@
+{
+ "request": {
+  "path": "/downtimes/service.json",
+  "params": {
+   "filter[hideExpired]": "true",
+   "scroll": "false",
+   "page": 1,
+   "filter[DowntimeServices.was_cancelled]": 0,
+   "limit": 3
+  }
+ },
+ "response": {
+  "all_service_downtimes": [
+   {
+    "Host": {
+     "id": 16,
+     "uuid": "429ccff1-fe4c-47c3-9bd7-23be9329de66",
+     "hostname": "scale-srv-001",
+     "address": null,
+     "description": null,
+     "hosttemplate_id": null,
+     "active_checks_enabled": null,
+     "satelliteId": null,
+     "containerId": null,
+     "containerIds": null,
+     "tags": null,
+     "usageFlag": null,
+     "allow_edit": true,
+     "disabled": false,
+     "priority": null,
+     "notes": null,
+     "hostType": 1,
+     "is_satellite_host": false,
+     "name": "scale-srv-001"
+    },
+    "Service": {
+     "id": 65,
+     "uuid": "ee065dca-aca3-4cb3-b064-1d3ff7e7c6de",
+     "servicename": "HTTP",
+     "hostname": null,
+     "description": null,
+     "active_checks_enabled": null,
+     "tags": null,
+     "host_id": null,
+     "allow_edit": true,
+     "disabled": false,
+     "serviceType": 1,
+     "priority": null
+    },
+    "DowntimeService": {
+     "authorName": "John Doe",
+     "commentData": "scale dataset: planned work",
+     "entryTime": "18:19:51 - 16.09.2026",
+     "scheduledStartTime": "18:18:00 - 16.09.2026",
+     "scheduledEndTime": "18:18:00 - 23.09.2026",
+     "actualEndTime": "01:00:00 - 01.01.1970",
+     "duration": 604800,
+     "wasStarted": true,
+     "internalDowntimeId": 3,
+     "downtimehistoryId": null,
+     "wasCancelled": false,
+     "allowEdit": true,
+     "durationHuman": "7D 0h 0m 0s",
+     "isCancellable": true,
+     "isRunning": true,
+     "isExpired": false
+    }
+   },
+   {
+    "Host": {
+     "id": 16,
+     "uuid": "429ccff1-fe4c-47c3-9bd7-23be9329de66",
+     "hostname": "scale-srv-001",
+     "address": null,
+     "description": null,
+     "hosttemplate_id": null,
+     "active_checks_enabled": null,
+     "satelliteId": null,
+     "containerId": null,
+     "containerIds": null,
+     "tags": null,
+     "usageFlag": null,
+     "allow_edit": true,
+     "disabled": false,
+     "priority": null,
+     "notes": null,
+     "hostType": 1,
+     "is_satellite_host": false,
+     "name": "scale-srv-001"
+    },
+    "Service": {
+     "id": 18,
+     "uuid": "cb1228fb-a836-49a4-93a5-4fa60eb47163",
+     "servicename": "CPU load",
+     "hostname": null,
+     "description": null,
+     "active_checks_enabled": null,
+     "tags": null,
+     "host_id": null,
+     "allow_edit": true,
+     "disabled": false,
+     "serviceType": 1,
+     "priority": null
+    },
+    "DowntimeService": {
+     "authorName": "John Doe",
+     "commentData": "scale dataset: planned work",
+     "entryTime": "18:19:51 - 16.09.2026",
+     "scheduledStartTime": "18:18:00 - 16.09.2026",
+     "scheduledEndTime": "18:18:00 - 23.09.2026",
+     "actualEndTime": "01:00:00 - 01.01.1970",
+     "duration": 604800,
+     "wasStarted": true,
+     "internalDowntimeId": 4,
+     "downtimehistoryId": null,
+     "wasCancelled": false,
+     "allowEdit": true,
+     "durationHuman": "7D 0h 0m 0s",
+     "isCancellable": true,
+     "isRunning": true,
+     "isExpired": false
+    }
+   },
+   {
+    "Host": {
+     "id": 16,
+     "uuid": "429ccff1-fe4c-47c3-9bd7-23be9329de66",
+     "hostname": "scale-srv-001",
+     "address": null,
+     "description": null,
+     "hosttemplate_id": null,
+     "active_checks_enabled": null,
+     "satelliteId": null,
+     "containerId": null,
+     "containerIds": null,
+     "tags": null,
+     "usageFlag": null,
+     "allow_edit": true,
+     "disabled": false,
+     "priority": null,
+     "notes": null,
+     "hostType": 1,
+     "is_satellite_host": false,
+     "name": "scale-srv-001"
+    },
+    "Service": {
+     "id": 9,
+     "uuid": "bc2a7428-fbdb-4698-a8e1-ce1f40ce9482",
+     "servicename": "Ping",
+     "hostname": null,
+     "description": null,
+     "active_checks_enabled": null,
+     "tags": null,
+     "host_id": null,
+     "allow_edit": true,
+     "disabled": false,
+     "serviceType": 1,
+     "priority": null
+    },
+    "DowntimeService": {
+     "authorName": "John Doe",
+     "commentData": "scale dataset: planned work",
+     "entryTime": "18:19:51 - 16.09.2026",
+     "scheduledStartTime": "18:18:00 - 16.09.2026",
+     "scheduledEndTime": "18:18:00 - 23.09.2026",
+     "actualEndTime": "01:00:00 - 01.01.1970",
+     "duration": 604800,
+     "wasStarted": true,
+     "internalDowntimeId": 5,
+     "downtimehistoryId": null,
+     "wasCancelled": false,
+     "allowEdit": true,
+     "durationHuman": "7D 0h 0m 0s",
+     "isCancellable": true,
+     "isRunning": true,
+     "isExpired": false
+    }
+   }
+  ],
+  "paging": {
+   "page": 1,
+   "current": 3,
+   "count": 100,
+   "prevPage": false,
+   "nextPage": true,
+   "pageCount": 34,
+   "limit": 3,
+   "options": [],
+   "paramType": "named",
+   "queryScope": null
+  }
+ }
+}

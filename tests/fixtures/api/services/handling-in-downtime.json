@@ -1,0 +1,150 @@
+{
+ "request": {
+  "path": "/services/index.json",
+  "params": {
+   "filter[Servicestatus.current_state][]": [
+    "warning",
+    "critical"
+   ],
+   "filter[Servicestatus.scheduled_downtime_depth]": 1,
+   "scroll": "false",
+   "limit": 1,
+   "page": 1
+  }
+ },
+ "response": {
+  "all_services": [
+   {
+    "Service": {
+     "id": 67,
+     "uuid": "35d22058-ef0b-4853-a2e6-c7649051f561",
+     "servicename": "HTTP",
+     "hostname": "scale-srv-005",
+     "description": "",
+     "active_checks_enabled": true,
+     "tags": null,
+     "host_id": 21,
+     "allow_edit": true,
+     "disabled": false,
+     "serviceType": 1,
+     "priority": 3,
+     "has_graph": false
+    },
+    "Host": {
+     "id": 21,
+     "uuid": "cfa67b9e-7534-4358-832f-02ba613ee70c",
+     "hostname": "scale-srv-005",
+     "address": "127.0.0.1",
+     "description": null,
+     "hosttemplate_id": null,
+     "active_checks_enabled": null,
+     "satelliteId": 0,
+     "containerId": null,
+     "containerIds": null,
+     "tags": null,
+     "usageFlag": null,
+     "allow_edit": true,
+     "disabled": false,
+     "priority": null,
+     "notes": null,
+     "hostType": 1,
+     "is_satellite_host": false,
+     "name": "scale-srv-005",
+     "satelliteName": "Mastersystem"
+    },
+    "Hoststatus": {
+     "currentState": 0,
+     "isFlapping": false,
+     "problemHasBeenAcknowledged": false,
+     "scheduledDowntimeDepth": null,
+     "lastCheck": "01:00:00 - 01.01.1970",
+     "nextCheck": "01:00:00 - 01.01.1970",
+     "activeChecksEnabled": null,
+     "lastHardState": null,
+     "lastHardStateChange": "18:04:40 - 16.09.2026",
+     "last_state_change": "18:04:40 - 16.09.2026",
+     "output": null,
+     "long_output": null,
+     "acknowledgement_type": null,
+     "state_type": true,
+     "flap_detection_enabled": null,
+     "notifications_enabled": null,
+     "current_check_attempt": null,
+     "max_check_attempts": null,
+     "latency": null,
+     "last_time_up": "01:00:00 - 01.01.1970",
+     "lastHardStateChangeInWords": "2h 36m 49s",
+     "last_state_change_in_words": "2h 36m 49s",
+     "lastCheckInWords": "on 1/1/70",
+     "nextCheckInWords": "on 1/1/70",
+     "isHardstate": true,
+     "isInMonitoring": true,
+     "humanState": "up",
+     "cssClass": "bg-up",
+     "textClass": "up",
+     "outputHtml": ""
+    },
+    "Servicestatus": {
+     "currentState": 1,
+     "lastHardState": null,
+     "isFlapping": false,
+     "problemHasBeenAcknowledged": false,
+     "scheduledDowntimeDepth": 1,
+     "lastCheck": "20:38:37 - 16.09.2026",
+     "nextCheck": "20:43:37 - 16.09.2026",
+     "activeChecksEnabled": 1,
+     "lastHardStateChange": "18:08:37 - 16.09.2026",
+     "last_state_change": "18:08:37 - 16.09.2026",
+     "processPerformanceData": null,
+     "state_type": 1,
+     "acknowledgement_type": 0,
+     "flap_detection_enabled": null,
+     "notifications_enabled": false,
+     "current_check_attempt": null,
+     "output": "WARNING: scale: degraded",
+     "long_output": null,
+     "perfdata": "",
+     "latency": null,
+     "max_check_attempts": null,
+     "last_time_ok": "01:00:00 - 01.01.1970",
+     "lastHardStateChangeInWords": "2h 32m 52s",
+     "last_state_change_in_words": "2h 32m 52s",
+     "lastCheckInWords": "2 minutes ago",
+     "nextCheckInWords": "2 minutes",
+     "isHardstate": true,
+     "isInMonitoring": true,
+     "humanState": "warning",
+     "cssClass": "bg-warning",
+     "textClass": "warning",
+     "outputHtml": "WARNING: scale: degraded"
+    },
+    "ServiceType": {
+     "title": "Generic service",
+     "color": "text-generic",
+     "class": "border-generic",
+     "icon": [
+      "fas",
+      "cog"
+     ]
+    },
+    "Downtime": [],
+    "Acknowledgement": []
+   }
+  ],
+  "username": "John Doe",
+  "satellites": [],
+  "_csrfToken": "ZjvP/qQk4f12M21wPACPb/W7jT+c7G10Jz4h8PFxI6yCvRYr6RPQ6I4SCQ1+DacAKSkrTmFt/cLPRylM0wSZ4bryE/R4VAPWzYi4XajYDENFWxXHlxIRleePL03bIOeO6CdsOUdrlmIfHEh5UlWc8Q==",
+  "paging": {
+   "page": 1,
+   "current": 1,
+   "count": 3,
+   "prevPage": false,
+   "nextPage": true,
+   "pageCount": 3,
+   "limit": 1,
+   "options": [],
+   "paramType": "named",
+   "queryScope": null
+  }
+ }
+}

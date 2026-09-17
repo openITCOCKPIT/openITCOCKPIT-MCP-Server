@@ -1,0 +1,44 @@
+{
+ "request": {
+  "path": "/containers/loadContainers.json",
+  "params": null
+ },
+ "response": {
+  "containers": [
+   {
+    "key": 1,
+    "value": "/root"
+   },
+   {
+    "key": 9,
+    "value": "/root/ITC-3864 Mandant A"
+   },
+   {
+    "key": 10,
+    "value": "/root/ITC-3864 Mandant B"
+   },
+   {
+    "key": 11,
+    "value": "/root/scale-tenant-1"
+   },
+   {
+    "key": 12,
+    "value": "/root/scale-tenant-2"
+   },
+   {
+    "key": 13,
+    "value": "/root/scale-tenant-3"
+   },
+   {
+    "key": 14,
+    "value": "/root/scale-tenant-4"
+   },
+   {
+    "key": 15,
+    "value": "/root/scale-tenant-5"
+   }
+  ],
+  "_csrfToken": "6B0ztDzd5d4QMWLvr210OytaIXyorc0XByQHltl6T/dATO+vE8wYgXPy8yk7bqXLSLvUkM0SUbFBYdUGS/2dwtzwHGvrOfiCE2kUHpyZrCBlQTOhvxl9ziV+1skh/y/nFceWHQIIlKl+jren/iowgg==",
+  "username": "John Doe"
+ }
+}

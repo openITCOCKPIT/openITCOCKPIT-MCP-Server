@@ -11,7 +11,7 @@ below is written against its own endpoint's response.
 from __future__ import annotations
 
 from openitcockpit_mcp.api.client import OITCClient
-from openitcockpit_mcp.api.errors import require_success
+from openitcockpit_mcp.api.errors import NameNotFoundError, require_success
 
 # openITCOCKPIT's list endpoints paginate; these lookups filter server-side and
 # expect a single exact match, so one generous page is enough.
@@ -52,7 +52,10 @@ def resolve_host_id(api: OITCClient, hostname: str) -> int:
     if len(matches) > 1:
         ids = ", ".join(str(item.get("key")) for item in matches)
         raise RuntimeError(f"'{hostname}' is ambiguous - {len(matches)} hosts share this name (ids: {ids}).")
-    raise RuntimeError(f"No host found with the exact name '{hostname}'.")
+    # loadHostsByString matches by part of the name, so what it did return are the nearest names.
+    similar = [str(item.get("value")) for item in resp.get("hosts", [])][:5]
+    hint = f" Similar names: {', '.join(similar)}." if similar else ""
+    raise NameNotFoundError(f"No host found with the exact name '{hostname}'.{hint}", "host")
 
 
 def list_host_names(api: OITCClient, limit: int = 25) -> list[str]:
@@ -72,7 +75,7 @@ def resolve_service_id(api: OITCClient, hostname: str, servicename: str) -> int:
         entry = item.get("value") or {}
         if entry.get("Service", {}).get("servicename") == servicename and entry.get("Host", {}).get("name") == hostname:
             return int(item["key"])
-    raise RuntimeError(f"No service named '{servicename}' found on host '{hostname}'.")
+    raise NameNotFoundError(f"No service named '{servicename}' found on host '{hostname}'.", "service")
 
 
 def resolve_id_by_name(
@@ -84,6 +87,7 @@ def resolve_id_by_name(
     name: str,
     entity_label: str,
     name_field: str = "name",
+    kind: str = "",
 ) -> int:
     resp, code = api.get(path, params)
     require_success(resp, code, f"resolving {entity_label}")
@@ -91,7 +95,7 @@ def resolve_id_by_name(
         entity = item.get(item_key, {}) if item_key else item
         if entity.get(name_field) == name:
             return entity["id"]
-    raise RuntimeError(f"No {entity_label} found with the exact name '{name}'.")
+    raise NameNotFoundError(f"No {entity_label} found with the exact name '{name}'.", kind or entity_label.replace(" ", ""))
 
 
 def resolve_command_id(api: OITCClient, name: str) -> int:
@@ -130,7 +134,7 @@ def resolve_contactgroup_id(api: OITCClient, name: str) -> int:
     for item in resp.get("all_contactgroups", []):
         if item.get("Container", {}).get("name") == name:
             return item["Contactgroup"]["id"]
-    raise RuntimeError(f"No contact group found with the exact name '{name}'.")
+    raise NameNotFoundError(f"No contact group found with the exact name '{name}'.", "contactgroup")
 
 
 def resolve_container_id(api: OITCClient, name: str, default_name: str = "root") -> int:
@@ -141,7 +145,14 @@ def resolve_container_id(api: OITCClient, name: str, default_name: str = "root")
         path = item.get("value", "").strip("/").lower()
         if path == target or path.endswith("/" + target):
             return item["key"]
-    raise RuntimeError(f"No container found matching '{name or default_name}'. Use get_container_tree to see available containers.")
+    raise NameNotFoundError(f"No container found matching '{name or default_name}'.", "container")
+
+
+def container_paths(api: OITCClient) -> dict[int, str]:
+    """Container id -> path such as ``root/tenant-a``, for every container the caller may see."""
+    resp, code = api.get("/containers/loadContainers.json")
+    require_success(resp, code, "reading containers")
+    return {int(item["key"]): item.get("value", "").strip("/") for item in resp.get("containers", [])}
 
 
 def resolve_top_container_ids(api: OITCClient) -> list[int]:

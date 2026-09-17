@@ -16,6 +16,12 @@ This middleware checks the required parameters against the supplied arguments
 before validation runs and, when something is missing, answers with the values
 that would have worked - the actual host or service names, read from
 openITCOCKPIT and cached briefly.
+
+It also completes an error about a name that matches nothing - a host that does
+not exist, a template a container does not allow - with the tools of this
+instance that report the right names. Neither the error nor the hints above name
+a tool themselves: which tools exist depends on the toolsets an instance runs
+with (see ``lookup_hints``).
 """
 
 from __future__ import annotations
@@ -29,6 +35,7 @@ from fastmcp.server.middleware import CallNext, Middleware, MiddlewareContext
 from fastmcp.tools import ToolResult
 from mcp import types as mt
 
+from openitcockpit_mcp import lookup_hints
 from openitcockpit_mcp.api.client import OITCClient
 from openitcockpit_mcp.api.names import list_host_names
 
@@ -41,23 +48,29 @@ SUGGESTION_LIMIT = 25
 CACHE_TTL_SECONDS = 60
 
 _GENERIC_HINT = {
-    "servicename": (
-        "the exact service name on that host. get_host_info lists the services of one host, "
-        "and list_services_by_state reports host and service together."
-    ),
+    "servicename": "the exact service name on that host.",
     "state": "one of: ok, warning, critical, unknown.",
     "object_type": (
         "one of: host, hosttemplate, servicetemplate, hostgroup, contactgroup, "
         "servicetemplategroup, contact."
     ),
     "command_type": "one of: check, hostcheck, notification, eventhandler.",
-    "servicetemplate_name": (
-        "a service template name. list_servicetemplates reports both the display name and the "
-        "internal templateName; either is accepted."
-    ),
-    "check_command_name": "a command name. list_commands finds one by substring.",
+    "servicetemplate_name": "a service template name: its display name or its template name.",
+    "check_command_name": "a command name.",
     "address": "the host's IP address or DNS name.",
     "name": "the name the new object should get.",
+}
+
+#: Parameter -> the kind of name it takes, for the tools that report such names.
+_LOOKUP_KIND = {
+    "hostname": "host",
+    "servicename": "service",
+    "servicetemplate_name": "servicetemplate",
+    "hosttemplate_name": "hosttemplate",
+    "check_command_name": "command",
+    "container": "container",
+    "container_name": "container",
+    "hostgroup": "hostgroup",
 }
 
 
@@ -80,23 +93,22 @@ class ArgumentHelpMiddleware(Middleware):
         self._hosts = (time.monotonic(), names)
         return names
 
-    def _hint_for(self, parameter: str) -> str:
+    def _hint_for(self, parameter: str, available: list[str]) -> str:
         if parameter == "hostname":
             names = self._host_names()
             if names:
                 return "one of these hosts: " + ", ".join(names)
-            return (
-                "an exact host name. get_container_tree or list_services_by_state "
-                "report the hosts of this instance."
-            )
-        return _GENERIC_HINT.get(parameter, "a value for this parameter.")
+            text = "an exact host name."
+        else:
+            text = _GENERIC_HINT.get(parameter, "a value for this parameter.")
+        return text + lookup_hints.hint(_LOOKUP_KIND.get(parameter, ""), available)
 
-    def _message(self, tool_name: str, missing: list[str]) -> str:
+    def _message(self, tool_name: str, missing: list[str], available: list[str]) -> str:
         lines = [
             f"{tool_name} needs {len(missing)} argument(s) that were not supplied. "
             "Call it again with them, do not repeat the same call:"
         ]
-        lines += [f"  {name}: {self._hint_for(name)}" for name in missing]
+        lines += [f"  {name}: {self._hint_for(name, available)}" for name in missing]
         return "\n".join(lines)
 
     async def on_call_tool(
@@ -113,8 +125,17 @@ class ArgumentHelpMiddleware(Middleware):
                 "tool=%s missing %s; received arguments (%s): %r",
                 context.message.name, missing, type(raw).__name__, raw,
             )
-            raise ToolError(self._message(context.message.name, missing))
-        return await call_next(context)
+            raise ToolError(self._message(context.message.name, missing, await _registered(context)))
+        try:
+            return await call_next(context)
+        except ToolError as exc:
+            kind = getattr(exc.__cause__, "lookup_kind", None)
+            if not kind:
+                raise
+            extra = lookup_hints.hint(kind, await _registered(context))
+            if not extra:
+                raise
+            raise ToolError(f"{exc}{extra}") from exc.__cause__
 
     async def _missing_arguments(self, context: MiddlewareContext[mt.CallToolRequestParams]) -> list[str]:
         """Required parameters of the tool that the call did not supply."""
@@ -127,3 +148,11 @@ class ArgumentHelpMiddleware(Middleware):
             return []
         supplied = context.message.arguments or {}
         return [name for name in schema.get("required", []) if name not in supplied]
+
+
+async def _registered(context: MiddlewareContext[mt.CallToolRequestParams]) -> list[str]:
+    """The tools this instance offers right now, after any toolset limit."""
+    server = getattr(getattr(context, "fastmcp_context", None), "fastmcp", None)
+    if server is None:
+        return []
+    return [tool.name for tool in await server.list_tools()]

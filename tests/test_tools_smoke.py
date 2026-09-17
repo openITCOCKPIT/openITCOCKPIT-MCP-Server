@@ -18,7 +18,6 @@ import responses
 from fastmcp import Client
 
 from openitcockpit_mcp.server import create_server
-from openitcockpit_mcp.tools.support.results import ListResult
 
 BASE_URL = "https://oitc.example.test"
 
@@ -114,6 +113,12 @@ PAYLOADS: dict[str, dict] = {
 }
 
 READ_CALLS = {
+    "find_downtimes": {},
+    "find_hosts": {},
+    "find_services": {},
+    "get_host_health": {"hostname": "web01"},
+    "get_service_health": {"hostname": "web01", "servicename": "Ping"},
+    "list_catalog": {"kind": "hostgroup"},
     "list_log_entries": {}, "get_host_info": {"hostname": "web01"},
     "list_services_by_state": {"state": "ok"}, "get_monitoring_engine_stats": {},
     "list_host_downtimes": {}, "list_service_downtimes": {},
@@ -174,9 +179,12 @@ def stubbed_server(settings):
 async def test_read_tool_runs_and_returns_its_declared_shape(stubbed_server, tool_name):
     async with Client(stubbed_server) as client:
         result = await client.call_tool(tool_name, READ_CALLS[tool_name])
+        (tool,) = [t for t in await client.list_tools() if t.name == tool_name]
     assert result.structured_content is not None, "no structuredContent - missing return annotation?"
-    if tool_name.startswith("list_"):
-        ListResult.model_validate(result.structured_content)
+    schema = tool.output_schema or {}
+    assert set(schema.get("required", [])) <= set(result.structured_content)
+    if not schema.get("additionalProperties"):
+        assert set(result.structured_content) <= set(schema.get("properties", {}))
 
 
 @pytest.mark.parametrize("tool_name", sorted(WRITE_CALLS))
@@ -190,3 +198,23 @@ async def test_every_registered_tool_is_covered_here(stubbed_server):
     """A new tool must be added to READ_CALLS or WRITE_CALLS."""
     registered = {t.name for t in await stubbed_server.list_tools()}
     assert registered == set(READ_CALLS) | set(WRITE_CALLS)
+
+
+
+@pytest.mark.parametrize(
+    ("tool_name", "path", "key"),
+    [("create_hosttemplate", "/hosttemplates/add.json", "Hosttemplate"), ("create_servicetemplate", "/servicetemplates/add.json", "Servicetemplate")],
+)
+async def test_a_created_template_notifies(settings, tool_name, path, key):
+    """openITCOCKPIT stores notifications_enabled as 0 when the payload leaves it out, so objects from the template never notify."""
+    with responses.RequestsMock(assert_all_requests_are_fired=False) as mock:
+        for method in (responses.GET, responses.POST):
+            mock.add_callback(method, re.compile(rf"{re.escape(BASE_URL)}/.*"), callback=_stub)
+        mcp, deps = create_server(settings.model_copy(update={"enable_write_tools": True}))
+        try:
+            async with Client(mcp) as client:
+                await client.call_tool(tool_name, WRITE_CALLS[tool_name])
+        finally:
+            deps.api.close()
+        (body,) = [json.loads(call.request.body) for call in mock.calls if call.request.url.split("?")[0].endswith(path)]
+    assert body[key]["notifications_enabled"] == 1

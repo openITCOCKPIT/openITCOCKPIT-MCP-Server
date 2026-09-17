@@ -1,0 +1,82 @@
+{
+ "request": {
+  "path": "/servicetemplategroups/index.json",
+  "params": {
+   "scroll": "false",
+   "limit": 3,
+   "page": 1,
+   "sort": "Containers.name",
+   "direction": "asc",
+   "filter[Containers.name]": "basic"
+  }
+ },
+ "response": {
+  "all_servicetemplategroups": [
+   {
+    "id": 1,
+    "uuid": "6fab8479-aeea-4acd-bd9b-28da0ffc7804",
+    "container_id": 2,
+    "description": "Linux Monitoring with NRPE Client",
+    "created": "2026-09-16T11:20:25+00:00",
+    "modified": "2026-09-16T11:20:25+00:00",
+    "container": {
+     "id": 2,
+     "containertype_id": 9,
+     "name": "Linux Basic Monitoring NRPE",
+     "parent_id": 1,
+     "lft": 2,
+     "rght": 3
+    },
+    "allow_edit": true
+   },
+   {
+    "id": 2,
+    "uuid": "96dd3d64-6d89-4fca-9346-1724fb5b57dd",
+    "container_id": 3,
+    "description": "",
+    "created": "2026-09-16T11:20:25+00:00",
+    "modified": "2026-09-16T11:20:25+00:00",
+    "container": {
+     "id": 3,
+     "containertype_id": 9,
+     "name": "Linux Basic Monitoring SSH",
+     "parent_id": 1,
+     "lft": 4,
+     "rght": 5
+    },
+    "allow_edit": true
+   },
+   {
+    "id": 3,
+    "uuid": "b6218058-c688-4e37-b322-cc8ce4423aff",
+    "container_id": 4,
+    "description": "Network Basic Monitoring over SNMP without Interfaces",
+    "created": "2026-09-16T11:20:26+00:00",
+    "modified": "2026-09-16T11:20:26+00:00",
+    "container": {
+     "id": 4,
+     "containertype_id": 9,
+     "name": "Network Basic Monitoring",
+     "parent_id": 1,
+     "lft": 6,
+     "rght": 7
+    },
+    "allow_edit": true
+   }
+  ],
+  "_csrfToken": "NjUs/Jd+KEkOeeWNZVGA5qB2RMmLHTNFxr7xzlkAsMHiakqhLMUzqHwO2+sK/1n3o7mf8L0qwUn73hhnhGf/UI9iUWiLLqJixE5z+b95CyOi2MP6a2TU8dtee5lK8ASeSG3p2z3JacaUj/3Jixr0cA==",
+  "paging": {
+   "page": 1,
+   "current": 3,
+   "count": 6,
+   "prevPage": false,
+   "nextPage": true,
+   "pageCount": 2,
+   "limit": 3,
+   "options": [],
+   "paramType": "named",
+   "queryScope": null
+  },
+  "username": "John Doe"
+ }
+}

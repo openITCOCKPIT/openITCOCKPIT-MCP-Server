@@ -30,12 +30,12 @@ are switched off, not missing.
 
 | Request | Reality |
 |---|---|
-| Acknowledge a problem | Read-only here. `list_host_acknowledgements` and `list_service_acknowledgements` report existing ones; nothing sets one. |
+| Acknowledge a problem | Read-only here. Existing acknowledgements can be read where the tools for it are present; nothing sets one. |
 | Schedule or cancel a downtime | Same: the downtime tools only read. Maintenance windows are set in the web interface. |
 | Delete anything | No tool deletes a host, service, template, command, contact or group. |
 | Disable or enable a host or service | Not exposed. |
 | Force a recheck, or reschedule the next check | Not exposed. `nextCheck` reports when it will happen on its own. |
-| Restart or reload the monitoring engine | Not exposed. `get_monitoring_engine_stats` reports its health only. |
+| Restart or reload the monitoring engine | Not exposed. At most its health can be read. |
 | Trigger a configuration export | Not exposed. See below - this is the one that surprises people. |
 | Read performance graph data or metrics history | Only `perfdata` on individual check rows. There is no time-series tool. |
 | Anything about users, roles or permissions | Outside this server entirely. |

@@ -61,6 +61,8 @@ def register(mcp: FastMCP, deps: Deps) -> None:
                 "check_period_id": resolved["check_period_name"],
                 "command_id": resolve_command_id(api, check_command_name),
                 "notify_period_id": resolved["notify_period_name"],
+                # Without it the column defaults to 0 and a service from this template never notifies.
+                "notifications_enabled": 1,
                 "notify_on_recovery": 1,
                 "notify_on_warning": 1,
                 "notify_on_critical": 1,

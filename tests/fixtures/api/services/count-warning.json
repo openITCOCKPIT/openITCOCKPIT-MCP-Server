@@ -1,0 +1,30 @@
+{
+ "request": {
+  "path": "/services/index.json",
+  "params": {
+   "scroll": "false",
+   "limit": 1,
+   "page": 1,
+   "filter[Servicestatus.current_state][]": [
+    "warning"
+   ]
+  }
+ },
+ "response": {
+  "all_services": [],
+  "username": "John Doe",
+  "satellites": [],
+  "paging": {
+   "page": 1,
+   "current": 1,
+   "count": 98,
+   "prevPage": false,
+   "nextPage": true,
+   "pageCount": 98,
+   "limit": 1,
+   "options": [],
+   "paramType": "named",
+   "queryScope": null
+  }
+ }
+}

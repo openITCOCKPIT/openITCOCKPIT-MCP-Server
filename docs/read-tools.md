@@ -7,7 +7,7 @@ argument without one is required.
 
 List tools answer with an envelope, never a bare array:
 `{items, count, truncated, hint}`. `truncated` matters - openITCOCKPIT caps its
-list endpoints and reports no total, so without it a partial answer is
+list endpoints and, in the scroll mode these tools use, reports no total, so without it a partial answer is
 indistinguishable from a complete one. Every list tool takes `limit`
 (default 50, max 500).
 

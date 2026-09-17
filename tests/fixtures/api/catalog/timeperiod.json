@@ -1,0 +1,45 @@
+{
+ "request": {
+  "path": "/timeperiods/index.json",
+  "params": {
+   "scroll": "false",
+   "limit": 3,
+   "page": 1,
+   "sort": "Timeperiods.name",
+   "direction": "asc",
+   "filter[Timeperiods.name]": "24"
+  }
+ },
+ "response": {
+  "all_timeperiods": [
+   {
+    "Timeperiod": {
+     "id": 1,
+     "uuid": "41012866-6114-4853-9caf-6ffd19954e50",
+     "container_id": 1,
+     "name": "24x7",
+     "description": "24x7",
+     "calendar_id": 0,
+     "exclude_timeperiod_id": null,
+     "created": "2015-01-05 15:11:46",
+     "modified": "2015-01-05 15:11:46",
+     "allow_edit": true
+    }
+   }
+  ],
+  "paging": {
+   "page": 1,
+   "current": 1,
+   "count": 1,
+   "prevPage": false,
+   "nextPage": false,
+   "pageCount": 1,
+   "limit": 3,
+   "options": [],
+   "paramType": "named",
+   "queryScope": null
+  },
+  "_csrfToken": "rDU37tZnrTfnqD2JchpikMryfwGIOj0+RtDM2U2D3aI1SxFhBV91G2nZex304fKdeY++bK3IVAFh3gN1xX56LmaziWycZUAUrspIMbxeBVgitv7tf+e5kgx/IFljakItXbpJLcPXwqxOudxVm/hhOA==",
+  "username": "John Doe"
+ }
+}

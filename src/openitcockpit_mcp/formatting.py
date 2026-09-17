@@ -6,20 +6,7 @@ response and returns the subset worth spending context on.
 
 from __future__ import annotations
 
-from datetime import datetime, timedelta
 from typing import Any
-
-# openITCOCKPIT's filter[from]/filter[to] parse this format, not ISO 8601.
-OITC_DATE_FORMAT = "%d.%m.%Y %H:%M"
-
-
-def time_filter_params(hours: int = 24) -> dict[str, str]:
-    """``filter[from]``/``filter[to]`` covering the last *hours* hours."""
-    now = datetime.now()
-    return {
-        "filter[from]": (now - timedelta(hours=hours)).strftime(OITC_DATE_FORMAT),
-        "filter[to]": now.strftime(OITC_DATE_FORMAT),
-    }
 
 
 def get_update_ids(device: dict[str, Any], security: bool) -> list[int]:

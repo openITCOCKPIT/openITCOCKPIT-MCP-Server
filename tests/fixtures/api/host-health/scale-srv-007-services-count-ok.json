@@ -1,0 +1,26 @@
+{
+ "request": {
+  "path": "/services/index.json",
+  "params": {
+   "filter[Hosts.id]": 23,
+   "state": "ok"
+  }
+ },
+ "response": {
+  "all_services": [],
+  "username": "John Doe",
+  "satellites": [],
+  "paging": {
+   "page": 1,
+   "current": 1,
+   "count": 9,
+   "prevPage": false,
+   "nextPage": true,
+   "pageCount": 9,
+   "limit": 1,
+   "options": [],
+   "paramType": "named",
+   "queryScope": null
+  }
+ }
+}

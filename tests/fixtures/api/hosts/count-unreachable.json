@@ -1,0 +1,29 @@
+{
+ "request": {
+  "path": "/hosts/index.json",
+  "params": {
+   "scroll": "false",
+   "limit": 1,
+   "page": 1,
+   "filter[Hoststatus.current_state][]": [
+    "unreachable"
+   ]
+  }
+ },
+ "response": {
+  "all_hosts": [],
+  "username": "John Doe",
+  "paging": {
+   "page": 1,
+   "current": 1,
+   "count": 147,
+   "prevPage": false,
+   "nextPage": true,
+   "pageCount": 147,
+   "limit": 1,
+   "options": [],
+   "paramType": "named",
+   "queryScope": null
+  }
+ }
+}

@@ -1,0 +1,149 @@
+{
+ "request": {
+  "path": "/hosttemplates/index.json",
+  "params": {
+   "scroll": "false",
+   "limit": 3,
+   "page": 1,
+   "sort": "Hosttemplates.name",
+   "direction": "asc",
+   "filter[Hosttemplates.name]": "scale"
+  }
+ },
+ "response": {
+  "all_hosttemplates": [
+   {
+    "Hosttemplate": {
+     "id": 6,
+     "uuid": "69cb66ab-643a-4c1f-893c-9690fa01d92d",
+     "name": "scale-host-down",
+     "description": "",
+     "hosttemplatetype_id": 1,
+     "command_id": 120,
+     "check_command_args": "",
+     "eventhandler_command_id": 0,
+     "timeperiod_id": 0,
+     "check_interval": 300,
+     "retry_interval": 60,
+     "max_check_attempts": 3,
+     "first_notification_delay": 0,
+     "notification_interval": 3600,
+     "notify_on_down": 1,
+     "notify_on_unreachable": 1,
+     "notify_on_recovery": 1,
+     "notify_on_flapping": 0,
+     "notify_on_downtime": 0,
+     "flap_detection_enabled": 1,
+     "flap_detection_on_up": 0,
+     "flap_detection_on_down": 1,
+     "flap_detection_on_unreachable": 0,
+     "low_flap_threshold": 25,
+     "high_flap_threshold": 50,
+     "process_performance_data": 1,
+     "freshness_checks_enabled": 0,
+     "freshness_threshold": 0,
+     "passive_checks_enabled": 0,
+     "event_handler_enabled": 0,
+     "active_checks_enabled": 1,
+     "retain_status_information": 0,
+     "retain_nonstatus_information": 0,
+     "notifications_enabled": 0,
+     "notes": "",
+     "priority": 3,
+     "check_period_id": 1,
+     "notify_period_id": 1,
+     "tags": "",
+     "container_id": 1,
+     "host_url": null,
+     "sla_id": null,
+     "created": "2026-09-16 16:04:06",
+     "modified": "2026-09-16 16:04:06",
+     "allow_edit": true,
+     "type": {
+      "title": "Generic templates",
+      "color": "text-generic",
+      "class": "border-generic",
+      "icon": [
+       "fas",
+       "cog"
+      ],
+      "rotate": 0
+     }
+    }
+   },
+   {
+    "Hosttemplate": {
+     "id": 5,
+     "uuid": "b253f7f5-eb80-48aa-af5a-516434178af5",
+     "name": "scale-host-up",
+     "description": "",
+     "hosttemplatetype_id": 1,
+     "command_id": 119,
+     "check_command_args": "",
+     "eventhandler_command_id": 0,
+     "timeperiod_id": 0,
+     "check_interval": 300,
+     "retry_interval": 60,
+     "max_check_attempts": 3,
+     "first_notification_delay": 0,
+     "notification_interval": 3600,
+     "notify_on_down": 1,
+     "notify_on_unreachable": 1,
+     "notify_on_recovery": 1,
+     "notify_on_flapping": 0,
+     "notify_on_downtime": 0,
+     "flap_detection_enabled": 1,
+     "flap_detection_on_up": 0,
+     "flap_detection_on_down": 1,
+     "flap_detection_on_unreachable": 0,
+     "low_flap_threshold": 25,
+     "high_flap_threshold": 50,
+     "process_performance_data": 1,
+     "freshness_checks_enabled": 0,
+     "freshness_threshold": 0,
+     "passive_checks_enabled": 0,
+     "event_handler_enabled": 0,
+     "active_checks_enabled": 1,
+     "retain_status_information": 0,
+     "retain_nonstatus_information": 0,
+     "notifications_enabled": 0,
+     "notes": "",
+     "priority": 3,
+     "check_period_id": 1,
+     "notify_period_id": 1,
+     "tags": "",
+     "container_id": 1,
+     "host_url": null,
+     "sla_id": null,
+     "created": "2026-09-16 16:04:06",
+     "modified": "2026-09-16 16:04:06",
+     "allow_edit": true,
+     "type": {
+      "title": "Generic templates",
+      "color": "text-generic",
+      "class": "border-generic",
+      "icon": [
+       "fas",
+       "cog"
+      ],
+      "rotate": 0
+     }
+    }
+   }
+  ],
+  "paging": {
+   "page": 1,
+   "current": 2,
+   "count": 2,
+   "prevPage": false,
+   "nextPage": false,
+   "pageCount": 1,
+   "limit": 3,
+   "options": [],
+   "paramType": "named",
+   "queryScope": null
+  },
+  "_csrfToken": "PVrMFsIaCc+fYjJQ8zj2kviIEwLLyYqc2nMFJXmRRtIjeGC43CWy1AlxpaO130q8OLEpkOSalYjwsfiN0QPe1h55hrUdR9QWnLAkMv+tsvq+FTcRS/Ui4hpMUYC6EIXiPRKXk4Lpeo0Ph0up0qqgsQ==",
+  "username": "John Doe"
+ }
+}

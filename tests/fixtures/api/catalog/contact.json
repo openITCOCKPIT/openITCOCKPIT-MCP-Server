@@ -1,0 +1,76 @@
+{
+ "request": {
+  "path": "/contacts/index.json",
+  "params": {
+   "scroll": "false",
+   "limit": 3,
+   "page": 1,
+   "sort": "Contacts.name",
+   "direction": "asc",
+   "filter[Contacts.name]": "info"
+  }
+ },
+ "response": {
+  "all_contacts": [
+   {
+    "Contact": {
+     "id": 1,
+     "uuid": "152aecaf-e981-4b0b-8e05-86972868547d",
+     "name": "info",
+     "description": "info contact",
+     "email": "openitcockpit@localhost.local",
+     "phone": "",
+     "user_id": null,
+     "host_timeperiod_id": 1,
+     "service_timeperiod_id": 1,
+     "host_notifications_enabled": 1,
+     "service_notifications_enabled": 1,
+     "notify_service_recovery": 1,
+     "notify_service_warning": 1,
+     "notify_service_unknown": 1,
+     "notify_service_critical": 1,
+     "notify_service_flapping": 0,
+     "notify_service_downtime": 0,
+     "notify_host_recovery": 1,
+     "notify_host_down": 1,
+     "notify_host_unreachable": 1,
+     "notify_host_flapping": 0,
+     "notify_host_downtime": 0,
+     "host_push_notifications_enabled": 0,
+     "service_push_notifications_enabled": 0,
+     "allow_edit": true
+    },
+    "Container": [
+     {
+      "id": 1,
+      "containertype_id": 1,
+      "name": "root",
+      "parent_id": null,
+      "lft": 1,
+      "rght": 46,
+      "_joinData": {
+       "id": 1,
+       "contact_id": 1,
+       "container_id": 1
+      }
+     }
+    ]
+   }
+  ],
+  "paging": {
+   "page": 1,
+   "current": 1,
+   "count": 1,
+   "prevPage": false,
+   "nextPage": false,
+   "pageCount": 1,
+   "limit": 3,
+   "options": [],
+   "paramType": "named",
+   "queryScope": null
+  },
+  "isLdapAuth": false,
+  "_csrfToken": "AEmPVDq+H50p22NbuEttlxQkw17brVns3fE+6OUzpoyrQo5PFEUZja6XzdIF1tv9iFZjvqq1DozNorvPKafIhKjA175WNE8TcBz0bu/JYYq5lwzc11fCvJJ2v3dycC67mvT/4jLg68y/YAGHnIU7tQ==",
+  "username": "John Doe"
+ }
+}

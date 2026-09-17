@@ -1,0 +1,27 @@
+{
+ "request": {
+  "path": "/hosts/index.json",
+  "params": {
+   "scroll": "false",
+   "limit": 3,
+   "page": 1,
+   "filter[Hosts.name]": "does-not-exist"
+  }
+ },
+ "response": {
+  "all_hosts": [],
+  "username": "John Doe",
+  "paging": {
+   "page": 1,
+   "current": 0,
+   "count": 0,
+   "prevPage": false,
+   "nextPage": false,
+   "pageCount": 1,
+   "limit": 3,
+   "options": [],
+   "paramType": "named",
+   "queryScope": null
+  }
+ }
+}

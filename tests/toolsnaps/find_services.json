@@ -1,0 +1,103 @@
+{
+  "_meta": {
+    "fastmcp": {
+      "tags": []
+    }
+  },
+  "annotations": {
+    "destructiveHint": false,
+    "idempotentHint": true,
+    "openWorldHint": true,
+    "readOnlyHint": true
+  },
+  "description": "Find services by host, name, state, container, host group or flapping, and count them per state. Use it for \"which services are critical\", \"what runs on host web01\" or \"which disk checks warn\". For how one known service is doing, use get_service_health.",
+  "inputSchema": {
+    "additionalProperties": false,
+    "properties": {
+      "acknowledged": {
+        "anyOf": [
+          {
+            "type": "boolean"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "description": "true: only acknowledged problems. false: only unacknowledged."
+      },
+      "container": {
+        "default": "",
+        "description": "Only services in this container: its exact name or path, e.g. tenant-a.",
+        "type": "string"
+      },
+      "flapping": {
+        "default": false,
+        "description": "true: only services whose state is flapping, counted among up to 100 matches.",
+        "type": "boolean"
+      },
+      "host": {
+        "default": "",
+        "description": "Part of the host name. Empty: any host.",
+        "type": "string"
+      },
+      "hostgroup": {
+        "default": "",
+        "description": "Only services on hosts of this host group: its exact name.",
+        "type": "string"
+      },
+      "in_downtime": {
+        "anyOf": [
+          {
+            "type": "boolean"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "description": "true: only services in a downtime. false: only services outside one."
+      },
+      "limit": {
+        "default": 20,
+        "description": "How many services to list. The counts always cover every match.",
+        "maximum": 100,
+        "minimum": 1,
+        "type": "integer"
+      },
+      "name": {
+        "default": "",
+        "description": "Part of the service name. Empty: any service.",
+        "type": "string"
+      },
+      "state": {
+        "anyOf": [
+          {
+            "items": {
+              "enum": [
+                "ok",
+                "warning",
+                "critical",
+                "unknown"
+              ],
+              "type": "string"
+            },
+            "type": "array"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "description": "Only services in these states, e.g. [\"warning\", \"critical\"]."
+      }
+    },
+    "type": "object"
+  },
+  "name": "find_services",
+  "outputSchema": {
+    "additionalProperties": true,
+    "type": "object"
+  },
+  "title": "Find Services"
+}

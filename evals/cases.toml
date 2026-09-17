@@ -31,7 +31,7 @@ task = "triage"
 lang = "de"
 question = "Welche Services sind gerade im Zustand unknown?"
 expect.current = { tools = ["list_services_by_state"], args = { state = "unknown" } }
-expect.target = { tools = ["find_services"], args = { state = "unknown" } }
+expect.target = { tools = ["find_services"], args = { state = ["unknown"] } }
 
 [[case]]
 id = "triage-root-cause-overview"
@@ -95,7 +95,7 @@ task = "history"
 lang = "de"
 question = "Welche Downtimes gibt es gerade für web01?"
 expect.current = { tools = ["list_host_downtimes"], args = { hostname = "web01" } }
-expect.target = { tools = ["find_downtimes"], args = { hostname = "web01" } }
+expect.target = { tools = ["find_downtimes"], args = { host = "web01" } }
 
 [[case]]
 id = "investigate-failing-http"
@@ -127,7 +127,7 @@ task = "search"
 lang = "de"
 question = "Welche Hosts gibt es im Mandanten 'Kunde A'?"
 expect.current = { tools = ["get_container_tree"], args = { container_name = "Kunde A" } }
-expect.target = { tools = ["find_hosts"] }
+expect.target = { tools = ["find_hosts"], args = { container = "Kunde A" } }
 
 [[case]]
 id = "search-services-by-name-and-state"
@@ -135,7 +135,7 @@ task = "search"
 lang = "de"
 question = "Finde alle Services mit 'Disk' im Namen, die gerade warning sind."
 expect.current = { tools = ["list_services_by_state"], args = { state = "warning" } }
-expect.target = { tools = ["find_services"], args = { state = "warning" } }
+expect.target = { tools = ["find_services"], args = { name = "Disk", state = ["warning"] } }
 
 [[case]]
 id = "noise-flapping"
@@ -239,7 +239,7 @@ task = "config"
 lang = "en"
 question = "Which host templates exist?"
 expect.current = { tools = ["list_hosttemplates"] }
-expect.target = { tools = ["list_catalog"] }
+expect.target = { tools = ["list_catalog"], args = { kind = "hosttemplate" } }
 
 [[case]]
 id = "config-list-contacts"
@@ -247,7 +247,7 @@ task = "config"
 lang = "de"
 question = "Welche Kontakte sind angelegt?"
 expect.current = { tools = ["list_contacts"] }
-expect.target = { tools = ["list_catalog"] }
+expect.target = { tools = ["list_catalog"], args = { kind = "contact" } }
 
 [[case]]
 id = "config-containers"
@@ -328,3 +328,19 @@ lang = "en"
 question = "Is nginx installed on web01, and in which version?"
 expect.current = { tools = ["list_installed_software"], args = { hostname = "web01" } }
 expect.target = { tools = ["get_installed_software"], args = { hostname = "web01" } }
+
+[[case]]
+id = "search-hosts-in-hostgroup"
+task = "search"
+lang = "de"
+question = "Welche Hosts in der Hostgruppe linux-prod sind down?"
+expect.current = { tools = [] }
+expect.target = { tools = ["find_hosts"], also = ["list_catalog"], args = { hostgroup = "linux-prod", state = ["down"] } }
+
+[[case]]
+id = "catalog-hostgroup-name"
+task = "search"
+lang = "en"
+question = "What host groups do we have for the web servers?"
+expect.current = { tools = ["list_hostgroups"] }
+expect.target = { tools = ["list_catalog"], args = { kind = "hostgroup" } }

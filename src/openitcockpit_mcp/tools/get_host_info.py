@@ -22,8 +22,8 @@ def register(mcp: FastMCP, deps: Deps) -> None:
         """Detailed status of a host plus the services running on it.
 
         `hostname` matches as a substring, so several hosts can come back; each entry carries
-        its own services. Use list_services_by_state instead when you want failing services
-        across the whole estate rather than one host's full inventory.
+        its own services. For failing services across the whole estate rather than one host's
+        full inventory, a search by state fits better.
 
         A host present in the configuration but not yet known to the monitoring engine is
         returned with `monitored: false` and no check results. This differs from the host not

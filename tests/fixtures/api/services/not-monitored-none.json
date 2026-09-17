@@ -1,0 +1,25 @@
+{
+ "request": {
+  "path": "/services/notMonitored.json",
+  "params": {
+   "scroll": "false",
+   "limit": 1,
+   "page": 1
+  }
+ },
+ "response": {
+  "all_services": [],
+  "paging": {
+   "page": 1,
+   "current": 0,
+   "count": 0,
+   "prevPage": false,
+   "nextPage": false,
+   "pageCount": 1,
+   "limit": 1,
+   "options": [],
+   "paramType": "named",
+   "queryScope": null
+  }
+ }
+}

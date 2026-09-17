@@ -15,7 +15,7 @@
     "additionalProperties": false,
     "properties": {
       "hostname": {
-        "description": "Exact host name. Required - there is no estate-wide form of this tool. Get a name from list_services_by_state, list_log_entries or get_container_tree first.",
+        "description": "Exact host name. Required - there is no estate-wide form of this tool. A name that matches no host is answered with the tools that can find the right one.",
         "type": "string"
       },
       "hours": {

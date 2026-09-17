@@ -1,0 +1,33 @@
+{
+ "request": {
+  "path": "/services/index.json",
+  "params": {
+   "filter[Servicestatus.current_state][]": [
+    "warning",
+    "critical"
+   ],
+   "filter[Servicestatus.problem_has_been_acknowledged]": 1,
+   "scroll": "false",
+   "limit": 1,
+   "page": 1
+  }
+ },
+ "response": {
+  "all_services": [],
+  "username": "John Doe",
+  "satellites": [],
+  "_csrfToken": "HeW9dU8NoCan8XWVtphZ0Ng8coksNM4ohKmkSU2XLSBsWY6nob+DJGYwHwIS+8zWf+57iUmRRSi0mVvHOC3YOmswCxHyzNVp4A9H6xgArx/mzJB+K/QfGQlrt8GTjLRCAAV6Niud/bRJ2xi+eqkkGw==",
+  "paging": {
+   "page": 1,
+   "current": 0,
+   "count": 0,
+   "prevPage": false,
+   "nextPage": false,
+   "pageCount": 1,
+   "limit": 1,
+   "options": [],
+   "paramType": "named",
+   "queryScope": null
+  }
+ }
+}

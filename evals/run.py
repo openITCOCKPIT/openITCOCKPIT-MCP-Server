@@ -9,8 +9,14 @@ per model. Only the FIRST tool call is scored:
 - invented: the call names no argument the tool's schema lacks
 - no call:  the model answered without calling a tool
 
-Cases the surface has no tool for (``tools = []``) are reported separately as
-not covered, with what the model called instead.
+A case may also name tools that are a sensible first step without being the
+answer (``also``), such as looking up a group's exact name before filtering by
+it. Such a call counts as the right tool and is reported as a preparatory step;
+its arguments are not scored.
+
+A case is covered when this build registers at least one of its expected tools.
+Cases without one - ``tools = []``, or a target tool not built yet - are
+reported separately, with what the model called instead.
 
     set -a; . ~/.config/oitc-evals/env; set +a
     python evals/run.py --surface current --model h200-light-no-think-02-02 --samples 5
@@ -24,6 +30,7 @@ import argparse
 import asyncio
 import json
 import os
+import re
 import time
 import tomllib
 import urllib.error
@@ -54,18 +61,26 @@ def tool_definitions(toolsets: str) -> list[dict[str, Any]]:
     finally:
         deps.api.close()
     return [
-        {"type": "function", "function": {"name": t.name, "description": t.description or "", "parameters": t.parameters}}
-        for t in tools
+        {"type": "function", "function": {"name": t.name, "description": t.description or "", "parameters": t.parameters}} for t in tools
     ]
 
 
-def complete(model: str, question: str, tools: list[dict[str, Any]], max_tokens: int) -> dict[str, Any]:
-    body = {
-        "model": model,
-        "messages": [{"role": "system", "content": SYSTEM_PROMPT}, {"role": "user", "content": question}],
-        "tools": tools,
-        "max_tokens": max_tokens,
-    }
+def shipped_prompt(names: list[str]) -> str:
+    """The text blocks of shipped system prompts, e.g. ["en/general", "en/health"], joined in order."""
+    blocks = []
+    for name in names:
+        text = (HERE.parent / "src" / "openitcockpit_mcp" / "systemprompts" / f"{name}.md").read_text()
+        blocks += re.findall(r"```text\n(.*?)```", text, flags=re.S)
+    return "\n".join(blocks)
+
+
+def complete(model: str, question: str, tools: list[dict[str, Any]], max_tokens: int, system: str) -> dict[str, Any]:
+    messages = [{"role": "system", "content": system}, {"role": "user", "content": question}]
+    return complete_messages(model, messages, tools, max_tokens)
+
+
+def complete_messages(model: str, messages: list[dict[str, Any]], tools: list[dict[str, Any]], max_tokens: int) -> dict[str, Any]:
+    body = {"model": model, "messages": messages, "tools": tools, "max_tokens": max_tokens}
     request = urllib.request.Request(
         os.environ["OITC_EVAL_BASE_URL"].rstrip("/") + "/chat/completions",
         data=json.dumps(body).encode(),
@@ -94,6 +109,8 @@ def value_at(arguments: dict[str, Any], dotted: str) -> Any:
 def same(expected: Any, actual: Any) -> bool:
     if isinstance(expected, str) and isinstance(actual, str):
         return expected.strip().lower() == actual.strip().lower()
+    if isinstance(expected, list) and isinstance(actual, list):
+        return len(expected) == len(actual) and all(same(e, a) for e, a in zip(sorted(expected), sorted(actual), strict=True))
     if isinstance(expected, (int, float)) and isinstance(actual, (int, float, str)):
         try:
             return float(actual) == float(expected)
@@ -102,11 +119,15 @@ def same(expected: Any, actual: Any) -> bool:
     return expected == actual
 
 
+def covered(case: dict[str, Any], surface: str, schemas: dict[str, dict[str, Any]]) -> bool:
+    return any(tool in schemas for tool in case["expect"][surface]["tools"])
+
+
 def score(case: dict[str, Any], surface: str, response: dict[str, Any], schemas: dict[str, dict[str, Any]]) -> dict[str, Any]:
     expect = case["expect"][surface]
     message = response["choices"][0]["message"]
     calls = message.get("tool_calls") or []
-    result: dict[str, Any] = {"covered": bool(expect["tools"]), "called": None, "arguments": None}
+    result: dict[str, Any] = {"covered": covered(case, surface, schemas), "called": None, "arguments": None}
     if not calls:
         result.update(no_call=True, tool=False, args=False, invented=False)
         return result
@@ -126,9 +147,10 @@ def score(case: dict[str, Any], surface: str, response: dict[str, Any], schemas:
 
     properties = (schemas.get(call["name"]) or {}).get("properties", {})
     result["invented"] = any(key not in properties for key in arguments)
-    result["tool"] = call["name"] in expect["tools"]
+    result["prep"] = call["name"] in expect.get("also", [])
+    result["tool"] = call["name"] in expect["tools"] or result["prep"]
     wanted = expect.get("args", {})
-    result["args"] = result["tool"] and all(same(v, value_at(arguments, k)) for k, v in wanted.items())
+    result["args"] = result["tool"] and (result["prep"] or all(same(v, value_at(arguments, k)) for k, v in wanted.items()))
     return result
 
 
@@ -141,12 +163,16 @@ def main() -> None:
     parser.add_argument("--toolsets", default="all", help="limit the tools as an instance would, e.g. triage")
     parser.add_argument("--max-tokens", type=int, default=4000)
     parser.add_argument("--case", action="append", help="run only these case ids")
+    parser.add_argument(
+        "--system-prompt", action="append", help="use shipped system prompts instead of the neutral one, e.g. en/general en/health"
+    )
     args = parser.parse_args()
 
     cases = tomllib.loads((HERE / "cases.toml").read_text())["case"]
     if args.case:
         cases = [c for c in cases if c["id"] in args.case]
     tools = tool_definitions(args.toolsets)
+    system = shipped_prompt(args.system_prompt) if args.system_prompt else SYSTEM_PROMPT
     schemas = {t["function"]["name"]: t["function"]["parameters"] for t in tools}
 
     jobs = [(model, case, n) for model in args.model for case in cases for n in range(args.samples)]
@@ -155,11 +181,11 @@ def main() -> None:
         model, case, n = job
         started = time.monotonic()
         try:
-            response = complete(model, case["question"], tools, args.max_tokens)
+            response = complete(model, case["question"], tools, args.max_tokens, system)
             outcome = score(case, args.surface, response, schemas)
             outcome["usage"] = response.get("usage", {})
         except Exception as error:  # a failed request is a result too, not a crash
-            outcome = {"error": f"{type(error).__name__}: {error}", "covered": bool(case["expect"][args.surface]["tools"])}
+            outcome = {"error": f"{type(error).__name__}: {error}", "covered": covered(case, args.surface, schemas)}
         outcome.update(model=model, case=case["id"], task=case["task"], lang=case["lang"], sample=n)
         outcome["seconds"] = round(time.monotonic() - started, 2)
         return outcome
@@ -172,31 +198,42 @@ def main() -> None:
     out.parent.mkdir(exist_ok=True)
     out.write_text(
         json.dumps(
-            {"surface": args.surface, "toolsets": args.toolsets, "tools": len(tools), "samples": args.samples, "results": results},
+            {
+                "surface": args.surface,
+                "toolsets": args.toolsets,
+                "system_prompt": args.system_prompt or "neutral",
+                "tools": len(tools),
+                "samples": args.samples,
+                "results": results,
+            },
             indent=1,
             ensure_ascii=False,
         )
     )
 
+    print(f"system prompt={args.system_prompt or 'neutral'}")
     print(f"surface={args.surface} toolsets={args.toolsets} tools={len(tools)} cases={len(cases)} samples={args.samples}")
-    print(f"covered cases: {sum(1 for c in cases if c['expect'][args.surface]['tools'])}/{len(cases)}")
+    print(f"covered cases: {sum(1 for c in cases if covered(c, args.surface, schemas))}/{len(cases)}")
     for model in args.model:
         mine = [r for r in results if r["model"] == model]
         errors = [r for r in mine if "error" in r]
-        covered = [r for r in mine if r["covered"] and "error" not in r]
+        scored = [r for r in mine if r["covered"] and "error" not in r]
 
         def rate(key: str, rows: list[dict[str, Any]]) -> str:
             return f"{100 * sum(1 for r in rows if r.get(key)) / len(rows):5.1f} %" if rows else "    -"
 
         print(f"\n{model}  (errors: {len(errors)})")
-        print(f"  covered:  right tool {rate('tool', covered)} | right args {rate('args', covered)} | "
-              f"invented args {rate('invented', covered)} | no call {rate('no_call', covered)}")
+        print(
+            f"  covered:  right tool {rate('tool', scored)} | right args {rate('args', scored)} | "
+            f"invented args {rate('invented', scored)} | no call {rate('no_call', scored)} | "
+            f"preparatory step {rate('prep', scored)}"
+        )
         by_task: dict[str, list[dict[str, Any]]] = defaultdict(list)
-        for r in covered:
+        for r in scored:
             by_task[r["task"]].append(r)
         print("  by task:  " + ", ".join(f"{t} {rate('tool', rows).strip()}" for t, rows in sorted(by_task.items())))
         misses: dict[str, int] = defaultdict(int)
-        for r in covered:
+        for r in scored:
             if not r.get("tool"):
                 misses[f"{r['case']} -> {r.get('called')}"] += 1
         if misses:

@@ -1,0 +1,56 @@
+{
+  "_meta": {
+    "fastmcp": {
+      "tags": []
+    }
+  },
+  "annotations": {
+    "destructiveHint": false,
+    "idempotentHint": true,
+    "openWorldHint": true,
+    "readOnlyHint": true
+  },
+  "description": "List templates, commands, contacts, groups or time periods by name, sorted by name, to find the exact name another tool needs. The total counts every match; items lists the first. Use it for \"which service templates exist for disks\" or \"what is the host group of tenant X called\".",
+  "inputSchema": {
+    "additionalProperties": false,
+    "properties": {
+      "kind": {
+        "description": "Which kind of configuration object to list.",
+        "enum": [
+          "hosttemplate",
+          "servicetemplate",
+          "command",
+          "contact",
+          "contactgroup",
+          "hostgroup",
+          "servicegroup",
+          "servicetemplategroup",
+          "timeperiod"
+        ],
+        "type": "string"
+      },
+      "limit": {
+        "default": 50,
+        "description": "How many objects to list. The total always covers every match.",
+        "maximum": 200,
+        "minimum": 1,
+        "type": "integer"
+      },
+      "name": {
+        "default": "",
+        "description": "Part of the name. Empty: every object of the kind.",
+        "type": "string"
+      }
+    },
+    "required": [
+      "kind"
+    ],
+    "type": "object"
+  },
+  "name": "list_catalog",
+  "outputSchema": {
+    "additionalProperties": true,
+    "type": "object"
+  },
+  "title": "Configuration Catalog"
+}

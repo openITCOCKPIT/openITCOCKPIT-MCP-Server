@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import re
+
 import pytest
 
 from openitcockpit_mcp.guides import (
@@ -298,3 +300,19 @@ async def test_an_unlimited_instance_says_so(settings):
         deps.api.close()
 
     assert "not limited" in body
+
+
+def test_tool_names_in_the_shipped_prompts_are_registered_tools():
+    """A prompt naming a tool the server does not have makes a model call it anyway."""
+    from importlib.resources import files
+
+    from openitcockpit_mcp.tools.support.registry import TOOLS
+
+    tool_name = re.compile(r"`((?:find|get|list|create|update|delete|schedule|cancel|acknowledge|apply)_[a-z_]+)`")
+    registered = {tool.__name__.rsplit(".", 1)[-1] for tool in TOOLS}
+    root = files("openitcockpit_mcp")
+    named = set()
+    for folder in ("systemprompts/en", "systemprompts/de"):
+        for path in root.joinpath(*folder.split("/")).iterdir():
+            named |= set(tool_name.findall(path.read_text()))
+    assert named <= registered, sorted(named - registered)

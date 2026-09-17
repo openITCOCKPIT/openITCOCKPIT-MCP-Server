@@ -122,11 +122,13 @@ class OITCClient:
         self._session.close()
 
     def build_url(self, path: str, params: dict[str, Any] | None = None) -> str:
-        query: dict[str, str] = {"angular": "true"}
+        """A list value becomes one parameter per element, the form PHP reads ``key[]`` in."""
+        query: list[tuple[str, str]] = [("angular", "true")]
         for key, value in (params or {}).items():
             if value is None:
                 continue
-            query[key] = _query_value(value)
+            values = value if isinstance(value, (list, tuple)) else [value]
+            query.extend((key, _query_value(item)) for item in values)
         return f"{self._base_url}{path}?{urlencode(query)}"
 
     def request(
