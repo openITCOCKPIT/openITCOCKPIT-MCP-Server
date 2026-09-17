@@ -8,6 +8,18 @@ this server's semver, which is also the image tag. See
 
 ### Added
 
+- `get_availability_report`: how available a host or service was over a period,
+  computed from its recorded state changes. openITCOCKPIT generates availability
+  only from report definitions saved beforehand, so there was no way to ask for
+  an arbitrary object and window. Agreed maintenance is reported apart from the
+  rest rather than deducted silently, and a history that does not reach back far
+  enough shortens the period instead of being filled in.
+- `forecast_metric`: when a measured value reaches its warning or critical
+  threshold, from a least squares line through the performance data. Reports the
+  rate of change and how much of the movement the line explains, and gives no
+  date at all when that is too little to stand on.
+- The `reporting` toolset for both of them, with its system prompt in English
+  and German.
 - `oitc-mcp-eval`: measure a model against these tools on your own instance.
   Ships with cases that check an answer against what the tools returned in the
   same conversation, so they work anywhere and do not age; keeps every run in
@@ -18,7 +30,7 @@ this server's semver, which is also the image tag. See
 ### Removed
 
 Twenty tools whose work the reorganised surface does better, with what replaces
-them. The server offers 41 tools instead of 61, so every request carries less.
+them. The server offers 42 tools instead of 61, so every request carries less.
 
 | gone | use instead |
 |---|---|
@@ -37,6 +49,9 @@ served with `health` now. `catalog` is three tools instead of ten.
 
 ### Changed
 
+- `list_pending_updates` and `list_pending_security_updates` are one tool,
+  `find_pending_updates`, with `security_only`. They differed in one filter and
+  one flag, which is a parameter rather than a second tool to choose between.
 - `create_host_with_agent_pull_mode` is gone; `create_host` takes
   `agent_pull_port` (plus HTTPS and basic-auth arguments) and does both steps in
   one call, picking the agent host template unless another is named. One tool
@@ -49,6 +64,9 @@ served with `health` now. `catalog` is three tools instead of ten.
   [docs/using-the-tools.md](docs/using-the-tools.md), which keeps what a listing
   cannot say: what a result looks like, container scope, and how
   read-modify-write and inheritance behave.
+- `get_allowed_elements_for_container` is available without
+  `OITC_ENABLE_WRITE_TOOLS`. Whether a tool is registered follows its
+  `readOnlyHint`, and this tool only reads. 20 tools without write tools, 42 with.
 
 ### Fixed
 
@@ -60,12 +78,6 @@ served with `health` now. `catalog` is three tools instead of ten.
   is computed in the time zone of the user the server acts as. openITCOCKPIT
   reads it there; computed in the server's own zone, a server in UTC and a user
   in Europe/Berlin got nothing for the last 24 hours.
-
-### Changed
-
-- `get_allowed_elements_for_container` is available without
-  `OITC_ENABLE_WRITE_TOOLS`. Whether a tool is registered follows its
-  `readOnlyHint`, and this tool only reads. 25 tools without write tools, 39 with.
 
 ## 0.4.0 - 2026-09-16
 

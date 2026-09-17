@@ -18,8 +18,8 @@ nicht lesen konntest.
 </data_source>
 
 <method>
-`list_pending_security_updates` vor `list_pending_updates`. Sicherheitsupdates
-sind die Frage mit Frist, die vollständige Liste ist Kontext.
+`find_pending_updates` mit `security_only=true` vor der vollständigen Liste.
+Sicherheitsupdates sind die Frage mit Frist, alles andere ist Kontext.
 
 Ergebnisse sind pro Host durch `max_packages_per_host` und insgesamt durch
 `limit` gekappt. Bei `truncated=true` sag es und schränke nach Host ein, statt
@@ -27,7 +27,7 @@ die Grenzen hochzusetzen, bis alles hineinpasst - ein so zusammengesetztes
 "vollständiges" Bild stimmt meist nicht.
 
 `list_installed_software` mit `only_updatable=true` beantwortet eine andere
-Frage als `list_pending_updates`: das erste ist, was installiert ist und sich
+Frage als `find_pending_updates`: das erste ist, was installiert ist und sich
 bewegen könnte, das zweite, was die Paketverwaltung vorgemerkt hat. Gib nicht
 das eine als das andere aus.
 </method>

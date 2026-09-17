@@ -1,0 +1,50 @@
+{
+  "_meta": {
+    "fastmcp": {
+      "tags": []
+    }
+  },
+  "annotations": {
+    "destructiveHint": false,
+    "idempotentHint": true,
+    "openWorldHint": true,
+    "readOnlyHint": true
+  },
+  "description": "When a measured value reaches its warning or critical threshold, from a straight line through its history. Reports the rate of change, the date and how well the line fits, per metric of the check. Use it for \"when will the disk on db01 be full\" or \"what is filling up\".",
+  "inputSchema": {
+    "additionalProperties": false,
+    "properties": {
+      "hostname": {
+        "description": "Exact host name. Required - there is no estate-wide form of this tool. A name that matches no host is answered with the tools that can find the right one.",
+        "type": "string"
+      },
+      "hours": {
+        "default": 168,
+        "description": "How much history the forecast is computed from.",
+        "maximum": 2160,
+        "minimum": 6,
+        "type": "integer"
+      },
+      "metric": {
+        "default": "",
+        "description": "Only this metric of the check, by its name. Empty: every metric it records.",
+        "type": "string"
+      },
+      "servicename": {
+        "description": "Exact service name on that host. Required. A name that matches no service is answered with the tools that can find the right one.",
+        "type": "string"
+      }
+    },
+    "required": [
+      "hostname",
+      "servicename"
+    ],
+    "type": "object"
+  },
+  "name": "forecast_metric",
+  "outputSchema": {
+    "additionalProperties": true,
+    "type": "object"
+  },
+  "title": "Forecast Metric"
+}

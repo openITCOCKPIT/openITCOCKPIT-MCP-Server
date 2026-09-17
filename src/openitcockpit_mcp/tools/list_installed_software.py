@@ -31,7 +31,7 @@ def register(mcp: FastMCP, deps: Deps) -> None:
 
         A host carries hundreds to thousands of packages. Pass name_filter to search by
         package name, or only_updatable=True for just the outdated ones. For updates across
-        the whole estate use list_pending_updates or list_pending_security_updates.
+        the whole estate use find_pending_updates.
 
         A host with no agent inventory at all raises, rather than returning zero rows.
         """

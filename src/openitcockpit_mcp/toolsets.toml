@@ -36,11 +36,22 @@ description = "Update and security posture across the monitored estate."
 skills = ["oitc-patch-review"]
 systemprompts = ["system-prompt-patch", "system-prompt-patch-de"]
 tools = [
-    "list_pending_updates",
-    "list_pending_security_updates",
+    "find_pending_updates",
     "list_installed_software",
     "find_hosts",
     "get_host_health",
+]
+
+[reporting]
+description = "Answer for a period rather than for right now: availability, and where a measured value is heading."
+systemprompts = ["system-prompt-reporting", "system-prompt-reporting-de"]
+tools = [
+    "get_availability_report",
+    "forecast_metric",
+    "find_hosts",
+    "find_services",
+    "get_host_health",
+    "get_service_health",
 ]
 
 [catalog]

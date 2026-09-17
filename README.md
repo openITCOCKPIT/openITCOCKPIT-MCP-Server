@@ -13,7 +13,7 @@ and, off by default, the tools that act on it.
 > or liability of any kind; see the [MIT License](LICENSE).
 
 - **Requires openITCOCKPIT 5.6 or newer** ([compatibility](docs/versioning.md)).
-- **41 tools**, 19 read-only and 22 that change something.
+- **42 tools**, 20 read-only and 22 that change something.
 - **Write tools are off by default** and are not registered until you enable them.
 - **Names, never IDs.** Tools take hostnames, template names and container paths;
   the server resolves them.
@@ -66,8 +66,8 @@ OITC_TOOLSETS=operations      # acknowledge, maintenance windows, check now
 OITC_TOOLSETS=lifecycle       # take things out of the monitoring, or delete them
 ```
 
-The shipped sets are `health`, `operations`, `lifecycle`, `patch`, `catalog`,
-`onboarding`, `config` and `provisioning`. Sets are defined in a file you can
+The shipped sets are `health`, `operations`, `lifecycle`, `patch`, `reporting`,
+`catalog`, `onboarding`, `config` and `provisioning`. Sets are defined in a file you can
 replace: [docs/toolsets.md](docs/toolsets.md).
 
 ## Measuring a model

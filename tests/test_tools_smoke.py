@@ -129,7 +129,9 @@ READ_CALLS = {
     "get_shift_summary": {},
     "investigate_problem": {"hostname": "web01"},
     "list_installed_software": {"hostname": "web01"},
-    "list_pending_security_updates": {}, "list_pending_updates": {},
+    "find_pending_updates": {},
+    "forecast_metric": {"hostname": "web01", "servicename": "Ping"},
+    "get_availability_report": {"hostname": "web01"},
 }
 
 WRITE_CALLS = {

@@ -10,7 +10,7 @@
     "openWorldHint": true,
     "readOnlyHint": true
   },
-  "description": "Software installed on a host, from the openITCOCKPIT agent's inventory. OS is auto-detected (Linux, Windows, macOS).\n\nA host carries hundreds to thousands of packages. Pass name_filter to search by\npackage name, or only_updatable=True for just the outdated ones. For updates across\nthe whole estate use list_pending_updates or list_pending_security_updates.\n\nA host with no agent inventory at all raises, rather than returning zero rows.",
+  "description": "Software installed on a host, from the openITCOCKPIT agent's inventory. OS is auto-detected (Linux, Windows, macOS).\n\nA host carries hundreds to thousands of packages. Pass name_filter to search by\npackage name, or only_updatable=True for just the outdated ones. For updates across\nthe whole estate use find_pending_updates.\n\nA host with no agent inventory at all raises, rather than returning zero rows.",
   "inputSchema": {
     "additionalProperties": false,
     "properties": {

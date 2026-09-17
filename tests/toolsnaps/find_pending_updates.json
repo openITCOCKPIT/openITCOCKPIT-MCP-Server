@@ -10,7 +10,7 @@
     "openWorldHint": true,
     "readOnlyHint": true
   },
-  "description": "Hosts with pending security updates, with the package names and versions for each.\n\nShorter than list_pending_updates and usually the relevant one. Naming each package\ncosts one API request, so max_packages_per_host caps how many are resolved per host;\nthe update count itself is always exact.",
+  "description": "Hosts with pending updates, with the package names and versions for each.\n\nCovers every update by default; security_only narrows it to the security ones.\nNaming each package costs one API request, capped by max_packages_per_host; the\nupdate count itself is always exact.",
   "inputSchema": {
     "additionalProperties": false,
     "properties": {
@@ -31,11 +31,16 @@
       "max_packages_per_host": {
         "default": 20,
         "type": "integer"
+      },
+      "security_only": {
+        "default": false,
+        "description": "Only updates the vendor marks as security relevant. Far shorter, and the one an operator usually means.",
+        "type": "boolean"
       }
     },
     "type": "object"
   },
-  "name": "list_pending_security_updates",
+  "name": "find_pending_updates",
   "outputSchema": {
     "description": "Rows plus enough context to know whether they are all of them.",
     "properties": {
@@ -72,5 +77,5 @@
     ],
     "type": "object"
   },
-  "title": "Pending Security Updates"
+  "title": "Pending Updates"
 }
