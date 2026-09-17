@@ -5,10 +5,10 @@ Docker, from source, and the MCP Registry.
 ### Docker
 
 ```bash
-docker run -d -p 8000:8000 --env-file .env openitcockpit/mcp-server:0.4.0
+docker run -d -p 8000:8000 --env-file .env openitcockpit/mcp-server:0.5.0
 ```
 
-**Which tag?** The tag is this server's own version. `0.4.0` never changes, so a
+**Which tag?** The tag is this server's own version. `0.5.0` never changes, so a
 redeploy gives you exactly what you tested - pin that. `latest` is the only
 other tag and it moves under you. The tag says nothing about your openITCOCKPIT
 version; one image serves 5.6 and newer. See [Versioning](versioning.md).
@@ -20,7 +20,7 @@ docker run -d -p 8000:8000 \
   -e MCP_AUTH_TOKEN="..." \
   -e OITC_APIKEY="..." \
   -e OITC_BASEURL="https://openitcockpit.example.org" \
-  openitcockpit/mcp-server:0.4.0
+  openitcockpit/mcp-server:0.5.0
 ```
 
 No secret is baked into the image; configuration is read from the environment

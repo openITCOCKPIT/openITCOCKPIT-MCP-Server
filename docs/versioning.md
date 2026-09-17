@@ -7,7 +7,7 @@ release, and no others:
 
 | Image tag | Mutable? | Use for |
 |---|---|---|
-| `0.4.0` | no | **Pin this.** Exactly this build. |
+| `0.5.0` | no | **Pin this.** Exactly this build. |
 | `latest` | yes | The newest release, whatever it is |
 
 Semver: patch for fixes, minor for added tools, major for anything that breaks
