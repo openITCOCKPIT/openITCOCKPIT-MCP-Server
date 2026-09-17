@@ -1,0 +1,45 @@
+{
+  "_meta": {
+    "fastmcp": {
+      "tags": []
+    }
+  },
+  "annotations": {
+    "destructiveHint": true,
+    "idempotentHint": true,
+    "openWorldHint": true,
+    "readOnlyHint": false
+  },
+  "description": "Update an existing contact group, identified by its exact name (a contact group's name IS its\ncontainer's name - there is no separate name column). Read-modify-write, same pattern as the\nother update_* tools.\n\nA contact group's own container, meaning its name and parent, cannot be changed here; only\n`description` and its member contacts.\n\n`fields` (all optional):\n- description: plain text.\n- contact_names: replaces the full set of member contacts. Must be non-empty, openITCOCKPIT\n  enforcing at least one member on every save, and every name must be visible from this\n  group's fixed parent container.\n  get_allowed_elements_for_container(object_type=\"contactgroup\", container_name=<parent>)\n  reports the qualifying contacts.",
+  "inputSchema": {
+    "additionalProperties": false,
+    "properties": {
+      "fields": {
+        "anyOf": [
+          {
+            "additionalProperties": true,
+            "type": "object"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "description": "Only the fields to change. Omitted fields keep their current value; null resets a field to inherited where inheritance applies. Array fields replace rather than append."
+      },
+      "name": {
+        "type": "string"
+      }
+    },
+    "required": [
+      "name"
+    ],
+    "type": "object"
+  },
+  "name": "update_contactgroup",
+  "outputSchema": {
+    "additionalProperties": true,
+    "type": "object"
+  },
+  "title": "Update Contact Group"
+}

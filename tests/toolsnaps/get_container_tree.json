@@ -1,0 +1,30 @@
+{
+  "_meta": {
+    "fastmcp": {
+      "tags": []
+    }
+  },
+  "annotations": {
+    "destructiveHint": false,
+    "idempotentHint": true,
+    "openWorldHint": true,
+    "readOnlyHint": true
+  },
+  "description": "Get the organizational structure (containers: tenants, locations, nodes) starting at the given container, including which hosts, host groups and service groups live directly under it. Leave container_name at 'root' for the top-level structure; without access to root that is the top-most containers you can see.",
+  "inputSchema": {
+    "additionalProperties": false,
+    "properties": {
+      "container_name": {
+        "default": "root",
+        "type": "string"
+      }
+    },
+    "type": "object"
+  },
+  "name": "get_container_tree",
+  "outputSchema": {
+    "additionalProperties": true,
+    "type": "object"
+  },
+  "title": "Container Tree"
+}

@@ -1,0 +1,92 @@
+{
+  "_meta": {
+    "fastmcp": {
+      "tags": []
+    }
+  },
+  "annotations": {
+    "destructiveHint": false,
+    "idempotentHint": false,
+    "openWorldHint": true,
+    "readOnlyHint": false
+  },
+  "description": "Create a new host template (reusable check/notification configuration for hosts). Requires at least one of contact_names/contactgroup_names. Uses common monitoring defaults (5min check interval, 1min retry, 3 attempts) unless overridden. check_period_name, notify_period_name, contact_names and contactgroup_names must all be visible from container_name's scope - use get_allowed_elements_for_container(object_type=\"hosttemplate\", container_name=...) to see which values qualify.",
+  "inputSchema": {
+    "additionalProperties": false,
+    "properties": {
+      "check_command_name": {
+        "type": "string"
+      },
+      "check_interval": {
+        "default": 300,
+        "type": "integer"
+      },
+      "check_period_name": {
+        "default": "24x7",
+        "type": "string"
+      },
+      "contact_names": {
+        "anyOf": [
+          {
+            "items": {},
+            "type": "array"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null
+      },
+      "contactgroup_names": {
+        "anyOf": [
+          {
+            "items": {},
+            "type": "array"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null
+      },
+      "container_name": {
+        "default": "",
+        "type": "string"
+      },
+      "description": {
+        "default": "",
+        "type": "string"
+      },
+      "max_check_attempts": {
+        "default": 3,
+        "type": "integer"
+      },
+      "name": {
+        "type": "string"
+      },
+      "notification_interval": {
+        "default": 3600,
+        "type": "integer"
+      },
+      "notify_period_name": {
+        "default": "24x7",
+        "type": "string"
+      },
+      "retry_interval": {
+        "default": 60,
+        "type": "integer"
+      }
+    },
+    "required": [
+      "name",
+      "check_command_name"
+    ],
+    "type": "object"
+  },
+  "name": "create_hosttemplate",
+  "outputSchema": {
+    "additionalProperties": true,
+    "type": "object"
+  },
+  "title": "Create Host Template"
+}

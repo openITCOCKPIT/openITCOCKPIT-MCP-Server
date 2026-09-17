@@ -32,7 +32,7 @@ A service template carries a display `name` ("Alfresco check") and an internal
   `template_name`.
 
 A reference resolved against a scope bundle therefore has to be the
-`template_name`. `tools/write/servicetemplate_names.py` accepts either and maps
+`template_name`. `tools/support/servicetemplate_names.py` accepts either and maps
 the display name when the direct match fails.
 
 ## Response nesting is not consistently cased
@@ -96,4 +96,4 @@ from.
 
 List endpoints cap results server-side and report no total. Truncation is
 detected here by requesting one row more than needed - see
-`tools/envelope.py`.
+`tools/support/results.py`.

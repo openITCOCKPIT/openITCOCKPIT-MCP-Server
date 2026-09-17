@@ -1,0 +1,54 @@
+{
+  "_meta": {
+    "fastmcp": {
+      "tags": []
+    }
+  },
+  "annotations": {
+    "destructiveHint": false,
+    "idempotentHint": false,
+    "openWorldHint": true,
+    "readOnlyHint": false
+  },
+  "description": "Create a new service on an existing host from a service template. Scope is the host (not a\ncontainer): servicetemplate_name and every cross-reference inside `fields` must be visible from\nhostname's own container - if a name is rejected, the error lists the closest matches in scope\nand the total number of valid values.\n\nname defaults to servicetemplate_name's own display name if left empty (openITCOCKPIT's own\ndefault, not an MCP shortcut). check_command_name/eventhandler_command_name are global (Commands\naren't a container-scoped object type), so they are only checked for existence, not scope.\n\nInheritance: any field you do NOT set in `fields` is left for openITCOCKPIT to resolve on its\nown from servicetemplate_name. contacts/contactgroups cascade further, to the host's own\ncontacts and then its hosttemplate, when the servicetemplate has none set. A brand-new\nservice has no explicit \"inherit\" value; omit the field instead.\n\n`fields` (all optional):\n- Plain scalars, passed through as given: check_interval, retry_interval, max_check_attempts,\n  first_notification_delay, notification_interval, notify_on_recovery/warning/critical/unknown/\n  flapping/downtime, flap_detection_enabled/on_ok/on_warning/on_critical/on_unknown,\n  low_flap_threshold, high_flap_threshold, process_performance_data, freshness_checks_enabled,\n  freshness_threshold, passive_checks_enabled, event_handler_enabled, active_checks_enabled,\n  retain_status_information, retain_nonstatus_information, notifications_enabled, notes,\n  priority, tags, service_url, is_volatile, sla_relevant. Booleans may be given as true/false or\n  0/1.\n- check_period_name, notify_period_name: must be visible from the host's scope.\n- check_command_name, eventhandler_command_name: any existing command (global).\n- contact_names, contactgroup_names: REPLACE the full set together if either is given (not\n  additive) - openITCOCKPIT can only inherit contacts and contact groups as a pair, never one\n  without the other, so give both if you're overriding either.\n- servicegroup_names: REPLACES the full set if given (not additive).\nPass the service's display name via the `name` parameter, not fields['name'].",
+  "inputSchema": {
+    "additionalProperties": false,
+    "properties": {
+      "fields": {
+        "anyOf": [
+          {
+            "additionalProperties": true,
+            "type": "object"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "description": "Only the fields to change. Omitted fields keep their current value; null resets a field to inherited where inheritance applies. Array fields replace rather than append."
+      },
+      "hostname": {
+        "description": "Exact host name. Required - there is no estate-wide form of this tool. Get a name from list_services_by_state, list_log_entries or get_container_tree first.",
+        "type": "string"
+      },
+      "name": {
+        "default": "",
+        "type": "string"
+      },
+      "servicetemplate_name": {
+        "type": "string"
+      }
+    },
+    "required": [
+      "hostname",
+      "servicetemplate_name"
+    ],
+    "type": "object"
+  },
+  "name": "create_service",
+  "outputSchema": {
+    "additionalProperties": true,
+    "type": "object"
+  },
+  "title": "Create Service"
+}

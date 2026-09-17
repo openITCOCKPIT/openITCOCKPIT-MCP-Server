@@ -1,0 +1,42 @@
+{
+  "_meta": {
+    "fastmcp": {
+      "tags": []
+    }
+  },
+  "annotations": {
+    "destructiveHint": false,
+    "idempotentHint": false,
+    "openWorldHint": true,
+    "readOnlyHint": false
+  },
+  "description": "Create a new host group. parent_container_name defaults to the root container if not given. Must be a Tenant/Location/Node (or the root) container - not e.g. another host group's own container.",
+  "inputSchema": {
+    "additionalProperties": false,
+    "properties": {
+      "description": {
+        "default": "",
+        "description": "Free-text description. Optional.",
+        "type": "string"
+      },
+      "name": {
+        "type": "string"
+      },
+      "parent_container_name": {
+        "default": "",
+        "description": "Parent container: a Tenant, Location, Node or the root. Empty means the root.",
+        "type": "string"
+      }
+    },
+    "required": [
+      "name"
+    ],
+    "type": "object"
+  },
+  "name": "create_hostgroup",
+  "outputSchema": {
+    "additionalProperties": true,
+    "type": "object"
+  },
+  "title": "Create Host Group"
+}

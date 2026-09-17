@@ -1,0 +1,88 @@
+{
+  "_meta": {
+    "fastmcp": {
+      "tags": []
+    }
+  },
+  "annotations": {
+    "destructiveHint": false,
+    "idempotentHint": false,
+    "openWorldHint": true,
+    "readOnlyHint": false
+  },
+  "description": "Create a new contact (a person who can be notified about problems). Requires at least one of email/phone. Notification commands and containers default to sensible built-ins (email notification commands, root container) if not given. Every container_names entry must be a Tenant/Location/Node (or the root) container, and host_timeperiod_name/service_timeperiod_name must be visible from that combined set of containers - use get_allowed_elements_for_container(object_type=\"contact\", container_name=...) to see which timeperiods qualify for a single container.",
+  "inputSchema": {
+    "additionalProperties": false,
+    "properties": {
+      "container_names": {
+        "anyOf": [
+          {
+            "items": {},
+            "type": "array"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null
+      },
+      "description": {
+        "default": "",
+        "type": "string"
+      },
+      "email": {
+        "default": "",
+        "type": "string"
+      },
+      "host_notification_command_names": {
+        "anyOf": [
+          {
+            "items": {},
+            "type": "array"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null
+      },
+      "host_timeperiod_name": {
+        "default": "24x7",
+        "type": "string"
+      },
+      "name": {
+        "type": "string"
+      },
+      "phone": {
+        "default": "",
+        "type": "string"
+      },
+      "service_notification_command_names": {
+        "anyOf": [
+          {
+            "items": {},
+            "type": "array"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null
+      },
+      "service_timeperiod_name": {
+        "default": "24x7",
+        "type": "string"
+      }
+    },
+    "required": [
+      "name"
+    ],
+    "type": "object"
+  },
+  "name": "create_contact",
+  "outputSchema": {
+    "additionalProperties": true,
+    "type": "object"
+  },
+  "title": "Create Contact"
+}

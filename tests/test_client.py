@@ -6,8 +6,8 @@ import pytest
 import requests
 import responses
 
-from openitcockpit_mcp.client import OITCClient
-from openitcockpit_mcp.errors import OITCUnreachableError
+from openitcockpit_mcp.api.client import OITCClient
+from openitcockpit_mcp.api.errors import OITCUnreachableError
 
 BASE_URL = "https://oitc.example.test"
 

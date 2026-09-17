@@ -17,7 +17,7 @@ off-by-default tools that change the monitoring configuration.
 > proposes before you approve it, and start with read-only access. Provided
 > "as is", without warranty or liability of any kind (MIT License).
 
-39 tools, 24 read-only and 15 write. **Requires openITCOCKPIT 5.6 or newer**;
+39 tools, 25 read-only and 14 that change the configuration. **Requires openITCOCKPIT 5.6 or newer**;
 one image serves every supported release.
 
 ## Tags

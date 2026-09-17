@@ -13,7 +13,7 @@ from openitcockpit_mcp.config import Settings
 from openitcockpit_mcp.deps import Deps
 from openitcockpit_mcp.guides import register_guides, register_toolset_overview
 from openitcockpit_mcp.middleware import CompactContentMiddleware
-from openitcockpit_mcp.tools import register_all
+from openitcockpit_mcp.tools.support.registry import register_all
 from openitcockpit_mcp.toolsets import active as active_toolsets
 from openitcockpit_mcp.toolsets import resolve as resolve_toolsets
 from openitcockpit_mcp.version import OITC_MIN_VERSION, __version__, version_banner
@@ -92,10 +92,9 @@ def create_server(settings: Settings, deps: Deps | None = None) -> tuple[FastMCP
 def count_tools(mcp: FastMCP) -> tuple[int, int]:
     """(total, mutating) tool counts.
 
-    Mutating is counted from the annotations, not from which subpackage a tool
-    lives in: get_allowed_elements_for_container ships with the write tools but
-    only reads. The number an operator cares about is how many tools can change
-    the monitoring configuration.
+    Mutating is counted from the annotations, which also decide whether a tool
+    is registered without OITC_ENABLE_WRITE_TOOLS. The number an operator cares
+    about is how many tools can change the monitoring configuration.
     """
     tools = asyncio.run(mcp.list_tools())
     mutating = sum(1 for tool in tools if tool.annotations and not tool.annotations.read_only_hint)

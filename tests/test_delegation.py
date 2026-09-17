@@ -11,11 +11,11 @@ import pytest
 import responses
 
 from openitcockpit_mcp import delegation
-from openitcockpit_mcp.client import OITCClient
+from openitcockpit_mcp.api.client import OITCClient
+from openitcockpit_mcp.api.errors import MissingUserTokenError
+from openitcockpit_mcp.api.scope import ScopeService
 from openitcockpit_mcp.config import Settings
 from openitcockpit_mcp.delegation import USER_TOKEN_HEADER, identity_of, user_token_from_request
-from openitcockpit_mcp.errors import MissingUserTokenError
-from openitcockpit_mcp.scope import ScopeService
 
 BASE_URL = "https://oitc.example.test"
 

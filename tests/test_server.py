@@ -4,8 +4,8 @@ import pytest
 
 from openitcockpit_mcp.server import create_server
 
-READ_TOOL_COUNT = 24
-WRITE_TOOL_COUNT = 15
+READ_TOOL_COUNT = 25
+WRITE_TOOL_COUNT = 14
 
 
 async def _tool_names(settings) -> set[str]:
@@ -26,7 +26,13 @@ async def test_read_tools_are_registered(settings):
 @pytest.mark.asyncio
 async def test_write_tools_are_absent_by_default(settings):
     names = await _tool_names(settings)
-    assert not {"create_host", "update_host", "get_allowed_elements_for_container"} & names
+    assert not {"create_host", "update_host"} & names
+
+
+@pytest.mark.asyncio
+async def test_a_read_only_helper_of_the_write_tools_is_there_without_them(settings):
+    """The write gate follows readOnlyHint, not which tools a helper is used with."""
+    assert "get_allowed_elements_for_container" in await _tool_names(settings)
 
 
 @pytest.mark.asyncio
@@ -38,7 +44,7 @@ async def test_write_tools_appear_when_enabled(settings):
 
 @pytest.mark.asyncio
 async def test_no_duplicate_tool_names_across_modules(settings):
-    """Registration is spread over 11 modules; a collision would silently shadow a tool."""
+    """One module per tool; a name used twice would silently shadow a tool."""
     mcp, deps = create_server(settings.model_copy(update={"enable_write_tools": True}))
     try:
         tools = await mcp.list_tools()

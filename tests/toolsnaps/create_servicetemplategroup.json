@@ -1,0 +1,47 @@
+{
+  "_meta": {
+    "fastmcp": {
+      "tags": []
+    }
+  },
+  "annotations": {
+    "destructiveHint": false,
+    "idempotentHint": false,
+    "openWorldHint": true,
+    "readOnlyHint": false
+  },
+  "description": "Create a new service template group containing the given service templates. At least one is required.\n\nservicetemplate_names are matched against each template's internal `template_name`\n(e.g. OITC_AGENT_ALFRESCO), not its display name.\nget_allowed_elements_for_container(object_type=\"servicetemplategroup\",\ncontainer_name=...) reports the accepted names.\n\nparent_container_name must be a Tenant/Location/Node (or the root) container.",
+  "inputSchema": {
+    "additionalProperties": false,
+    "properties": {
+      "description": {
+        "default": "",
+        "description": "Free-text description. Optional.",
+        "type": "string"
+      },
+      "name": {
+        "type": "string"
+      },
+      "parent_container_name": {
+        "default": "",
+        "description": "Parent container: a Tenant, Location, Node or the root. Empty means the root.",
+        "type": "string"
+      },
+      "servicetemplate_names": {
+        "items": {},
+        "type": "array"
+      }
+    },
+    "required": [
+      "name",
+      "servicetemplate_names"
+    ],
+    "type": "object"
+  },
+  "name": "create_servicetemplategroup",
+  "outputSchema": {
+    "additionalProperties": true,
+    "type": "object"
+  },
+  "title": "Create Service Template Group"
+}

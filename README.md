@@ -14,7 +14,7 @@ off-by-default tools that change the monitoring configuration.
 > or liability of any kind; see the [MIT License](LICENSE).
 
 - **Requires openITCOCKPIT 5.6 or newer.** See [Compatibility](#compatibility).
-- **39 tools**, 24 read-only and 15 write.
+- **39 tools**, 25 read-only and 14 that change the configuration.
 - **Write tools are disabled by default** and are not even registered until you
   enable them.
 - **Names, never IDs.** Every tool takes hostnames, template names and container
@@ -211,8 +211,10 @@ Three values have to agree at release time: `MCP_VERSION`, the `version` in
 
 ## Tools
 
-**39 tools, 24 read-only and 15 write.** Full signatures and behaviour:
+**39 tools, 25 read-only and 14 that change the configuration.** Full signatures and behaviour:
 **[read tools](docs/read-tools.md)** · **[write tools](docs/write-tools.md)**.
+Every tool by toolset, with its parameters and context size:
+**[docs/tools.md](docs/tools.md)** (generated).
 
 Every tool carries MCP annotations, so a client can tell a read from a write
 before calling it, and takes names rather than database IDs - the server
@@ -466,15 +468,21 @@ pip install -e ".[dev]"
 
 The script runs the suite inside the image the Dockerfile is based on, so a
 local run and a CI run use the same Python. Individually: `ruff check .`,
-`mypy`, `pytest` (206 tests).
+`mypy`, `pytest`.
 
-Adding a tool: write it in the matching module under `tools/read/` or
-`tools/write/`, decorate it with `@mcp.tool(title=..., annotations=...)` using a
-preset from `tools/annotations.py`, and the subpackage's `register()` picks it
-up - anything under `tools/write/` is gated by `OITC_ENABLE_WRITE_TOOLS`
-automatically. A new module goes into that subpackage's `READ_MODULES` /
-`WRITE_MODULES` tuple, and a new tool into the call table in
-`tests/test_tools_smoke.py`, which runs every tool once against stubbed
-responses.
+Adding a tool: create `src/openitcockpit_mcp/tools/<tool_name>.py` with a
+`register(mcp, deps)` that defines one `@mcp.tool(title=..., annotations=...)`,
+using a preset from `tools/support/annotations.py`. List the module in
+`tools/support/registry.py` - `READ_TOOLS`, or `WRITE_TOOLS`, which only
+register when `OITC_ENABLE_WRITE_TOOLS` is set. Helpers shared by several tools
+live in `tools/support/`; everything that knows openITCOCKPIT's URLs and
+payloads lives in `api/`. Add the tool to the call table in
+`tests/test_tools_smoke.py` and write its snapshot with
+`UPDATE_TOOLSNAPS=1 pytest tests/test_toolsnaps.py`.
+
+How the code is organised and what a tool has to be:
+[docs/architecture.md](docs/architecture.md) and
+[docs/tool-design.md](docs/tool-design.md). `evals/` measures whether models
+pick the right tool.
 
 Build the image yourself with `docker build -t oitc-mcp-server .`.

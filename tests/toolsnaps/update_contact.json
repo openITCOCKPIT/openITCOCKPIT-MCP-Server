@@ -1,0 +1,45 @@
+{
+  "_meta": {
+    "fastmcp": {
+      "tags": []
+    }
+  },
+  "annotations": {
+    "destructiveHint": true,
+    "idempotentHint": true,
+    "openWorldHint": true,
+    "readOnlyHint": false
+  },
+  "description": "Update an existing contact, identified by its exact name. Read-modify-write, same as\nupdate_service/update_host: fetches the contact's current values, applies only what's in\n`fields`, resends the whole object. Fields you don't mention are resent unchanged.\n\nUnlike Service/Host, a Contact has no template to inherit from - every field is either set or\nit isn't, there is no \"reset to null/inherited\" concept, and none of these fields accept null.\n\n`fields` (all optional):\n- Plain scalars: description, email, phone, user_id, host_notifications_enabled,\n  service_notifications_enabled, notify_host_recovery/down/unreachable/flapping/downtime,\n  notify_service_recovery/warning/unknown/critical/flapping/downtime,\n  host_push_notifications_enabled, service_push_notifications_enabled. Booleans may be given as\n  true/false or 0/1. At least one of email/phone must remain set after your change - openITCOCKPIT\n  requires it.\n- name: renames the contact (does not affect identification of already-in-flight calls).\n- container_names: replaces the full set of containers this contact belongs to. Must be\n  non-empty, a contact always belonging to at least one container, and each must be a\n  Tenant/Location/Node or root. openITCOCKPIT may re-add containers on top of what is sent\n  when a contact group, host template, service template, host or escalation still requires\n  the contact there.\n- host_timeperiod_name / service_timeperiod_name: must be visible from container_names (the new\n  set if you're also changing it in this call, otherwise the contact's current containers) - never\n  null, always required.\n- host_command_names / service_command_names: REPLACES the full set (not additive); must be\n  non-empty (at least one of each is always required); global (Commands aren't container-scoped),\n  only checked for existence.\n\nRejections list the closest matching names in scope and the total count of valid values.",
+  "inputSchema": {
+    "additionalProperties": false,
+    "properties": {
+      "fields": {
+        "anyOf": [
+          {
+            "additionalProperties": true,
+            "type": "object"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "description": "Only the fields to change. Omitted fields keep their current value; null resets a field to inherited where inheritance applies. Array fields replace rather than append."
+      },
+      "name": {
+        "type": "string"
+      }
+    },
+    "required": [
+      "name"
+    ],
+    "type": "object"
+  },
+  "name": "update_contact",
+  "outputSchema": {
+    "additionalProperties": true,
+    "type": "object"
+  },
+  "title": "Update Contact"
+}

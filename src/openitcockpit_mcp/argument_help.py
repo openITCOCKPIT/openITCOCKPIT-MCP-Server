@@ -29,8 +29,8 @@ from fastmcp.server.middleware import CallNext, Middleware, MiddlewareContext
 from fastmcp.tools import ToolResult
 from mcp import types as mt
 
-from openitcockpit_mcp.client import OITCClient
-from openitcockpit_mcp.resolvers import list_host_names
+from openitcockpit_mcp.api.client import OITCClient
+from openitcockpit_mcp.api.names import list_host_names
 
 log = logging.getLogger(__name__)
 

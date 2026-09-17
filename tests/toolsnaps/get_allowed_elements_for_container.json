@@ -1,0 +1,47 @@
+{
+  "_meta": {
+    "fastmcp": {
+      "tags": []
+    }
+  },
+  "annotations": {
+    "destructiveHint": false,
+    "idempotentHint": true,
+    "openWorldHint": true,
+    "readOnlyHint": true
+  },
+  "description": "List the host templates, contacts, contact groups, timeperiods, host groups, etc. that are actually visible from a given container - i.e. the values a Create* tool for that object_type would accept there. openITCOCKPIT restricts every such reference to the target container's own scope (the container plus its descendants, plus a few legacy tenant-wide exceptions); values outside that scope are rejected. Call this BEFORE a create call whenever you are unsure a name is visible in the target container, instead of guessing and retrying on error. object_type must be one of: host, hosttemplate, servicetemplate, hostgroup, contactgroup, servicetemplategroup, contact. For hostgroup/contactgroup/servicetemplategroup/contact, container_name is the intended *parent* container (the object being created doesn't have its own container yet) - the result always includes 'legal_parent_containers' (the container types allowed to hold that object type), plus a members list (contacts/servicetemplates/timeperiods) only if container_name already resolves to a legal parent. container_name defaults to the root container if not given.",
+  "inputSchema": {
+    "additionalProperties": false,
+    "properties": {
+      "container_name": {
+        "default": "",
+        "description": "Target container path. Empty means the root container.",
+        "type": "string"
+      },
+      "object_type": {
+        "description": "Object type whose allowed elements should be listed. Required.",
+        "enum": [
+          "host",
+          "hosttemplate",
+          "servicetemplate",
+          "hostgroup",
+          "contactgroup",
+          "servicetemplategroup",
+          "contact"
+        ],
+        "type": "string"
+      }
+    },
+    "required": [
+      "object_type"
+    ],
+    "type": "object"
+  },
+  "name": "get_allowed_elements_for_container",
+  "outputSchema": {
+    "additionalProperties": true,
+    "type": "object"
+  },
+  "title": "Allowed Elements for Container"
+}

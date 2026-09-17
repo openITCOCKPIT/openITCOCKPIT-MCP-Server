@@ -21,7 +21,7 @@ import hashlib
 
 from fastmcp.server.dependencies import get_http_headers
 
-from openitcockpit_mcp.errors import MissingUserTokenError
+from openitcockpit_mcp.api.errors import MissingUserTokenError
 
 #: Lower case, as HTTP header names arrive normalised.
 USER_TOKEN_HEADER = "x-oitc-user-token"
