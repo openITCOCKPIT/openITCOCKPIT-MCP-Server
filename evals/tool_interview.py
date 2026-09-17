@@ -10,9 +10,10 @@ wish that comes up once is not yet a pattern.
 What a model says it needs is an opinion, not a measurement. Hold it against
 what agent.py shows the model actually doing.
 
-    set -a; . ~/.config/oitc-evals/env; set +a
-    OITC_BASEURL=https://127.0.0.1 OITC_APIKEY=... \\
-    python evals/tool_interview.py --model "$MODEL_A"
+    export OITC_EVAL_BASE_URL=https://your-endpoint/v1
+    export OITC_EVAL_API_KEY=...
+    OITC_BASEURL=https://your-instance OITC_APIKEY=... \\
+    python evals/tool_interview.py --model <your model>
 
 Writes evals/results/<run>-interview.json and prints the answers per tool.
 """
