@@ -4,7 +4,7 @@ import pytest
 
 from openitcockpit_mcp.server import create_server
 
-READ_TOOL_COUNT = 31
+READ_TOOL_COUNT = 36
 WRITE_TOOL_COUNT = 14
 
 

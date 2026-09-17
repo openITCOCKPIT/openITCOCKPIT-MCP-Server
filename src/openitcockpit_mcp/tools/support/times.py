@@ -45,6 +45,15 @@ def to_iso(value: str, zone: ZoneInfo) -> str:
     return value
 
 
+def parse(value: str, zone: ZoneInfo) -> datetime | None:
+    """``value`` as an aware time when it is ISO 8601 or a time in one of the user formats."""
+    try:
+        parsed = datetime.fromisoformat(to_iso(value, zone))
+    except ValueError:
+        return None
+    return parsed if parsed.tzinfo else parsed.replace(tzinfo=zone)
+
+
 def localize(data: Any, zone: ZoneInfo) -> Any:
     """Every time anywhere in ``data`` as ISO 8601 with offset."""
     if isinstance(data, str):

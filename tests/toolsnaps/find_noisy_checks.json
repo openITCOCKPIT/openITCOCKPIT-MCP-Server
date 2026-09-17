@@ -1,0 +1,57 @@
+{
+  "_meta": {
+    "fastmcp": {
+      "tags": []
+    }
+  },
+  "annotations": {
+    "destructiveHint": false,
+    "idempotentHint": true,
+    "openWorldHint": true,
+    "readOnlyHint": true
+  },
+  "description": "Checks that cause noise and what to do about each: flapping services, the services that notified most, and problems that have lasted without anyone acknowledging them or scheduling a downtime. Use it for \"what is noisy\", \"why do we get so many alerts\" or \"what should we clean up\".",
+  "inputSchema": {
+    "additionalProperties": false,
+    "properties": {
+      "container": {
+        "default": "",
+        "description": "Only this container: its exact name or path, e.g. tenant-a.",
+        "type": "string"
+      },
+      "hostgroup": {
+        "default": "",
+        "description": "Only hosts of this host group: its exact name.",
+        "type": "string"
+      },
+      "hours": {
+        "default": 24,
+        "description": "The window for notifications.",
+        "maximum": 168,
+        "minimum": 1,
+        "type": "integer"
+      },
+      "limit": {
+        "default": 10,
+        "description": "How many entries to list per finding.",
+        "maximum": 50,
+        "minimum": 1,
+        "type": "integer"
+      },
+      "older_than_hours": {
+        "default": 24,
+        "description": "A problem counts as long-standing after this many hours.",
+        "maximum": 720,
+        "minimum": 1,
+        "type": "integer"
+      }
+    },
+    "type": "object"
+  },
+  "name": "find_noisy_checks",
+  "outputSchema": {
+    "additionalProperties": true,
+    "type": "object"
+  },
+  "title": "Noisy Checks"
+}

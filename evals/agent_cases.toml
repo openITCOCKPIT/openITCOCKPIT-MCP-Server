@@ -6,7 +6,7 @@
 # expressions, matched case-insensitively against the final answer; one match
 # is enough. `must_not` lists expressions that must not match.
 #
-# `must_quote` names a tool and a field of its result, for truths that change
+# `must_quote` names a tool and a field of its result ("a.b" for a nested one), for truths that change
 # while the dataset runs: the answer has to state the value that tool returned in
 # the same conversation, as a number of its own.
 #
@@ -106,15 +106,16 @@ must = [
 ]
 must_not = ["\\bis up\\b"]
 
-# The data says a switch is down and has no failed parent, nothing about why.
-# A good answer quotes what the check said and says the cause is not visible.
+# The switch is down because the seed script added it with the check command
+# scale_host_down at 18:04:07, 33 seconds before it went down. A good answer quotes what
+# the check said and either names that command or says the cause is not visible.
 [[case]]
 id = "why-switch-down"
 lang = "en"
 question = "Why did scale-sw-1-1 go down?"
 must = [
     ["scale: host down", "no failed parent"],
-    ["(no|not|nothing)\\b.{0,40}\\b(cause|reason|explain)", "not (known|visible|available|shown|say|tell)", "cannot (tell|determine|see|say)", "can't (tell|determine|see|say)", "unclear", "unknown"],
+    ["scale_host_down", "(no|not|nothing)\\b.{0,40}\\b(cause|reason|explain)", "not (known|visible|available|shown|say|tell)", "cannot (tell|determine|see|say)", "can't (tell|determine|see|say)", "unclear", "unknown"],
 ]
 
 # How many services flap changes from minute to minute, so the answer is held
@@ -124,3 +125,71 @@ id = "flapping-services"
 lang = "de"
 question = "Welche Services flattern gerade?"
 must_quote = { tool = "find_services", field = "total" }
+
+[[case]]
+id = "whats-broken-overview"
+lang = "de"
+question = "Was ist gerade kaputt, und was davon ist nur ein Folgefehler?"
+must = [
+    ["scale-sw-1-1"],
+    ["scale-sw-3-2"],
+    ["scale-sw-5-1"],
+    ["\\b147\\b"],
+    ["backup"],
+]
+
+# Which problems count as long-standing depends on how old the dataset is, so
+# the case holds on to what does not: the flapping Updates services.
+[[case]]
+id = "noisy-cleanup"
+lang = "de"
+question = "Welche Checks nerven bei uns und was sollten wir da aufräumen?"
+must = [
+    ["updates"],
+    ["flatter", "flap"],
+]
+must_quote = { tool = "find_noisy_checks", field = "flapping.total" }
+
+# Backup on scale-srv-105 is critical and acknowledged by the seed script, so
+# Naemon holds its notifications back.
+[[case]]
+id = "why-no-alert"
+lang = "de"
+question = "Warum bekommen wir für Backup auf scale-srv-105 keine Benachrichtigung mehr?"
+must = [
+    ["quittiert", "acknowledg", "bestätigt"],
+]
+
+[[case]]
+id = "shift-handover"
+lang = "de"
+question = "Gib mir eine Übergabe der letzten 8 Stunden für die Frühschicht."
+must = [
+    ["scale-sw-1-1", "\\b3\\b[^\\n]{0,30}down", "down[^\\n]{0,30}\\b3\\b", "drei"],
+    ["downtime", "wartung"],
+]
+must_quote = { tool = "get_shift_summary", field = "notifications.services" }
+
+# Disk / on scale-srv-010 was critical for 14 minutes after the dataset was
+# built, on a check command the shell could not parse, and has been ok since.
+[[case]]
+id = "past-problem-cause"
+lang = "de"
+question = "Disk / auf scale-srv-010 hatte vorhin ein Problem. Was war da los, und kam das schon öfter vor?"
+must = [
+    ["syntax error", "unterminated", "quoted string", "syntaxfehler"],
+    ["\\b14 ?min", "18:09", "18:24"],
+    ["erst(e|en|mal|mals)\\b", "kein(e|en)?\\b[^\\n]{0,40}(früher|vorher|zuvor|weitere|andere)", "nicht\\b[^\\n]{0,30}(früher|vorher|zuvor|öfter|schon)", "einmalig", "\\bnein\\b", "kein einzige"],
+]
+
+# scale-srv-002 is unreachable behind the down switch scale-sw-1-1. The seed
+# script changed its host template at 18:18 and its check command at 18:28,
+# seven minutes before it turned unreachable.
+[[case]]
+id = "unreachable-what-changed"
+lang = "en"
+question = "scale-srv-002 is unreachable. What happened, and did anything change on it before?"
+must = [
+    ["scale-sw-1-1"],
+    ["18:28", "\\bedit", "changed", "modified"],
+]

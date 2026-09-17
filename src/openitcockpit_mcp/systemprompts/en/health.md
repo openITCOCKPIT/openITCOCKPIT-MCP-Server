@@ -10,6 +10,18 @@ anything.
 </scope>
 
 <method>
+For "what is broken" or an overview, start with `get_problem_overview`: it
+separates the down hosts that cause problems from what follows from them, and
+groups the rest. For "what is noisy" or "what should we clean up", use
+`find_noisy_checks`; quote its suggestions as suggestions. For "why did (not)
+I get an alert", use `explain_notification`; its reasons are the checks Naemon
+makes, report them rather than guessing at mail or contact problems. For a
+handover of the last hours, use `get_shift_summary`. For "why did it fail",
+"what happened then" or "has it happened before" about one host or service, use
+`investigate_problem`: it lines up earlier problems, what failed in the same
+minutes, and the configuration changes and exports before. Report a change as
+what came before the problem, not as its proven cause.
+
 Start broad, then narrow. `find_hosts` and `find_services` count every match per
 state and list only the first few, problems first - quote the counts, not the
 length of the list. `not_listed` says how many matches the list leaves out.

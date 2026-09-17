@@ -1,0 +1,33 @@
+{
+  "_meta": {
+    "fastmcp": {
+      "tags": []
+    }
+  },
+  "annotations": {
+    "destructiveHint": false,
+    "idempotentHint": true,
+    "openWorldHint": true,
+    "readOnlyHint": true
+  },
+  "description": "A handover of the last hours: problems that began, what someone acknowledged or put in a downtime, how many notifications went out, and what is still open from before. Use it for \"what happened during the night shift\" or \"give me a handover\".",
+  "inputSchema": {
+    "additionalProperties": false,
+    "properties": {
+      "hours": {
+        "default": 8,
+        "description": "How long the shift was, counted back from now.",
+        "maximum": 72,
+        "minimum": 1,
+        "type": "integer"
+      }
+    },
+    "type": "object"
+  },
+  "name": "get_shift_summary",
+  "outputSchema": {
+    "additionalProperties": true,
+    "type": "object"
+  },
+  "title": "Shift Summary"
+}

@@ -52,6 +52,8 @@ class DowntimeRow:
     start: str
     end: str
     running: bool
+    #: When the downtime was set.
+    entered: str = ""
 
 
 def _row(item: dict[str, Any], kind: Kind) -> DowntimeRow:
@@ -65,6 +67,7 @@ def _row(item: dict[str, Any], kind: Kind) -> DowntimeRow:
         start=downtime.get("scheduledStartTime") or "",
         end=downtime.get("scheduledEndTime") or "",
         running=bool(downtime.get("isRunning")),
+        entered=downtime.get("entryTime") or "",
     )
 
 
@@ -77,6 +80,23 @@ def find_downtimes(api: OITCClient, kind: Kind, query: DowntimeQuery, limit: int
     require_success(resp, code, f"finding {kind} downtimes")
     rows = [_row(item, kind) for item in resp.get(list_key, [])]
     return rows, int((resp.get("paging") or {}).get("count") or len(rows))
+
+
+def latest_set(api: OITCClient, kind: Kind, limit: int) -> list[DowntimeRow]:
+    """The ``limit`` downtimes set most recently, cancelled ones left out."""
+    path, list_key, _, table = _ENDPOINT[kind]
+    # Expired ones stay in: a downtime set and over within a shift belongs in it.
+    params = {
+        f"filter[{table}.was_cancelled]": 0,
+        "scroll": "true",
+        "limit": limit,
+        "page": 1,
+        "sort": f"{table}.entry_time",
+        "direction": "desc",
+    }
+    resp, code = api.get(path, params)
+    require_success(resp, code, f"reading the latest {kind} downtimes")
+    return [_row(item, kind) for item in resp.get(list_key, [])]
 
 
 def count_downtimes(api: OITCClient, kind: Kind, query: DowntimeQuery) -> int:

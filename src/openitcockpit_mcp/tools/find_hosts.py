@@ -7,17 +7,14 @@ from typing import Annotated, Any, Literal
 from fastmcp import FastMCP
 from pydantic import Field
 
-from openitcockpit_mcp.analysis.causes import unreachable_causes
 from openitcockpit_mcp.api import hosts as host_api
 from openitcockpit_mcp.api.names import container_paths, resolve_container_id
-from openitcockpit_mcp.api.topology import Topology, load_topology
+from openitcockpit_mcp.api.topology import load_topology
 from openitcockpit_mcp.deps import Deps
 from openitcockpit_mcp.tools.support.annotations import READ_ONLY
 from openitcockpit_mcp.tools.support.results import SearchResult
 from openitcockpit_mcp.tools.support.search import search_result
-
-#: Down hosts listed as causes; the counts cover every unreachable host.
-CAUSES_SHOWN = 10
+from openitcockpit_mcp.tools.support.topology import causes as causes_behind
 
 
 class HostSearch(SearchResult):
@@ -82,31 +79,7 @@ def register(mcp: FastMCP, deps: Deps) -> None:
             complete = total <= len(rows)
             unfiltered = not (query.name or query.container_id or query.hostgroup_id) and acknowledged is None and in_downtime is None
             if complete or unfiltered:
-                causes = _causes(load_topology(api), [row.name for row in rows if row.state == "unreachable"] if complete else None)
+                causes = causes_behind(load_topology(api), [row.name for row in rows if row.state == "unreachable"] if complete else None)
         if causes:
             result.summary += " " + causes.pop("summary")
         return HostSearch(**result.model_dump(), unreachable_causes=causes).in_zone(deps.clock.zone())
-
-
-def _causes(topology: Topology | None, unreachable: list[str] | None) -> dict[str, Any] | None:
-    """Down hosts behind the given unreachable hosts, or behind every unreachable host when None."""
-    if topology is None:
-        return None
-    states = {name: node.state for name, node in topology.nodes.items()}
-    names = unreachable if unreachable is not None else [name for name, state in states.items() if state == "unreachable"]
-    in_downtime = {name for name, node in topology.nodes.items() if node.in_downtime}
-    causes, unexplained = unreachable_causes(names, states, topology.parents, in_downtime)
-    if not causes:
-        return None
-    listed = ", ".join(f"{c.host} ({c.unreachable})" for c in causes[:CAUSES_SHOWN])
-    summary = f"The {len(names)} unreachable hosts sit behind {len(causes)} down host{'' if len(causes) == 1 else 's'}: {listed}."
-    if unexplained:
-        summary += f" {unexplained} have no down host above them."
-    return {
-        "summary": summary,
-        "down_hosts": [
-            {"host": c.host, "unreachable_behind": c.unreachable, "of_those_in_downtime": c.in_downtime} for c in causes[:CAUSES_SHOWN]
-        ],
-        "down_hosts_total": len(causes),
-        "unreachable_without_down_host_above": unexplained,
-    }

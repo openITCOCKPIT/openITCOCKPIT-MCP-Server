@@ -233,8 +233,11 @@ def grade(case: dict[str, Any], answer: str | None, calls: list[dict[str, Any]] 
         values = []
         for call in calls or []:
             if call["tool"] == quote["tool"] and not call["error"]:
-                with contextlib.suppress(json.JSONDecodeError, AttributeError):
-                    values.append(json.loads(call["result"]).get(quote["field"]))
+                with contextlib.suppress(json.JSONDecodeError, AttributeError, KeyError, TypeError):
+                    value: Any = json.loads(call["result"])
+                    for part in quote["field"].split("."):
+                        value = value[part]
+                    values.append(value)
         if not values or not re.search(rf"(?<![\d.]){values[-1]}(?![\d.])", answer):
             return {
                 "passed": False,

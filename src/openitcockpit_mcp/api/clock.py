@@ -62,3 +62,10 @@ class UserClock:
             "filter[from]": (end - timedelta(hours=hours)).strftime(FILTER_DATE_FORMAT),
             "filter[to]": end.strftime(FILTER_DATE_FORMAT),
         }
+
+
+def between(start: datetime, end: datetime) -> dict[str, str]:
+    """``filter[from]``/``filter[to]`` for two times; aware times are first put in ``start``'s zone."""
+    if start.tzinfo and end.tzinfo:
+        end = end.astimezone(start.tzinfo)
+    return {"filter[from]": start.strftime(FILTER_DATE_FORMAT), "filter[to]": end.strftime(FILTER_DATE_FORMAT)}

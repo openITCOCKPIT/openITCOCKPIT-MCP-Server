@@ -118,7 +118,7 @@ async def test_a_row_names_host_and_service(instance):
     mcp, _ = instance
     first = (await call(mcp, state=["critical"], limit=3))["items"][0]
 
-    assert set(first) == {"host", "name", "state", "output", "since", "state_duration", "acknowledged", "in_downtime", "flapping"}
+    assert set(first) == {"host", "name", "state", "output", "since", "state_duration", "acknowledged", "in_downtime", "flapping", "host_state"}
     assert first["host"] and first["name"]
 
 
