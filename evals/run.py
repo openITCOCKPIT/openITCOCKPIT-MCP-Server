@@ -18,10 +18,12 @@ A case is covered when this build registers at least one of its expected tools.
 Cases without one - ``tools = []``, or a target tool not built yet - are
 reported separately, with what the model called instead.
 
-    set -a; . ~/.config/oitc-evals/env; set +a
-    python evals/run.py --model "$MODEL_B" --samples 5
+    export OITC_EVAL_BASE_URL=https://your-endpoint/v1
+    export OITC_EVAL_API_KEY=...
+    python evals/run.py --model <your model> --samples 5
 
-Needs OITC_EVAL_BASE_URL and OITC_EVAL_API_KEY. Writes evals/results/<run>.json.
+Needs no openITCOCKPIT: the tool schemas are read from the server in-process.
+Writes evals/results/<run>.json.
 """
 
 from __future__ import annotations
