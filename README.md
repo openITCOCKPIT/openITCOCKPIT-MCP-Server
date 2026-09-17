@@ -37,6 +37,21 @@ setting `OITC_PORT` there moves both sides at once.
 
 ---
 
+## Measuring a model against these tools
+
+`oitc-mcp-eval` asks operator questions against your instance and checks whether
+a model answers them from the tools instead of inventing. It ships with the
+server, keeps every run in SQLite so models and changes stay comparable, and can
+be pointed at a throwaway instance that is created and removed around the run.
+
+```bash
+oitc-mcp-eval --model your-model --samples 3     # against the configured instance
+oitc-mcp-eval --compare                          # newest run of every model
+./scripts/eval-throwaway.sh --model your-model   # instance created and removed for you
+```
+
+See [docs/evals.md](docs/evals.md).
+
 ## Configuration
 
 Clients present `MCP_AUTH_TOKEN` to the server. What the server presents to

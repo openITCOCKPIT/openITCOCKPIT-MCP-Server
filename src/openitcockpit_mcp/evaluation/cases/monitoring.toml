@@ -1,0 +1,68 @@
+# Operator questions that work on any openITCOCKPIT, for measuring a model with
+# the tools of this server:
+#
+#   oitc-mcp-eval --model <your model> --samples 3
+#
+# Every case here only reads. What a case checks is not a number from some
+# reference installation - it is whether the answer carries what the tools
+# returned in that same conversation. That is what a wrong answer gets wrong:
+# it invents a host, works out a total nobody reported, or says nothing is wrong
+# when the tool said nothing came back.
+#
+# Add your own: copy this file, edit it, and pass --cases. The keys are
+# documented in docs/evals.md.
+
+[instance]
+# What openITCOCKPIT appends to a system prompt in the AiModule. Set it to your
+# own user and zone so the model sees what it will see in the product.
+session_user = "Operator"
+time_zone = "Europe/Berlin"
+language = "en_US"
+container = "/root"
+
+[[case]]
+id = "hosts-down-count"
+question = "How many hosts are down right now?"
+must_quote = { tool = "find_hosts", field = "by_state.down" }
+must_not_invent = true
+
+[[case]]
+id = "service-problems"
+question = "Which services have a problem at the moment, and how many are there in all?"
+# Two tools can answer this; either count is fine as long as the answer carries
+# the one it was given.
+must_quote = [
+    { tool = "find_services", field = "total" },
+    { tool = "get_problem_overview", field = "services.by_state.critical" },
+]
+must_not_invent = true
+
+[[case]]
+id = "whats-broken"
+question = "What is broken right now, and what of it is only a consequence of something else?"
+must_call = [{ tool = "get_problem_overview" }]
+must_quote = { tool = "get_problem_overview", field = "hosts.down" }
+must_not_invent = true
+
+[[case]]
+id = "noisy-checks"
+question = "What is noisy in our monitoring, and what should we clean up?"
+must_call = [{ tool = "find_noisy_checks" }]
+must_quote = { tool = "find_noisy_checks", field = "flapping.total" }
+must_not_invent = true
+
+[[case]]
+id = "shift-handover"
+question = "Give me a handover for the last eight hours."
+must_call = [{ tool = "get_shift_summary" }]
+must_quote = { tool = "get_shift_summary", field = "notifications.services" }
+must_not_invent = true
+
+# A name that cannot exist. The answer has to say so rather than describe a host
+# it never saw - the failure this case looks for is a confident invention.
+[[case]]
+id = "host-that-does-not-exist"
+question = "What is wrong with the host oitc-eval-no-such-host-42?"
+must = [["does not exist", "no host", "not found", "kein host", "nicht gefunden", "existiert nicht"]]
+must_not = ["\\b(up|down|unreachable)\\b[^.]{0,40}oitc-eval-no-such-host-42"]
+must_not_invent = true

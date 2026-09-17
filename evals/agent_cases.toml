@@ -15,6 +15,14 @@
 #
 # These questions are a test set. They must never be used as training data.
 
+[instance]
+# What the AiModule appends to the system prompt, so a run sees what the product
+# shows: who is asking, in which zone. The dataset belongs to this admin.
+session_user = "John Doe"
+time_zone = "Europe/Berlin"
+language = "en_US"
+container = "/root"
+
 [dataset]
 hosts_by_state = { up = 354, down = 3, unreachable = 147 }
 # Warning comes from a template with a fixed state. Critical does not stay put:
@@ -79,14 +87,16 @@ must = [
     ["\\b10\\b", "\\bzehn\\b"],
 ]
 
+# Which downtimes are planned rather than running depends on the time of day, so
+# the case sets one itself and asks about that.
 [[case]]
-id = "maintenance-planned-tonight"
+id = "maintenance-window-now"
 lang = "de"
-question = "Welche Wartungen sind für morgen Nacht geplant?"
-must = [
-    ["22:00", "22 uhr"],
-    ["\\b5\\b", "\\bfünf\\b", "(?s)scale-srv-011.*scale-srv-012.*scale-srv-013.*scale-srv-014.*scale-srv-015"],
-]
+question = "Für welche Hosts läuft gerade ein Wartungsfenster, und warum?"
+setup = [{ tool = "schedule_downtime", arguments = { hostname = "scale-srv-339", hours = 3, comment = "EVAL: firmware update" } }]
+must = [["scale-srv-339"], ["EVAL: firmware update"]]
+must_not_invent = true
+reset = [{ tool = "cancel_downtime", arguments = { hostname = "scale-srv-339", include_services = true } }]
 
 [[case]]
 id = "host-whats-wrong"
@@ -164,27 +174,37 @@ must = [
 id = "shift-handover"
 lang = "de"
 question = "Gib mir eine Übergabe der letzten 8 Stunden für die Frühschicht."
-must = [
-    ["scale-sw-1-1", "\\b3\\b[^\\n]{0,30}down", "down[^\\n]{0,30}\\b3\\b", "drei"],
-    ["downtime", "wartung"],
-]
+# The handover has to carry the work done in the shift. This case does a piece
+# of it right before asking, so there is always something to hand over.
+setup = [{ tool = "schedule_downtime", arguments = { hostname = "scale-srv-338", hours = 2, comment = "EVAL: handover window" } }]
+must = [["EVAL: handover window"], ["downtime", "wartung"]]
 must_quote = { tool = "get_shift_summary", field = "notifications.services" }
+reset = [{ tool = "cancel_downtime", arguments = { hostname = "scale-srv-338", include_services = true } }]
 
-# Disk / on scale-srv-010 was critical for 14 minutes after the dataset was
-# built, on a check command the shell could not parse, and has been ok since.
+# The service has to be one whose own check is ok. On a service the dataset
+# keeps critical, that check owns the episode and swallows this one - measured
+# on scale-srv-336, whose Backup is critical by design.
 [[case]]
 id = "past-problem-cause"
 lang = "de"
-question = "Disk / auf scale-srv-010 hatte vorhin ein Problem. Was war da los, und kam das schon öfter vor?"
-must = [
-    ["syntax error", "unterminated", "quoted string", "syntaxfehler"],
-    ["\\b14 ?min", "18:09", "18:24"],
-    ["erst(e|en|mal|mals)\\b", "kein(e|en)?\\b[^\\n]{0,40}(früher|vorher|zuvor|weitere|andere)", "nicht\\b[^\\n]{0,30}(früher|vorher|zuvor|öfter|schon)", "einmalig", "\\bnein\\b", "kein einzige"],
+question = "Backup auf scale-srv-340 hatte vorhin ein Problem. Was war da los, und wie lange ging es?"
+setup = [
+    { post = "/nagios_module/cmd/submit.json", body = '''{"command":"PROCESS_SERVICE_CHECK_RESULT","hostUuid":"scale-srv-340","serviceUuid":"Backup","status_code":2,"plugin_output":"EVAL: backup target unreachable"}''' },
+    { wait_seconds = 2 },
+    { post = "/nagios_module/cmd/submit.json", body = '''{"command":"PROCESS_SERVICE_CHECK_RESULT","hostUuid":"scale-srv-340","serviceUuid":"Backup","status_code":2,"plugin_output":"EVAL: backup target unreachable"}''' },
+    { wait_seconds = 2 },
+    { post = "/nagios_module/cmd/submit.json", body = '''{"command":"PROCESS_SERVICE_CHECK_RESULT","hostUuid":"scale-srv-340","serviceUuid":"Backup","status_code":2,"plugin_output":"EVAL: backup target unreachable"}''' },
+    { wait_seconds = 4 },
+    { post = "/nagios_module/cmd/submit.json", body = '''{"command":"PROCESS_SERVICE_CHECK_RESULT","hostUuid":"scale-srv-340","serviceUuid":"Backup","status_code":0,"plugin_output":"EVAL: backup completed"}''' },
+    { wait_seconds = 5 },
 ]
+# The output is the evidence: it exists only because this case wrote it, so an
+# answer carrying it read it from the tools. The start is asked for as a time,
+# not as the string the tool printed - a German answer writes "13:23:12 Uhr",
+# and that is the same fact.
+must = [["EVAL: backup target unreachable"], ["\\b\\d{2}:\\d{2}:\\d{2}\\b"]]
+must_not_invent = true
 
-# scale-srv-002 is unreachable behind the down switch scale-sw-1-1. The seed
-# script changed its host template at 18:18 and its check command at 18:28,
-# seven minutes before it turned unreachable.
 [[case]]
 id = "unreachable-what-changed"
 lang = "en"
