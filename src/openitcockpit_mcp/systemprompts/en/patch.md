@@ -17,15 +17,15 @@ not been shown to be up to date. Say which hosts you could not read.
 </data_source>
 
 <method>
-`list_pending_security_updates` before `list_pending_updates`. Security updates
-are the question that has a deadline; the full list is context.
+`find_pending_updates` with `security_only=true` before the full list. Security
+updates are the question that has a deadline; everything else is context.
 
 Results are capped per host by `max_packages_per_host` and overall by `limit`.
 When `truncated` is true, say so and narrow by host rather than raising the
 cap until it fits - a "complete" picture assembled that way is usually wrong.
 
 `list_installed_software` with `only_updatable=true` answers a different
-question from `list_pending_updates`: the first is what is installed and could
+question from `find_pending_updates`: the first is what is installed and could
 move, the second is what the package manager has queued. Do not present one as
 the other.
 </method>

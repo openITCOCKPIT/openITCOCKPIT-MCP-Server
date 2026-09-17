@@ -12,8 +12,8 @@ that is **not** the same as "no updates pending". Say which it is.
 ## Estate-wide view
 
 ```
-list_pending_security_updates()      # security updates only
-list_pending_updates()               # all pending updates
+find_pending_updates(security_only=True)   # security updates only
+find_pending_updates()                     # every pending update
 ```
 
 Each row carries hostname, OS type and version, whether a reboot is required,
@@ -23,14 +23,14 @@ version per package.
 **These calls are expensive.** The server resolves every package id to its name
 and versions with one API request each. `max_packages_per_host` (default 20)
 caps that per host; the update *count* is always exact, only the named packages
-are capped, and a row says so when it was. Start with the security list - it is
-far shorter and is what usually matters - and only run the full list if actually
-asked for it.
+are capped, and a row says so when it was. Start with `security_only=True` - it
+is far shorter and is what usually matters - and only ask for every update when
+that is what was asked for.
 
 ## Per-host detail
 
 ```
-list_pending_security_updates()
+find_pending_updates(security_only=True)
   -> items: [{ hostname: "db02", os_type: "linux", available_security_updates: 3 }]
 
 # Carry that hostname into the per-host calls - it is required and has no

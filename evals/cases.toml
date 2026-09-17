@@ -264,21 +264,21 @@ id = "report-availability"
 task = "reporting"
 lang = "de"
 question = "Wie verfügbar war der Host shop01 im letzten Monat?"
-expect = { tools = [] }
+expect = { tools = ["get_availability_report"], args = { hostname = "shop01" } }
 
 [[case]]
 id = "report-forecast-disk"
 task = "reporting"
 lang = "en"
 question = "When will the disk on db01 be full?"
-expect = { tools = [] }
+expect = { tools = ["forecast_metric"], args = { hostname = "db01" } }
 
 [[case]]
 id = "patch-security-updates"
 task = "patch"
 lang = "de"
 question = "Welche Hosts haben offene Sicherheitsupdates?"
-expect = { tools = ["list_pending_security_updates"] }
+expect = { tools = ["find_pending_updates"], args = { security_only = true } }
 
 [[case]]
 id = "patch-installed-version"

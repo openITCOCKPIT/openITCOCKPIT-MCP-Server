@@ -1,0 +1,45 @@
+{
+  "_meta": {
+    "fastmcp": {
+      "tags": []
+    }
+  },
+  "annotations": {
+    "destructiveHint": false,
+    "idempotentHint": true,
+    "openWorldHint": true,
+    "readOnlyHint": true
+  },
+  "description": "How available a host or service was over a period, computed from its recorded state changes. Reports the percentage with and without agreed maintenance, and how long it spent in each state. Use it for \"how available was shop01 last month\" or \"did we keep the SLA\".",
+  "inputSchema": {
+    "additionalProperties": false,
+    "properties": {
+      "days": {
+        "default": 30,
+        "description": "How many days back from now the report covers.",
+        "maximum": 366,
+        "minimum": 1,
+        "type": "integer"
+      },
+      "hostname": {
+        "description": "Exact host name. Required - there is no estate-wide form of this tool. A name that matches no host is answered with the tools that can find the right one.",
+        "type": "string"
+      },
+      "servicename": {
+        "default": "",
+        "description": "Exact service name on that host. Required. A name that matches no service is answered with the tools that can find the right one.",
+        "type": "string"
+      }
+    },
+    "required": [
+      "hostname"
+    ],
+    "type": "object"
+  },
+  "name": "get_availability_report",
+  "outputSchema": {
+    "additionalProperties": true,
+    "type": "object"
+  },
+  "title": "Availability Report"
+}

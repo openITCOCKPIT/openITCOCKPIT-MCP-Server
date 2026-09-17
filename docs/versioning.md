@@ -21,8 +21,8 @@ bump may break one too. Pin the exact version and read the
 
 Every tool was exercised against live instances on the 5.6 line, and the
 openITCOCKPIT API is backwards compatible, so newer instances are expected to
-work. One caveat: `list_installed_software`, `list_pending_updates` and
-`list_pending_security_updates` need the openITCOCKPIT agent's package
+work. One caveat: `list_installed_software` and `find_pending_updates` need
+the openITCOCKPIT agent's package
 endpoints and fail with an API error where that feature is absent.
 
 **Delegated mode** is a preview. It needs an openITCOCKPIT that issues user tokens, which
