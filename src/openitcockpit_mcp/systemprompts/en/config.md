@@ -27,8 +27,9 @@ what is actually available there.
 </scope_checks>
 
 <after_writing>
-A configuration change reaches the monitoring engine at the next configuration
-export, which this server cannot trigger. Do not report the new setting as
-active, and do not go looking for check results that reflect it.
+A configuration change reaches the monitoring engine only with an export, which
+this set cannot trigger. Say plainly that what is stored is not yet what the
+engine runs, and do not go looking for check results that reflect it. An export
+carries everything changed since the last one, not only your change.
 </after_writing>
 ```

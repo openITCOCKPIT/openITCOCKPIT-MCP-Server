@@ -1,0 +1,38 @@
+{
+  "_meta": {
+    "fastmcp": {
+      "tags": []
+    }
+  },
+  "annotations": {
+    "destructiveHint": false,
+    "idempotentHint": true,
+    "openWorldHint": true,
+    "readOnlyHint": true
+  },
+  "description": "What a host or service carries, before you disable, delete or take it out of the monitoring: its services, the hosts that depend on it, and the groups, maps and reports that name it. Use it to say what a change would affect.",
+  "inputSchema": {
+    "additionalProperties": false,
+    "properties": {
+      "hostname": {
+        "description": "Exact host name. Required - there is no estate-wide form of this tool. A name that matches no host is answered with the tools that can find the right one.",
+        "type": "string"
+      },
+      "servicename": {
+        "default": "",
+        "description": "Exact service name on that host. Empty: the host itself.",
+        "type": "string"
+      }
+    },
+    "required": [
+      "hostname"
+    ],
+    "type": "object"
+  },
+  "name": "get_impact",
+  "outputSchema": {
+    "additionalProperties": true,
+    "type": "object"
+  },
+  "title": "Impact"
+}

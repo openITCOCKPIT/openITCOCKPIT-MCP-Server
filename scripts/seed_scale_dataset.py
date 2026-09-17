@@ -56,7 +56,7 @@ COMMANDS = {
     "scale_state_critical": '$USER1$/check_dummy 2 "scale: failing"',
     "scale_state_flapping": "/bin/sh -c 'r=$$(( $$(date +%M) % 2 * 2 )) && echo scale: flapping state $$r && exit $$r'",
     "scale_disk_trend": (
-        "/bin/sh -c 'u=$$(( $$(date +%H) * 4 )) && printf \"DISK OK - used %s%% | used=%s%%\\07390\\07395\\0730\\073100\\n\" $$u $$u'"
+        "/bin/sh -c 'u=$$(( $$(date +%-H) * 4 )) && printf \"DISK OK - used %s%% | used=%s%%\\07390\\07395\\0730\\073100\\n\" $$u $$u'"
     ),
 }
 HOST_COMMANDS = {

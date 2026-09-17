@@ -90,7 +90,7 @@ def register(mcp: FastMCP, deps: Deps) -> None:
         if unhandled_total > len(rows):
             hint = (
                 f"The groups come from {len(rows)} of {unhandled_total} unhandled service problems; the counts cover all of them. "
-                "Narrow by container or host group, or use find_services for one service."
+                "Narrow by container or host group to see the rest."
             )
         elif len(problem_groups) > groups:
             hint = f"{len(problem_groups) - groups} more groups. Raise groups, or narrow by container or host group."

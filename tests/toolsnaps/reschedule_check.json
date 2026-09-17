@@ -1,0 +1,43 @@
+{
+  "_meta": {
+    "fastmcp": {
+      "tags": []
+    }
+  },
+  "annotations": {
+    "destructiveHint": false,
+    "idempotentHint": true,
+    "openWorldHint": true,
+    "readOnlyHint": false
+  },
+  "description": "Run the check of a host or service now instead of at its next interval, for example after a fix. Waits for the new result and returns the state it gives.",
+  "inputSchema": {
+    "additionalProperties": false,
+    "properties": {
+      "hostname": {
+        "description": "Exact host name. Required - there is no estate-wide form of this tool. A name that matches no host is answered with the tools that can find the right one.",
+        "type": "string"
+      },
+      "servicename": {
+        "default": "",
+        "description": "Exact service name on that host. Empty: check the host.",
+        "type": "string"
+      },
+      "with_services": {
+        "default": false,
+        "description": "For a host: also check all its services now.",
+        "type": "boolean"
+      }
+    },
+    "required": [
+      "hostname"
+    ],
+    "type": "object"
+  },
+  "name": "reschedule_check",
+  "outputSchema": {
+    "additionalProperties": true,
+    "type": "object"
+  },
+  "title": "Check Now"
+}

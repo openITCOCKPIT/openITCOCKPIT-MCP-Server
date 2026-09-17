@@ -1,0 +1,43 @@
+{
+  "_meta": {
+    "fastmcp": {
+      "tags": []
+    }
+  },
+  "annotations": {
+    "destructiveHint": true,
+    "idempotentHint": true,
+    "openWorldHint": true,
+    "readOnlyHint": false
+  },
+  "description": "Remove the acknowledgement of a host or service problem, so it notifies again. Says whose acknowledgement it was, and for a host how many of its services stay acknowledged. Waits until the engine shows it.",
+  "inputSchema": {
+    "additionalProperties": false,
+    "properties": {
+      "hostname": {
+        "description": "Exact host name. Required - there is no estate-wide form of this tool. A name that matches no host is answered with the tools that can find the right one.",
+        "type": "string"
+      },
+      "servicename": {
+        "default": "",
+        "description": "Exact service name on that host. Empty: the host's acknowledgement.",
+        "type": "string"
+      },
+      "with_services": {
+        "default": false,
+        "description": "For a host: also remove the acknowledgements of its services, which otherwise stay.",
+        "type": "boolean"
+      }
+    },
+    "required": [
+      "hostname"
+    ],
+    "type": "object"
+  },
+  "name": "remove_acknowledgement",
+  "outputSchema": {
+    "additionalProperties": true,
+    "type": "object"
+  },
+  "title": "Remove Acknowledgement"
+}

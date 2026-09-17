@@ -1,0 +1,61 @@
+{
+  "_meta": {
+    "fastmcp": {
+      "tags": []
+    }
+  },
+  "annotations": {
+    "destructiveHint": false,
+    "idempotentHint": true,
+    "openWorldHint": true,
+    "readOnlyHint": false
+  },
+  "description": "Put a host or service into a scheduled downtime, so it stops alerting during planned maintenance, now or later. It is recorded under the user asking. A host's services are covered only with with_services. Waits until the downtime shows.",
+  "inputSchema": {
+    "additionalProperties": false,
+    "properties": {
+      "comment": {
+        "description": "Why the object is in maintenance, e.g. a ticket.",
+        "minLength": 1,
+        "type": "string"
+      },
+      "hostname": {
+        "description": "Exact host name. Required - there is no estate-wide form of this tool. A name that matches no host is answered with the tools that can find the right one.",
+        "type": "string"
+      },
+      "hours": {
+        "description": "How long the downtime lasts.",
+        "exclusiveMinimum": 0,
+        "maximum": 8760,
+        "type": "number"
+      },
+      "servicename": {
+        "default": "",
+        "description": "Exact service name on that host. Empty: the host itself.",
+        "type": "string"
+      },
+      "start_at": {
+        "default": "",
+        "description": "When the downtime starts, in the user's time zone, as 'YYYY-MM-DD HH:MM'. Use it for a time of day, e.g. tonight at 21:00. Empty: start now.",
+        "type": "string"
+      },
+      "with_services": {
+        "default": false,
+        "description": "For a host: also cover all its services.",
+        "type": "boolean"
+      }
+    },
+    "required": [
+      "hostname",
+      "hours",
+      "comment"
+    ],
+    "type": "object"
+  },
+  "name": "schedule_downtime",
+  "outputSchema": {
+    "additionalProperties": true,
+    "type": "object"
+  },
+  "title": "Schedule Downtime"
+}

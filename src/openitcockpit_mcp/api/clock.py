@@ -23,6 +23,18 @@ from openitcockpit_mcp.api.errors import require_success
 #: The format filter[from]/filter[to] parse, not ISO 8601.
 FILTER_DATE_FORMAT = "%d.%m.%Y %H:%M"
 
+
+def _end_of_minute(moment: datetime) -> datetime:
+    """The next full minute, so the minute a window ends in is inside it.
+
+    openITCOCKPIT reads the window bounds to the minute and compares them as
+    ``created <= to``. A window ending at the current minute therefore cut off
+    everything that happened in it - measured: a host edited at 10:42:39 was
+    missing from a window ending at 10:42.
+    """
+    return (moment + timedelta(minutes=1)).replace(second=0, microsecond=0)
+
+
 #: openITCOCKPIT's own fallback for a user without a time zone.
 DEFAULT_ZONE = "Europe/Berlin"
 
@@ -57,10 +69,10 @@ class UserClock:
 
     def window(self, hours: int) -> dict[str, str]:
         """``filter[from]``/``filter[to]`` covering the last ``hours`` hours."""
-        end = self.now()
+        now = self.now()
         return {
-            "filter[from]": (end - timedelta(hours=hours)).strftime(FILTER_DATE_FORMAT),
-            "filter[to]": end.strftime(FILTER_DATE_FORMAT),
+            "filter[from]": (now - timedelta(hours=hours)).strftime(FILTER_DATE_FORMAT),
+            "filter[to]": _end_of_minute(now).strftime(FILTER_DATE_FORMAT),
         }
 
 
@@ -68,4 +80,4 @@ def between(start: datetime, end: datetime) -> dict[str, str]:
     """``filter[from]``/``filter[to]`` for two times; aware times are first put in ``start``'s zone."""
     if start.tzinfo and end.tzinfo:
         end = end.astimezone(start.tzinfo)
-    return {"filter[from]": start.strftime(FILTER_DATE_FORMAT), "filter[to]": end.strftime(FILTER_DATE_FORMAT)}
+    return {"filter[from]": start.strftime(FILTER_DATE_FORMAT), "filter[to]": _end_of_minute(end).strftime(FILTER_DATE_FORMAT)}

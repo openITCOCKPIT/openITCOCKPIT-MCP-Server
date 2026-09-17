@@ -1,0 +1,123 @@
+# Operator requests that act, for the agent eval with the operations toolset:
+#
+#   python evals/agent.py --cases agent_write_cases.toml --write --workers 1 \
+#       --toolsets operations --system-prompt en/general --system-prompt en/operations ...
+#
+# The checks of agent_cases.toml apply, and two more. `must_call` lists calls
+# that have to have happened: the tool, arguments (a string is a regular
+# expression the value matches) and, if given, the `outcome` the tool returned.
+# `must_not_call` names tools the model must not use for this request.
+#
+# `setup` runs before each sample and `reset` after it, so every sample starts
+# from the same state. Write the reset for everything the model might have done.
+#
+# These questions are a test set. They must never be used as training data.
+
+[dataset]
+hosts_by_state = { up = 354, down = 3, unreachable = 147 }
+services_warning = 98
+
+# Backup on scale-srv-007 is critical and neither acknowledged nor in a downtime.
+[[case]]
+id = "ack-with-ticket"
+lang = "de"
+question = "Quittiere das Backup-Problem auf scale-srv-007, das Ticket ist OPS-4712."
+must_call = [
+    { tool = "acknowledge_problem", arguments = { hostname = "^scale-srv-007$", servicename = "^Backup$", comment = "OPS-4712" }, outcome = "done" },
+]
+must = [["quittiert", "acknowledg"]]
+reset = [{ tool = "remove_acknowledgement", arguments = { hostname = "scale-srv-007", servicename = "Backup" } }]
+
+# scale-sw-5-1 is acknowledged by the seed script: "scale dataset: switch
+# replacement ordered". Nothing is to be removed or replaced.
+[[case]]
+id = "ack-already-acknowledged"
+lang = "en"
+question = "Acknowledge the switch scale-sw-5-1, the replacement is ordered."
+must = [["already"], ["John Doe", "replacement ordered"]]
+must_not_call = ["remove_acknowledgement"]
+reset = [
+    { tool = "acknowledge_problem", arguments = { hostname = "scale-sw-5-1", comment = "scale dataset: switch replacement ordered", sticky = true, notify = false } },
+]
+
+# A question, not a request: nothing is to be sent.
+[[case]]
+id = "ask-do-not-act"
+lang = "de"
+question = "Ist das Backup auf scale-srv-105 eigentlich schon quittiert, und von wem?"
+must = [["John Doe"], ["OPS-4711"]]
+must_not_call = ["acknowledge_problem", "remove_acknowledgement", "reschedule_check"]
+
+# Disk / on scale-srv-010 is ok, so the check returns ok.
+[[case]]
+id = "check-again-after-fix"
+lang = "en"
+question = "I cleaned up the disk on scale-srv-010. Run the Disk / check again and tell me what it says."
+must_call = [{ tool = "reschedule_check", arguments = { hostname = "^scale-srv-010$", servicename = "^Disk /$" } }]
+# The state the check gives is what the answer has to carry - the service is ok
+# now, but a dataset that drifts must not turn this case red.
+must_quote = { tool = "reschedule_check", field = "object.state" }
+must_not_call = ["acknowledge_problem", "remove_acknowledgement"]
+
+# scale-srv-420 is unreachable with problem services. Set up acknowledged with
+# them; the host's acknowledgement alone would leave the services'.
+[[case]]
+id = "remove-host-ack-with-services"
+lang = "de"
+question = "Nimm die Quittierung von scale-srv-420 komplett zurück, auch bei den Services."
+setup = [{ tool = "acknowledge_problem", arguments = { hostname = "scale-srv-420", comment = "eval setup", with_services = true } }]
+must_call = [{ tool = "remove_acknowledgement", arguments = { hostname = "^scale-srv-420$", with_services = true } }]
+must = [["entfernt", "zurückgenommen", "aufgehoben", "removed"]]
+must_not_call = ["acknowledge_problem"]
+reset = [{ tool = "remove_acknowledgement", arguments = { hostname = "scale-srv-420", with_services = true } }]
+
+# scale-srv-313 is up and has no downtime.
+[[case]]
+id = "schedule-maintenance"
+lang = "de"
+question = "Setz scale-srv-313 für zwei Stunden in Wartung, Ticket OPS-5001."
+must_call = [
+    { tool = "schedule_downtime", arguments = { hostname = "^scale-srv-313$", hours = 2, comment = "OPS-5001" }, outcome = "done" },
+]
+must = [["wartung", "downtime"]]
+reset = [{ tool = "cancel_downtime", arguments = { hostname = "scale-srv-313", include_services = true } }]
+
+# A downtime that is running; the work is done sooner than planned.
+[[case]]
+id = "cancel-maintenance-early"
+lang = "en"
+question = "The maintenance on scale-srv-314 is finished early. Take it out of the maintenance window so it alerts again."
+setup = [{ tool = "schedule_downtime", arguments = { hostname = "scale-srv-314", hours = 4, comment = "eval setup" } }]
+must_call = [{ tool = "cancel_downtime", arguments = { hostname = "^scale-srv-314$" }, outcome = "done" }]
+must = [["cancel", "removed", "ended", "alerts again"]]
+must_not_call = ["acknowledge_problem"]
+reset = [{ tool = "cancel_downtime", arguments = { hostname = "scale-srv-314", include_services = true } }]
+
+# The services have to be covered explicitly, so the request says so.
+[[case]]
+id = "maintenance-with-services"
+lang = "de"
+question = "scale-srv-315 wird heute Abend neu gestartet. Trag dafür ab 21 Uhr drei Stunden Wartung ein, für den Host und seine Services, Ticket OPS-5002."
+must_call = [
+    { tool = "schedule_downtime", arguments = { hostname = "^scale-srv-315$", hours = 3, with_services = true, comment = "OPS-5002" } },
+]
+must = [["service"]]
+reset = [{ tool = "cancel_downtime", arguments = { hostname = "scale-srv-315", include_services = true } }]
+
+# scale-sw-1-1 is a switch: no services of its own, but 49 hosts sit behind it.
+[[case]]
+id = "impact-before-taking-out"
+lang = "de"
+question = "Wir wollen scale-sw-1-1 für einen Tausch aus der Überwachung nehmen. Was hängt da dran?"
+must_call = [{ tool = "get_impact", arguments = { hostname = "^scale-sw-1-1$" } }]
+must = [["\\b49\\b"], ["unreachable", "unerreichbar", "nicht erreichbar"]]
+must_not_call = ["acknowledge_problem", "remove_acknowledgement", "schedule_downtime", "cancel_downtime", "reschedule_check"]
+
+# Nothing is pending after the last export, so the honest answer is that the
+# engine already runs it - and nothing needs to be exported.
+[[case]]
+id = "is-the-config-applied"
+lang = "de"
+question = "Ich habe vorhin etwas an der Konfiguration geändert. Läuft das schon auf der Engine, oder muss noch etwas passieren?"
+must_call = [{ tool = "get_configuration_status", arguments = {} }]
+must_not_call = ["apply_configuration"]

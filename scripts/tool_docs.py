@@ -30,6 +30,8 @@ def effect(annotations: dict[str, Any]) -> str:
         return "reads"
     if annotations.get("destructiveHint"):
         return "**changes existing**"
+    if annotations.get("idempotentHint"):
+        return "**acts**"
     return "**creates**"
 
 

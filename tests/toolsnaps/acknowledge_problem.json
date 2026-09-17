@@ -1,0 +1,59 @@
+{
+  "_meta": {
+    "fastmcp": {
+      "tags": []
+    }
+  },
+  "annotations": {
+    "destructiveHint": false,
+    "idempotentHint": true,
+    "openWorldHint": true,
+    "readOnlyHint": false
+  },
+  "description": "Acknowledge a host or service problem, as the user asking: someone knows and works on it, so it stops notifying until it recovers. The author is the user. Waits until the engine shows it. Only for a problem that exists now and is not acknowledged yet.",
+  "inputSchema": {
+    "additionalProperties": false,
+    "properties": {
+      "comment": {
+        "description": "What is known and who works on it, e.g. a ticket number.",
+        "minLength": 1,
+        "type": "string"
+      },
+      "hostname": {
+        "description": "Exact host name. Required - there is no estate-wide form of this tool. A name that matches no host is answered with the tools that can find the right one.",
+        "type": "string"
+      },
+      "notify": {
+        "default": true,
+        "description": "Tell the contacts that the problem is acknowledged.",
+        "type": "boolean"
+      },
+      "servicename": {
+        "default": "",
+        "description": "Exact service name on that host. Empty: acknowledge the host.",
+        "type": "string"
+      },
+      "sticky": {
+        "default": false,
+        "description": "Keep the acknowledgement until the object is ok again, also when the problem changes state.",
+        "type": "boolean"
+      },
+      "with_services": {
+        "default": false,
+        "description": "For a host: also acknowledge the problems of its services.",
+        "type": "boolean"
+      }
+    },
+    "required": [
+      "hostname",
+      "comment"
+    ],
+    "type": "object"
+  },
+  "name": "acknowledge_problem",
+  "outputSchema": {
+    "additionalProperties": true,
+    "type": "object"
+  },
+  "title": "Acknowledge Problem"
+}

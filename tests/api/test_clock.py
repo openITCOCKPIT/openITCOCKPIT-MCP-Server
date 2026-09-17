@@ -32,13 +32,20 @@ def test_the_window_is_in_the_users_zone_not_in_the_servers(api):
 
 
 @responses.activate
-def test_the_window_covers_the_requested_hours(api):
+def test_the_window_covers_the_requested_hours_and_the_minute_it_ends_in(api):
+    """openITCOCKPIT compares to the minute, so the end is the next full minute.
+
+    A window ending at the current minute otherwise leaves out everything that
+    happened in it - measured: a host edited at 10:42:39 was missing from a
+    window ending at 10:42.
+    """
     responses.add(responses.GET, TIMEZONE_URL, json=answer("Europe/Berlin"), status=200)
     window = UserClock(api).window(24)
 
     start = datetime.strptime(window["filter[from]"], FILTER_DATE_FORMAT)
     end = datetime.strptime(window["filter[to]"], FILTER_DATE_FORMAT)
-    assert (end - start).total_seconds() == 24 * 3600
+    assert end.second == 0
+    assert 24 * 3600 < (end - start).total_seconds() <= 24 * 3600 + 60
 
 
 @responses.activate

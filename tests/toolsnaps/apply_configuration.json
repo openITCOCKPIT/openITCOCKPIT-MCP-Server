@@ -1,0 +1,25 @@
+{
+  "_meta": {
+    "fastmcp": {
+      "tags": []
+    }
+  },
+  "annotations": {
+    "destructiveHint": true,
+    "idempotentHint": true,
+    "openWorldHint": true,
+    "readOnlyHint": false
+  },
+  "description": "Write the configuration to the monitoring engine and reload it, so changes take effect. Checks the configuration with the engine first and exports nothing when that check fails. Everything changed since the last export goes out together - there is no way to export one object.",
+  "inputSchema": {
+    "additionalProperties": false,
+    "properties": {},
+    "type": "object"
+  },
+  "name": "apply_configuration",
+  "outputSchema": {
+    "additionalProperties": true,
+    "type": "object"
+  },
+  "title": "Apply Configuration"
+}

@@ -1,0 +1,43 @@
+{
+  "_meta": {
+    "fastmcp": {
+      "tags": []
+    }
+  },
+  "annotations": {
+    "destructiveHint": true,
+    "idempotentHint": true,
+    "openWorldHint": true,
+    "readOnlyHint": false
+  },
+  "description": "Cancel the downtimes of a host or service, so it alerts again: a running one ends now, one that has not started is removed. Cancels every downtime on that object and says whose they were. Waits until they are gone.",
+  "inputSchema": {
+    "additionalProperties": false,
+    "properties": {
+      "hostname": {
+        "description": "Exact host name. Required - there is no estate-wide form of this tool. A name that matches no host is answered with the tools that can find the right one.",
+        "type": "string"
+      },
+      "include_services": {
+        "default": false,
+        "description": "For a host: also cancel the downtimes of its services.",
+        "type": "boolean"
+      },
+      "servicename": {
+        "default": "",
+        "description": "Exact service name on that host. Empty: the host's own downtimes.",
+        "type": "string"
+      }
+    },
+    "required": [
+      "hostname"
+    ],
+    "type": "object"
+  },
+  "name": "cancel_downtime",
+  "outputSchema": {
+    "additionalProperties": true,
+    "type": "object"
+  },
+  "title": "Cancel Downtime"
+}
