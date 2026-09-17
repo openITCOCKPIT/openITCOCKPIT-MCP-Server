@@ -36,6 +36,7 @@ and must never be committed.
 | Register the write tools | `OITC_ENABLE_WRITE_TOOLS` | `false` |
 | Limit the instance to named toolsets, see [Toolsets](toolsets.md) | `OITC_TOOLSETS` | `all` |
 | A toolsets file of your own | `OITC_TOOLSETS_FILE` | `./toolsets.toml`, else the one shipped |
+| House style added to the general system prompts, see [Skills and prompts](skills.md) | `OITC_PROMPT_STYLE_FILE` | `./prompt-style.md` when it exists |
 | Cache scope-validation lookups | `OITC_SCOPE_CACHE_ENABLED` | `true` |
 | Scope cache TTL, seconds | `OITC_SCOPE_CACHE_TTL_SECONDS` | `30` |
 | Summarise the text half of a result | `OITC_COMPACT_CONTENT` | `false` |
