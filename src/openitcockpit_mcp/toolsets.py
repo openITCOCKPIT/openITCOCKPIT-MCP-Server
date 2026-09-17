@@ -141,7 +141,7 @@ def select(selection: str, sets: dict[str, Toolset]) -> set[str] | None:
     A part that is not a set name is taken to be a tool name, so a set can be
     extended for one deployment without editing the file:
 
-        OITC_TOOLSETS=triage,get_container_tree
+        OITC_TOOLSETS=health,get_container_tree
 
     Whether those names exist is checked in the CLI, where the full catalogue
     is available - see validate_selection. Resolving here has to work without

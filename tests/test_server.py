@@ -1,11 +1,18 @@
 from __future__ import annotations
 
+import re
+from pathlib import Path
+
 import pytest
 
 from openitcockpit_mcp.server import create_server
 
-READ_TOOL_COUNT = 39
-WRITE_TOOL_COUNT = 23
+READ_TOOL_COUNT = 19
+WRITE_TOOL_COUNT = 22
+
+ROOT = Path(__file__).resolve().parent.parent
+#: The sentence that states the size of the surface, wherever it is published.
+COUNTS = re.compile(r"\*{0,2}(\d+) tools\*{0,2}, (\d+) read-only and (\d+) that change something")
 
 
 async def _tool_names(settings) -> set[str]:
@@ -20,7 +27,7 @@ async def _tool_names(settings) -> set[str]:
 async def test_read_tools_are_registered(settings):
     names = await _tool_names(settings)
     assert len(names) == READ_TOOL_COUNT
-    assert {"get_host_info", "get_monitoring_engine_stats", "list_installed_software"} <= names
+    assert {"get_host_health", "get_problem_overview", "list_installed_software"} <= names
 
 
 @pytest.mark.asyncio
@@ -99,3 +106,24 @@ async def test_every_tool_has_a_title_and_annotations(settings):
         deps.api.close()
     assert [t.name for t in tools if not t.title] == []
     assert [t.name for t in tools if t.annotations is None] == []
+
+
+def test_every_stated_tool_count_matches_what_is_registered():
+    """Wherever a page says how large the surface is, the number has to be current.
+
+    No page is named here on purpose: a new document that states the counts is
+    covered the day it is written, and one that drops the sentence needs no edit.
+    """
+    expected = (READ_TOOL_COUNT + WRITE_TOOL_COUNT, READ_TOOL_COUNT, WRITE_TOOL_COUNT)
+    wrong = {}
+    for page in [ROOT / "README.md", *sorted((ROOT / "docs").glob("*.md"))]:
+        for stated in COUNTS.finditer(page.read_text(encoding="utf-8")):
+            counted = tuple(int(group) for group in stated.groups())
+            if counted != expected:
+                wrong[page.relative_to(ROOT).as_posix()] = counted
+    assert not wrong, f"{wrong}, registered {expected}"
+
+
+def test_the_readme_still_says_how_large_the_surface_is():
+    """The one page where the sentence has to be, so the check above has a subject."""
+    assert COUNTS.search((ROOT / "README.md").read_text(encoding="utf-8"))

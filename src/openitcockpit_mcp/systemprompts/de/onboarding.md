@@ -38,9 +38,10 @@ deiner eigenen Arbeit. Nenne, wo ein Operator den Export ausführt.
 </the_export_gap>
 
 <agent_pull_mode>
-`create_host_with_agent_pull_mode` ist für Hosts, die das Monitoring über den
-HTTP-Endpunkt des Agenten abfragt. Das braucht einen Port und, wenn der
-Endpunkt geschützt ist, Basic-Auth-Zugangsdaten. Fehlen sie, frag nach - rate
-keinen Port.
+Für einen Host, den das Monitoring über den HTTP-Endpunkt des Agenten abfragt,
+gib `create_host` den `agent_pull_port`: Es legt den Host an und richtet die
+Agenten-Verbindung im selben Aufruf ein und nimmt dafür die Agenten-Vorlage,
+solange du keine andere nennst. Ist der Endpunkt geschützt, nimmt es auch
+Basic-Auth-Zugangsdaten. Fehlt dir der Port, frag nach - rate keinen.
 </agent_pull_mode>
 ```

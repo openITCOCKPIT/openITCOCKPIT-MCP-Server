@@ -1,130 +1,105 @@
 ---
 name: oitc-incident-triage
-description: Investigate a failing host or service in openITCOCKPIT - find what broke, when, whether it is already handled, and whether the monitoring itself is at fault. Use when someone reports an alert, asks "what is broken", or asks why a service is critical.
+description: Investigate a failing host or service in openITCOCKPIT - find what broke, when, whether it is already handled, and what caused it. Use when someone reports an alert, asks "what is broken", or asks why a service is critical.
 ---
 
 # Incident triage
 
-Order matters here. Each step rules something out, so running them out of
-sequence produces confident wrong answers.
+Order matters. Each step rules something out, so running them out of sequence
+produces confident wrong answers.
 
-## Where host and service names come from
-
-Most tools here need an exact `hostname`, and several also need a `servicename`.
-There is no estate-wide form of them: `get_host_info`, the acknowledgement tools
-and the history tools all work on one host, or one service on one host.
-
-Never call them with no arguments hoping for an overview. Take the names from a
-tool that reports them first. A worked example - the whole chain, with the values
-carried from one call into the next:
+## 1. Start with the overview
 
 ```
-list_services_by_state(state="critical")
-  -> items: [{ hostname: "web01", servicename: "HTTP", output: "CRITICAL - 500" },
-             { hostname: "db02",  servicename: "Disk /var", output: "CRITICAL - 97%" }]
-
-# "web01" and "HTTP" now exist as values. Use them literally:
-list_service_acknowledgements(hostname="web01", servicename="HTTP")
-list_service_downtimes(hostname="web01", servicename="HTTP", only_active=True)
-get_host_info(hostname="web01")
-list_service_state_changes(hostname="web01", servicename="HTTP", hours=24)
+get_problem_overview()
 ```
 
-If you have no name yet and nothing is critical, these report them:
+Use this first for any "what is broken" question. It separates causes from
+consequences: a down host is reported once, with the unreachable hosts and the
+services behind it folded underneath, instead of as a hundred separate
+problems. What is already acknowledged or in a downtime is listed apart from
+what nobody has picked up.
+
+It also reports when the monitoring engine itself is behind. Stale results look
+exactly like a real outage, so if the overview says the engine is struggling,
+report that and stop. The individual alerts are not trustworthy yet.
+
+## 2. Take names from a result, never from a guess
+
+`get_host_health`, `get_service_health` and `investigate_problem` each work on
+one named object. The names come from a tool that reports them:
+
+```
+get_problem_overview()
+  -> down hosts: ["sw-core-1"], unhandled services: [{host: "web01", service: "HTTP"}]
+
+# Those names now exist as values. Use them literally:
+get_host_health(hostname="sw-core-1")
+get_service_health(hostname="web01", servicename="HTTP")
+```
+
+When you need a name the overview did not report, search for it:
 
 | Need | Call |
 |---|---|
-| Hosts with problems | `list_services_by_state(state="critical")`, then `"warning"` |
-| The services of one host | `get_host_info(hostname="web01")` |
-| Hosts that alerted recently | `list_log_entries(hours=24)` |
+| Hosts by name, state, container or group | `find_hosts` |
+| Services by host, name, state or group | `find_services` |
+| The exact name of a template, group or contact | `list_catalog` |
 
-A call that omits a required argument is answered with the valid values for it.
-Read that answer and call again with one of them - repeating the same call
-returns the same thing.
+A call that omits a required argument is answered with the values that would
+have worked. Take one of them. Repeating the same call returns the same answer.
 
-## 1. Is the monitoring itself healthy?
-
-```
-get_monitoring_engine_stats()
-```
-
-Do this **first** when more than a handful of unrelated things are bad at once.
-A high `avgServiceCheckLatencySeconds` or a collapsed `serviceChecksLast5Min`
-means the engine is behind and results are stale - which is indistinguishable
-from a real outage if you don't check. If the engine is unhealthy, report that
-and stop; the individual alerts are not trustworthy yet.
-
-## 2. Scope the problem
+## 3. Look at one object
 
 ```
-list_services_by_state(state="critical")     # then "warning" if nothing critical
+get_host_health(hostname="web01")
+get_service_health(hostname="web01", servicename="HTTP")
 ```
 
-Returns hostname, service name and the current check output per row. This is
-usually enough to spot whether one host is failing or a whole class of checks
-is.
+Both report the state and since when, the recent state changes, and what likely
+explains the problem: a down parent, a running downtime, an acknowledgement. You
+do not need separate calls for any of that.
 
-Check `truncated` in the response. If it is true, more services are failing than
-you were shown - say so rather than reporting the visible ones as the full
-extent.
+`get_host_health` also lists the host's services by state and which hosts depend
+on it. One failing service on an otherwise healthy host is a different story
+from a host where everything is red.
 
-## 3. Is it already handled?
+A host or service marked as not monitored is configured but not yet known to the
+engine, usually because the configuration has not been exported since it was
+created. It has no check results. That is not a fault, so do not report it as
+one.
 
-```
-list_service_acknowledgements(hostname="web01", servicename="HTTP")
-list_service_downtimes(hostname="web01", servicename="HTTP", only_active=True)
-```
-
-An acknowledged or in-downtime problem is known work, not a new incident.
-Report it as such - naming the acknowledger and their comment - instead of
-raising it again. For a host-level problem use `list_host_acknowledgements` and
-`list_host_downtimes`.
-
-## 4. What does the host look like as a whole?
+## 4. Ask what happened around it
 
 ```
-get_host_info(hostname)
+investigate_problem(hostname="web01", servicename="HTTP")
 ```
 
-Returns the host's own status plus its services. A single failing service on an
-otherwise healthy host is a different story from a host where everything is red -
-the latter usually means the host or the agent is down, not the individual checks.
+Use this when the question is why. It reports when the problem began, whether it
+happened before and for how long, which other hosts and services failed in the
+same minutes, and which configuration changes and exports came shortly before.
+It works on the current problem, or on the last one if the object has recovered.
 
-An entry with **`monitored: false`** is configured but not yet known to the
-monitoring engine, typically because it was created since the last configuration
-export. It has no check results, which is not a fault - do not report it as one.
+Several unrelated things failing in the same minute point to a shared cause: a
+network segment, a dependency, or a change somebody made.
 
-## 5. When did it change, and what did it say?
-
-```
-list_service_state_changes(hostname, servicename, hours=24)   # only transitions
-list_service_checks(hostname, servicename, hours=24, limit=25)  # every execution
-```
-
-State changes are sparse; check executions are one row per interval and get
-large fast. Start with the state history and only drop to check history when the
-individual outputs matter.
-
-Use state changes to get the timeline: when it went bad, whether it is flapping,
-whether it recovered in between. Use the check history when you need the actual
-output text, latency and execution time of individual runs.
-
-A check whose `executionTime` climbs before it fails is a different diagnosis
-(timeout, resource exhaustion) from one that fails instantly (config, auth,
-service down).
-
-## 6. Correlate across hosts
+## 5. Check whether it should have alerted
 
 ```
-list_log_entries()
+explain_notification(hostname="web01", servicename="HTTP")
 ```
 
-Alert entries from the last 24 h across all hosts. Use this to see whether
-several hosts went bad in the same minute - a shared dependency, a network
-segment or a maintenance window nobody scheduled.
+Use this only for "why did nobody hear about this". It checks the conditions
+Naemon checks, in the same order, and names the one that stopped the
+notification.
 
 ## Reporting
 
 State, in this order: what is broken, since when, the verbatim check output,
-whether it is acknowledged or in downtime, and only then your hypothesis -
-labelled as a hypothesis. Never convert timestamps; quote them as returned.
+whether it is acknowledged or in a downtime, and only then your hypothesis,
+labelled as a hypothesis. The last check time is not the start of the problem;
+use the last state change for that. Quote timestamps as returned and never
+convert them.
+
+If a result says it was truncated, more is failing than you were shown. Say so
+rather than reporting the visible rows as the full extent.

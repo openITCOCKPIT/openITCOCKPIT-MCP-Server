@@ -35,9 +35,10 @@ failure of your own work. Name where an operator runs the export.
 </the_export_gap>
 
 <agent_pull_mode>
-`create_host_with_agent_pull_mode` is for hosts the monitoring polls over the
-agent's HTTP endpoint. It needs a port and, where the endpoint is protected,
-basic-auth credentials. If the caller has not given you those, ask - do not
-guess a port.
+For a host the monitoring polls over the agent's HTTP endpoint, give
+`create_host` the `agent_pull_port`; it then creates the host and sets up the
+agent connection in one call, and picks the agent host template unless you name
+another. Where the endpoint is protected, it also takes basic-auth credentials.
+If the caller has not given you the port, ask - do not guess one.
 </agent_pull_mode>
 ```

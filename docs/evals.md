@@ -23,9 +23,17 @@ configuration points at.
 ## This runs against a live openITCOCKPIT
 
 Every tool call the model makes is a real request. The shipped cases only read,
-and the command names the instance and asks before it starts. With `--write` the
-model can also change things - acknowledge problems, set downtimes, take objects
-out of the monitoring, export the configuration.
+and the command names the instance and asks before it starts.
+
+Without `--write` nothing can change: the tools that change something are never
+registered, so they are not in the list the model is given. With `--write` the
+reach is exactly the toolset you picked, and the confirmation names every tool
+in it that does not only read - five in `operations`, four in `lifecycle`, all
+22 with `--toolsets all`. Read that list before you answer the prompt.
+
+A tool whose effect cannot be undone is refused even then. `lifecycle` and `all`
+hold `delete_object`, so a run with either stops and says so unless you add
+`--allow-deletes`, which is for an instance you are willing to lose.
 
 The way to run it without thinking about any of that is a throwaway instance:
 
@@ -36,7 +44,12 @@ OITC_EVAL_BASE_URL=... OITC_EVAL_API_KEY=... OITC_APIKEY=<key of the throwaway> 
 
 That brings up an openITCOCKPIT with docker compose, fills it with the test data
 from `scripts/seed_scale_dataset.py`, runs the eval and removes the instance
-again, volumes included. `KEEP=1` leaves it up to look at.
+again, volumes included.
+
+`KEEP=1` leaves it up instead. The next run with `KEEP=1` finds the test data
+still in place, skips the filling and starts asking within seconds - which is
+the way to run the eval often. Keep it as the instance you measure against, and
+do not point it at hosts you did not set up for it.
 
 ## What a case checks
 
@@ -99,13 +112,13 @@ turns the model needed, the tool calls it made, and the tokens in and out - per
 sample and summed per run:
 
 ```
-case                               h200-heavy-think-01-01  h200-light-no-think-02-02
-------------------------------------------------------------------------------------
-all                                                 12/12                      12/12
-turns                                                  27                         25
-tool calls                                             22                         13
-tokens in                                         176,928                    152,319
-tokens out                                         11,320                      6,979
+case                             model-a     model-b
+----------------------------------------------------
+all                                12/12       12/12
+turns                                 27          25
+tool calls                            22          13
+tokens in                        176,928     152,319
+tokens out                        11,320       6,979
 ```
 
 Both answered everything; one did it with nine fewer tool calls and a third

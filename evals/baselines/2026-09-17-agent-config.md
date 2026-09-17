@@ -2,7 +2,7 @@
 
 `evals/agent.py --cases agent_config_cases.toml --write --workers 1`, toolset
 `config`, system prompts `en/general` and `en/config`, DeepSeek
-(`h200-heavy-think-01-01`), 5 samples per case, scale test dataset.
+(Model A), 5 samples per case, scale test dataset.
 
 Five cases probe what the free-form `fields` parameter leaves to the model: the
 field name, the unit, and how a value is written. TOML has no null, so a case

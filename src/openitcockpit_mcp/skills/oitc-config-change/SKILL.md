@@ -49,13 +49,14 @@ service on the same host.
 
 1. **Read the current state.**
    ```
-   get_host_info(hostname)              # host and its services
-   list_contacts(name_filter="...")     # contacts, contact groups, etc.
+   get_host_health(hostname)            # the host and its services
+   get_service_config(hostname, servicename)   # what a service sets itself
+   list_catalog(kind="contact", name="...")    # contacts, groups, templates
    ```
    Array fields replace rather than append, so the current value *is* the input
    for your change. If a listing comes back with `truncated: true` you do not
-   have the full set - narrow it with `name_filter` before building the new
-   list, or you will silently drop the entries you never saw.
+   have the full set - narrow it with `name` before building the new list, or
+   you will silently drop the entries you never saw.
 
 2. **Check scope, if a reference is involved.**
    ```
@@ -77,7 +78,7 @@ service on the same host.
 
 5. **Verify.**
    ```
-   get_host_info("web01")
+   get_host_health("web01")
    ```
 
 ## When a write is rejected
@@ -88,5 +89,5 @@ them at once - do not retry a single field at a time, and do not guess a name
 that was just rejected.
 
 Full semantics:
-<https://github.com/openITCOCKPIT/openITCOCKPIT-MCP-Server/blob/main/docs/write-tools.md>
+<https://github.com/openITCOCKPIT/openITCOCKPIT-MCP-Server/blob/main/docs/using-the-tools.md>
 (an absolute link, because this folder is meant to be copied out of the repo).

@@ -12,7 +12,7 @@ what agent.py shows the model actually doing.
 
     set -a; . ~/.config/oitc-evals/env; set +a
     OITC_BASEURL=https://127.0.0.1 OITC_APIKEY=... \\
-    python evals/tool_interview.py --model h200-heavy-think-01-01
+    python evals/tool_interview.py --model "$MODEL_A"
 
 Writes evals/results/<run>-interview.json and prints the answers per tool.
 """

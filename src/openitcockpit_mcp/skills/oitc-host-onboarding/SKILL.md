@@ -32,7 +32,7 @@ get_allowed_elements_for_container(object_type="host", container_name="<target>"
 
 **Do this before every create.** It returns the host templates, timeperiods,
 contacts, contact groups and host groups actually visible there. Choose the host
-template from this list, not from `list_hosttemplates` - the latter shows
+template from this list, not from `list_catalog` - the latter shows
 everything you can read, which is a larger set than what this container accepts.
 
 ## 3. Create the host
@@ -52,18 +52,18 @@ create_host(
 Host monitored by the openITCOCKPIT agent in pull mode:
 
 ```
-create_host_with_agent_pull_mode(
+create_host(
   name="web01",
   address="10.0.1.20",
   container_name="<target>",
-  hosttemplate_name="openITCOCKPIT Agent - Pull",
-  port=3333,
+  agent_pull_port=3333,
 )
 ```
 
-This makes two API calls - it creates the host, then configures the agent
-connection. It does **not** discover services from the running agent. You still
-add those yourself in step 4.
+With `agent_pull_port` the same tool makes two API calls - it creates the host,
+then configures the agent connection - and uses the agent host template unless
+you name another. It does **not** discover services from the running agent. You
+still add those yourself in step 4.
 
 ## 4. Add services
 
@@ -80,7 +80,7 @@ create_service(hostname="web01", servicetemplate_name="<template>")
 ```
 
 A service template carries two names: a display name ("Ping check") and an
-internal `templateName` (`CHECK_PING`). `list_servicetemplates` reports both and
+internal `templateName` (`CHECK_PING`). `list_catalog` reports both and
 `create_service` accepts either, but the scope error only ever quotes the
 internal one - so a rejection naming templates in SHOUTING_CASE is telling you
 which list it matched against, not that your name is wrong.
@@ -96,12 +96,12 @@ Use one of those; do not retry with a guess.
 ## 5. Verify
 
 ```
-get_host_info(hostname="web01")
+get_configuration_status()
 ```
 
-Expect **`monitored: false`** on everything you just created. The objects exist
-in the configuration, but the monitoring engine only picks them up on the next
-configuration export, so there are no check results yet.
+Expect the host and its services under what is configured but not monitored yet.
+The objects exist in the configuration, but the monitoring engine only picks
+them up on the next export, so there are no check results yet.
 
 Report that plainly: the host and its services are configured, monitoring starts
 with the next export. Do not imply the host is already being watched, and do not
