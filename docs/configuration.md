@@ -34,6 +34,8 @@ and must never be committed.
 | CA bundle for a self-signed instance | `OITC_CA_BUNDLE` | *(unset)* |
 | Request timeout, seconds | `OITC_TIMEOUT_SECONDS` | `20` |
 | Register the write tools | `OITC_ENABLE_WRITE_TOOLS` | `false` |
+| Limit the instance to named toolsets, see [Toolsets](toolsets.md) | `OITC_TOOLSETS` | `all` |
+| A toolsets file of your own | `OITC_TOOLSETS_FILE` | `./toolsets.toml`, else the one shipped |
 | Cache scope-validation lookups | `OITC_SCOPE_CACHE_ENABLED` | `true` |
 | Scope cache TTL, seconds | `OITC_SCOPE_CACHE_TTL_SECONDS` | `30` |
 | Summarise the text half of a result | `OITC_COMPACT_CONTENT` | `false` |

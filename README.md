@@ -67,8 +67,8 @@ OITC_TOOLSETS=lifecycle       # take things out of the monitoring, or delete the
 ```
 
 The shipped sets are `health`, `operations`, `lifecycle`, `patch`, `reporting`,
-`catalog`, `onboarding`, `config` and `provisioning`. Sets are defined in a file you can
-replace: [docs/toolsets.md](docs/toolsets.md).
+`catalog`, `onboarding`, `config` and `provisioning`. Sets are defined in a file
+you can replace: [docs/toolsets.md](docs/toolsets.md).
 
 ## Measuring a model
 

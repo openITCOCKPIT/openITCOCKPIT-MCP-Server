@@ -40,6 +40,7 @@ blank value: `all` plus the write gate already says everything there is to say.
 | `operations` | Act on it: acknowledge, maintenance windows, check again now, and what an object carries |
 | `lifecycle` | Take hosts and services out of the monitoring, put them back, delete them |
 | `patch` | Update and security posture across the estate |
+| `reporting` | Answer for a period rather than for right now: availability, and where a value is heading |
 | `catalog` | Look up what exists, without changing anything |
 | `onboarding` | Take a host and its services into monitoring |
 | `config` | Change existing objects without blanking fields |
@@ -56,8 +57,8 @@ systemprompts = ["./prompts/wachdienst.md"]
 ```
 
 An entry is either the name of something shipped with the server - see
-[`skills/`](src/openitcockpit_mcp/skills/) and
-[`systemprompts/`](src/openitcockpit_mcp/systemprompts/) - or a path to a file
+[`skills/`](../src/openitcockpit_mcp/skills/) and
+[`systemprompts/`](../src/openitcockpit_mcp/systemprompts/) - or a path to a file
 of your own, relative to the toolsets file. So a set you invent can carry
 material you wrote. The two are listed apart because they are used differently:
 a skill is attached to a conversation, a system prompt belongs in the client's
@@ -90,7 +91,7 @@ variable - the client spawns a process per entry anyway:
 ```
 
 **Your own sets.** The sets live in
-[`src/openitcockpit_mcp/toolsets.toml`](src/openitcockpit_mcp/toolsets.toml),
+[`src/openitcockpit_mcp/toolsets.toml`](../src/openitcockpit_mcp/toolsets.toml),
 not in code. Copy it next to where you start the server, or point
 `OITC_TOOLSETS_FILE` at it:
 
@@ -110,7 +111,7 @@ instructions either, and reading them back is how a client shows an operator
 what an instance is for. It also names which tools each set holds, which
 `tools/list` does not - that list is flat.
 
-**One instance per role.** [`docker-compose.roles.yml`](docker-compose.roles.yml)
+**One instance per role.** [`docker-compose.roles.yml`](../docker-compose.roles.yml)
 runs four at once - `health`, `catalog`, `patch` and a `config` instance that
 may write - each on its own port:
 

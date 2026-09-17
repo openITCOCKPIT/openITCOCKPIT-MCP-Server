@@ -137,8 +137,8 @@ def main() -> None:
 
     print("commands and templates")
     existing_commands = names_of(api, "/commands/index.json", "all_commands", "Command")
-    for commands, command_type in ((COMMANDS, "check"), (HOST_COMMANDS, "hostcheck")):
-        for name, line in commands.items():
+    for command_lines, command_type in ((COMMANDS, "check"), (HOST_COMMANDS, "hostcheck")):
+        for name, line in command_lines.items():
             assert ";" not in line, f"{name}: a ';' would cut the command line off in Naemon"
             if name not in existing_commands:
                 asyncio.run(call_tool(mcp, "create_command", {"name": name, "command_line": line, "command_type": command_type}))
@@ -262,11 +262,11 @@ def main() -> None:
     with ThreadPoolExecutor(args.workers) as pool:
         hosts.update(pool.map(lambda job: add_host(*job), jobs))
 
-    def template_id(name: str) -> int:
+    def host_template_id(name: str) -> int:
         return must(*api.get(f"/hosts/edit/{hosts[name]}.json"), name)["host"]["Host"]["hosttemplate_id"]
 
     with ThreadPoolExecutor(args.workers) as pool:
-        actual = dict(zip([job[0] for job in jobs], pool.map(template_id, [job[0] for job in jobs]), strict=True))
+        actual = dict(zip([job[0] for job in jobs], pool.map(host_template_id, [job[0] for job in jobs]), strict=True))
     wrong = [(name, template) for name, _, template, _ in jobs if actual[name] != hosttemplates[template]]
     for name, template in wrong:
         asyncio.run(call_tool(mcp, "update_host", {"hostname": name, "fields": {"hosttemplate_name": template}}))
@@ -285,8 +285,8 @@ def main() -> None:
         return must(*api.get(f"/hosts/edit/{hosts[name]}.json"), name)["host"]["Host"].get("command_id")
 
     with ThreadPoolExecutor(args.workers) as pool:
-        commands = pool.map(effective_command, [job[0] for job in jobs])
-        overridden = [job for job, command in zip(jobs, commands, strict=True) if command != template_command[job[2]]]
+        effective = pool.map(effective_command, [job[0] for job in jobs])
+        overridden = [job for job, command in zip(jobs, effective, strict=True) if command != template_command[job[2]]]
     for name, _, template, _ in overridden:
         asyncio.run(call_tool(mcp, "update_host", {"hostname": name, "fields": {"check_command_name": HOST_TEMPLATES[template]}}))
     if overridden:
@@ -504,9 +504,9 @@ def main() -> None:
     print("acknowledgements")
     acknowledged = 0
     switch = must(*api.get("/hosts/index.json", {"scroll": "true", "filter[Hosts.name]": "scale-sw-5-1"}), "switch")["all_hosts"][0]
-    commands = []
+    ack_commands = []
     if not switch["Hoststatus"].get("problemHasBeenAcknowledged"):
-        commands.append(
+        ack_commands.append(
             {
                 "command": "submitHoststateAck",
                 "hostUuid": switch["Host"]["uuid"],
@@ -523,7 +523,7 @@ def main() -> None:
         )
         for row in rows["all_services"]:
             if row["Service"]["servicename"] == "Backup" and not row["Servicestatus"].get("problemHasBeenAcknowledged"):
-                commands.append(
+                ack_commands.append(
                     {
                         "command": "submitServicestateAck",
                         "hostUuid": row["Host"]["uuid"],
@@ -534,10 +534,10 @@ def main() -> None:
                         "notify": 0,
                     }
                 )
-    if commands:
+    if ack_commands:
         # Acknowledging needs the problem state, so it only sticks once the checks have run.
-        must(*api.post("/nagios_module/cmd/submit_bulk_naemon.json", commands), "acknowledgements")
-        acknowledged = len(commands)
+        must(*api.post("/nagios_module/cmd/submit_bulk_naemon.json", ack_commands), "acknowledgements")
+        acknowledged = len(ack_commands)
     print(f"  {acknowledged} sent")
 
     print(f"done: {len(hosts)} hosts known, {len(servers)} scale servers")

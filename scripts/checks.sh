@@ -10,7 +10,7 @@ python -m venv /tmp/venv
 pip install --quiet -e ".[dev]"
 
 echo '--- ruff'
-ruff check src tests
+ruff check src tests scripts evals
 
 echo '--- mypy'
 mypy

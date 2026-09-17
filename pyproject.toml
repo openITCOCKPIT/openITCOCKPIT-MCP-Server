@@ -73,6 +73,9 @@ asyncio_mode = "auto"
 
 [tool.mypy]
 python_version = "3.11"
-packages = ["openitcockpit_mcp"]
+# The loose scripts are checked with the package: they talk to the same API and
+# go stale the same way, and nothing else would catch it. mypy takes either
+# packages or files, not both, so the package is named by its path.
+files = ["src/openitcockpit_mcp", "scripts", "evals"]
 mypy_path = "src"
 ignore_missing_imports = true

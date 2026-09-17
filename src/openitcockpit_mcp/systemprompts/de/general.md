@@ -1,6 +1,6 @@
 # Systemprompt: openITCOCKPIT-Assistent
 
-Deutsche Fassung von [`system-prompt.md`](system-prompt.md), Abschnitt für
+Deutsche Fassung von [`../en/general.md`](../en/general.md), Abschnitt für
 Abschnitt dieselbe Struktur. Den Block unten in den Systemprompt deines Clients
 kopieren, solange der openITCOCKPIT-MCP-Server angebunden ist.
 

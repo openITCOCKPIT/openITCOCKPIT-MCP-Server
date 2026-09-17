@@ -13,7 +13,7 @@ release, and no others:
 Semver: patch for fixes, minor for added tools, major for anything that breaks
 a client. **But this is still `0.x`** - the tool set is settling, so a minor
 bump may break one too. Pin the exact version and read the
-[CHANGELOG](CHANGELOG.md) before you move.
+[CHANGELOG](../CHANGELOG.md) before you move.
 
 ### Compatibility
 
