@@ -1,0 +1,38 @@
+{
+  "_meta": {
+    "fastmcp": {
+      "tags": []
+    }
+  },
+  "annotations": {
+    "destructiveHint": true,
+    "idempotentHint": true,
+    "openWorldHint": true,
+    "readOnlyHint": false
+  },
+  "description": "Take a host or service out of the monitoring without deleting it: it keeps its configuration and history but is no longer checked and no longer alerts. A host takes its services with it. Takes effect with the next configuration export. Use resume_monitoring to bring it back.",
+  "inputSchema": {
+    "additionalProperties": false,
+    "properties": {
+      "hostname": {
+        "description": "Exact host name. Required - there is no estate-wide form of this tool. A name that matches no host is answered with the tools that can find the right one.",
+        "type": "string"
+      },
+      "servicename": {
+        "default": "",
+        "description": "Exact service name on that host. Empty: the host and its services.",
+        "type": "string"
+      }
+    },
+    "required": [
+      "hostname"
+    ],
+    "type": "object"
+  },
+  "name": "stop_monitoring",
+  "outputSchema": {
+    "additionalProperties": true,
+    "type": "object"
+  },
+  "title": "Stop Monitoring"
+}

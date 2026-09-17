@@ -1,0 +1,38 @@
+{
+  "_meta": {
+    "fastmcp": {
+      "tags": []
+    }
+  },
+  "annotations": {
+    "destructiveHint": false,
+    "idempotentHint": true,
+    "openWorldHint": true,
+    "readOnlyHint": false
+  },
+  "description": "Put a host or service that was taken out of the monitoring back in. A host brings its services back with it. It is checked again from the next configuration export.",
+  "inputSchema": {
+    "additionalProperties": false,
+    "properties": {
+      "hostname": {
+        "description": "Exact host name. Required - there is no estate-wide form of this tool. A name that matches no host is answered with the tools that can find the right one.",
+        "type": "string"
+      },
+      "servicename": {
+        "default": "",
+        "description": "Exact service name on that host. Empty: the host and its services.",
+        "type": "string"
+      }
+    },
+    "required": [
+      "hostname"
+    ],
+    "type": "object"
+  },
+  "name": "resume_monitoring",
+  "outputSchema": {
+    "additionalProperties": true,
+    "type": "object"
+  },
+  "title": "Resume Monitoring"
+}

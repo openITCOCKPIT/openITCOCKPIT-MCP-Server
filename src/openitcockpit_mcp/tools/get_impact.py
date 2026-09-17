@@ -44,14 +44,14 @@ def register(mcp: FastMCP, deps: Deps) -> None:
     ) -> Impact:
         """What a host or service carries, before you disable, delete or take it out of the monitoring: its services, the hosts that depend on it, and the groups, maps and reports that name it. Use it to say what a change would affect."""
         if servicename.strip():
-            service_id = resolve_service_id(api, hostname, servicename)
+            service_id = resolve_service_id(api, hostname, servicename, include_disabled=True)
             detail = service_api.get_service_detail(api, service_id)
             kind, name, state = "service", f"{detail.name} on {detail.host}", detail.state
             in_downtime, acknowledged = detail.in_downtime, detail.acknowledged
             references, total = impact_api.references(api, "service", service_id)
             services = covered = None
         else:
-            host_id = resolve_host_id(api, hostname)
+            host_id = resolve_host_id(api, hostname, include_disabled=True)
             host = host_api.get_host_detail(api, host_id)
             kind, name, state = "host", host.name, host.state
             in_downtime, acknowledged = host.in_downtime, host.acknowledged

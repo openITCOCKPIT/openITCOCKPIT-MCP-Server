@@ -64,3 +64,12 @@ APPLY = {
     "idempotentHint": True,
     "openWorldHint": True,
 }
+
+# Removes an object for good, with everything that belongs to it. Calling it
+# again finds nothing left to delete.
+DELETE = {
+    "readOnlyHint": False,
+    "destructiveHint": True,
+    "idempotentHint": False,
+    "openWorldHint": True,
+}

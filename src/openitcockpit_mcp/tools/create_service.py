@@ -18,6 +18,7 @@ from openitcockpit_mcp.fields import (
     apply_single_ref_overrides,
     apply_standalone_array_override,
     reject_unknown_fields,
+    with_units,
 )
 from openitcockpit_mcp.tools.support.annotations import CREATE
 from openitcockpit_mcp.tools.support.params import Fields, Hostname
@@ -73,6 +74,7 @@ def register(mcp: FastMCP, deps: Deps) -> None:
         if "name" in fields:
             raise ValueError("Pass the service name via the 'name' parameter, not fields['name'].")
         reject_unknown_fields(fields, SERVICE_ALL_FIELD_KEYS)
+        fields = with_units(fields)
 
         host_id = resolve_host_id(api, hostname)
         scope_label = f"host '{hostname}'"

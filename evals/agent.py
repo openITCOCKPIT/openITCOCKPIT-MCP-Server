@@ -10,6 +10,9 @@ final answer is checked against what the dataset holds (see the file).
     OITC_BASEURL=https://127.0.0.1 OITC_APIKEY=... \\
     python evals/agent.py --model h200-heavy-think-01-01 --samples 3
 
+TOML has no null, so a case that expects one - the value that resets a field to
+what its template says - writes its arguments as JSON in ``arguments_json``.
+
 Cases that act (``--cases agent_write_cases.toml --write``) change the instance.
 Each case's ``setup`` calls run before a sample and its ``reset`` calls after,
 and the samples run one after another, since they act on the same objects.
@@ -44,6 +47,9 @@ from openitcockpit_mcp.server import create_server
 
 HERE = Path(__file__).parent
 
+#: Sentinel for "this key is not in the call".
+_MISSING = object()
+
 
 def settings(toolsets: str, write: bool = False) -> Settings:
     return Settings(
@@ -56,6 +62,17 @@ def settings(toolsets: str, write: bool = False) -> Settings:
     )
 
 
+def with_arguments(entries: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    """``arguments_json`` read into ``arguments``, for values TOML cannot write."""
+    expanded = []
+    for entry in entries:
+        if "arguments_json" in entry:
+            entry = {**entry, "arguments": json.loads(entry["arguments_json"])}
+            entry.pop("arguments_json")
+        expanded.append(entry)
+    return expanded
+
+
 async def run_calls(calls: list[dict[str, Any]]) -> None:
     """Tool calls that put the instance into the state a case expects, with every tool available."""
     if not calls:
@@ -64,7 +81,9 @@ async def run_calls(calls: list[dict[str, Any]]) -> None:
     try:
         async with Client(mcp) as client:
             for call in calls:
-                await client.call_tool(call["tool"], call.get("arguments", {}))
+                # A reset may name what a sample already deleted: that is a
+                # state this run wanted, not a failure of the run.
+                await client.call_tool(call["tool"], call.get("arguments", {}), raise_on_error=False)
     finally:
         deps.api.close()
 
@@ -257,6 +276,12 @@ def called(expected: dict[str, Any], call: dict[str, Any]) -> bool:
         if isinstance(want, str):
             if not isinstance(have, str) or not re.search(want, have, flags=re.I):
                 return False
+        elif isinstance(want, dict):
+            # A nested value matches when it is contained: a call may carry more
+            # fields than the case names, and sending a field whose value equals
+            # the template's changes nothing openITCOCKPIT stores.
+            if not isinstance(have, dict) or any(have.get(key, _MISSING) != value for key, value in want.items()):
+                return False
         elif have != want:
             return False
     if "outcome" in expected:
@@ -313,6 +338,10 @@ def main() -> None:
     args = parser.parse_args()
 
     spec = tomllib.loads((HERE / args.cases).read_text())
+    for case in spec["case"]:
+        for key in ("must_call", "setup", "reset"):
+            if key in case:
+                case[key] = with_arguments(case[key])
     acting = any(c.get("setup") or c.get("reset") for c in spec["case"])
     if acting and args.workers != 1:
         raise SystemExit("These cases change the instance; run them with --workers 1.")

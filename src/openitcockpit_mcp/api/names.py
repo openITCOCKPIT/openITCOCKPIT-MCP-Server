@@ -41,9 +41,38 @@ def get_servicename_by_uuid(api: OITCClient, uuid: str) -> tuple[str | None, str
 # monitoring engine already knows about; an object created since the last
 # configuration export has no status row and is absent from it. The *ByString
 # endpoints list configured objects regardless of status.
+#
+# They do leave out what was taken out of the monitoring: measured, a host
+# disabled a moment earlier was gone from loadHostsByString, which would leave
+# no way to name it again to put it back or delete it. ``disabled.json`` lists
+# exactly those, so the resolvers fall back to it where that is wanted.
 
 
-def resolve_host_id(api: OITCClient, hostname: str) -> int:
+def _disabled_host_id(api: OITCClient, hostname: str) -> int | None:
+    resp, code = api.get("/hosts/disabled.json", {"filter[Hosts.name]": hostname, "scroll": "false", "limit": 50, "page": 1})
+    require_success(resp, code, "looking for a host outside the monitoring")
+    for item in resp.get("all_hosts", []):
+        host = item.get("Host") or {}
+        if (host.get("hostname") or host.get("name")) == hostname:
+            return int(host["id"])
+    return None
+
+
+def _disabled_service_id(api: OITCClient, hostname: str, servicename: str) -> int | None:
+    resp, code = api.get(
+        "/services/disabled.json",
+        {"filter[Hosts.name]": hostname, "filter[servicename]": servicename, "scroll": "false", "limit": 50, "page": 1},
+    )
+    require_success(resp, code, "looking for a service outside the monitoring")
+    for item in resp.get("all_services", []):
+        service = item.get("Service") or {}
+        host = item.get("Host") or {}
+        if service.get("servicename") == servicename and (host.get("hostname") or host.get("name")) == hostname:
+            return int(service["id"])
+    return None
+
+
+def resolve_host_id(api: OITCClient, hostname: str, include_disabled: bool = False) -> int:
     resp, code = api.get("/hosts/loadHostsByString.json", {"filter[Hosts.name]": hostname})
     require_success(resp, code, "resolving hostname")
     matches = [item for item in resp.get("hosts", []) if item.get("value") == hostname]
@@ -52,6 +81,8 @@ def resolve_host_id(api: OITCClient, hostname: str) -> int:
     if len(matches) > 1:
         ids = ", ".join(str(item.get("key")) for item in matches)
         raise RuntimeError(f"'{hostname}' is ambiguous - {len(matches)} hosts share this name (ids: {ids}).")
+    if include_disabled and (disabled := _disabled_host_id(api, hostname)) is not None:
+        return disabled
     # loadHostsByString matches by part of the name, so what it did return are the nearest names.
     similar = [str(item.get("value")) for item in resp.get("hosts", [])][:5]
     hint = f" Similar names: {', '.join(similar)}." if similar else ""
@@ -65,7 +96,7 @@ def list_host_names(api: OITCClient, limit: int = 25) -> list[str]:
     return [str(item.get("value")) for item in (resp.get("hosts") or []) if item.get("value")]
 
 
-def resolve_service_id(api: OITCClient, hostname: str, servicename: str) -> int:
+def resolve_service_id(api: OITCClient, hostname: str, servicename: str, include_disabled: bool = False) -> int:
     resp, code = api.get(
         "/services/loadServicesByString.json",
         {"filter[Hosts.name]": hostname, "filter[servicename]": servicename},
@@ -75,6 +106,8 @@ def resolve_service_id(api: OITCClient, hostname: str, servicename: str) -> int:
         entry = item.get("value") or {}
         if entry.get("Service", {}).get("servicename") == servicename and entry.get("Host", {}).get("name") == hostname:
             return int(item["key"])
+    if include_disabled and (disabled := _disabled_service_id(api, hostname, servicename)) is not None:
+        return disabled
     raise NameNotFoundError(f"No service named '{servicename}' found on host '{hostname}'.", "service")
 
 

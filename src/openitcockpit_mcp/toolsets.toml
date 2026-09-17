@@ -116,6 +116,20 @@ tools = [
 # The sets below name write tools. They take effect only with
 # OITC_ENABLE_WRITE_TOOLS=true; otherwise they resolve to their read tools.
 
+[lifecycle]
+description = "Take hosts and services out of the monitoring, put them back, or delete them - and make it take effect."
+systemprompts = ["system-prompt-lifecycle", "system-prompt-lifecycle-de"]
+tools = [
+    "find_hosts",
+    "get_host_health",
+    "get_impact",
+    "stop_monitoring",
+    "resume_monitoring",
+    "delete_object",
+    "get_configuration_status",
+    "apply_configuration",
+]
+
 [onboarding]
 description = "Take a host and its services into monitoring without container-scope rejections."
 skills = ["oitc-host-onboarding"]
@@ -140,6 +154,7 @@ systemprompts = ["system-prompt-config", "system-prompt-config-de"]
 tools = [
     "update_host",
     "update_service",
+    "get_service_config",
     "update_contact",
     "update_contactgroup",
     "get_host_info",

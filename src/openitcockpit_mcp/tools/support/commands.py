@@ -37,19 +37,26 @@ class CommandResult(Result):
     object: dict[str, Any] = Field(description="The host or service and its state after the command.")
 
 
-def find_target(api: OITCClient, hostname: str, servicename: str) -> Target:
+def find_target(api: OITCClient, hostname: str, servicename: str, include_disabled: bool = False) -> Target:
+    """The object a tool acts on. ``include_disabled`` also finds what was taken out of the monitoring."""
     if servicename.strip():
-        return command_api.service_target(api, resolve_service_id(api, hostname, servicename))
-    return command_api.host_target(api, resolve_host_id(api, hostname))
+        return command_api.service_target(api, resolve_service_id(api, hostname, servicename, include_disabled))
+    return command_api.host_target(api, resolve_host_id(api, hostname, include_disabled))
 
 
-def refusal(target: Target) -> str | None:
-    """Why no command may be sent for ``target``, or None."""
-    if not target.role_allows:
+def refusal(target: Target, sends_command: bool = True) -> str | None:
+    """Why nothing may be sent for ``target``, or None.
+
+    ``sends_command`` is false for a change to the configuration itself, such as
+    taking an object out of the monitoring: that needs write access to the
+    container but not the role that may talk to the engine, and it works on an
+    object the engine does not know yet.
+    """
+    if sends_command and not target.role_allows:
         return "This user's role may not send commands to the monitoring engine; an administrator can grant it."
     if not target.container_allows:
-        return f"This user may not send commands for {target.name}: it needs write access to its container."
-    if not target.in_monitoring:
+        return f"This user may not change {target.name}: it needs write access to its container."
+    if sends_command and not target.in_monitoring:
         return f"{target.name} is not in the monitoring yet: its configuration has not been exported."
     return None
 

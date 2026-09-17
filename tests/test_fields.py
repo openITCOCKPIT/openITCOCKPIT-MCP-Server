@@ -74,16 +74,20 @@ def test_both_null_drops_both_keys_so_the_backend_re_inherits():
 def test_nulling_only_one_side_is_rejected():
     with pytest.raises(ValueError, match="coupled"):
         apply_coupled_contacts_override(
-            payload={}, fields={"contact_names": None, "contactgroup_names": ["admins"]},
-            elements=ELEMENTS, scope_label="scope",
+            payload={},
+            fields={"contact_names": None, "contactgroup_names": ["admins"]},
+            elements=ELEMENTS,
+            scope_label="scope",
         )
 
 
 def test_nulling_the_other_side_alone_is_rejected_too():
     with pytest.raises(ValueError, match="coupled"):
         apply_coupled_contacts_override(
-            payload={}, fields={"contact_names": ["oncall"], "contactgroup_names": None},
-            elements=ELEMENTS, scope_label="scope",
+            payload={},
+            fields={"contact_names": ["oncall"], "contactgroup_names": None},
+            elements=ELEMENTS,
+            scope_label="scope",
         )
 
 
@@ -110,17 +114,13 @@ def test_absent_array_key_is_untouched():
 
 def test_null_array_drops_the_key():
     payload = {"hostgroups": {"_ids": [30]}}
-    apply_standalone_array_override(
-        payload, {"hostgroup_names": None}, "hostgroup_names", "hostgroups", "hostgroups", ELEMENTS, "scope"
-    )
+    apply_standalone_array_override(payload, {"hostgroup_names": None}, "hostgroup_names", "hostgroups", "hostgroups", ELEMENTS, "scope")
     assert payload == {}
 
 
 def test_array_replaces_the_full_set():
     payload = {"hostgroups": {"_ids": [30, 31]}}
-    apply_standalone_array_override(
-        payload, {"hostgroup_names": ["db"]}, "hostgroup_names", "hostgroups", "hostgroups", ELEMENTS, "scope"
-    )
+    apply_standalone_array_override(payload, {"hostgroup_names": ["db"]}, "hostgroup_names", "hostgroups", "hostgroups", ELEMENTS, "scope")
     assert payload["hostgroups"] == {"_ids": [31]}
 
 
@@ -135,7 +135,7 @@ def test_unknown_field_names_are_listed_with_the_valid_ones():
 
 
 def test_known_fields_pass():
-    reject_unknown_fields({"check_interval": 1}, {"check_interval"})
+    reject_unknown_fields({"notes": "x", "check_interval_seconds": 60}, {"notes", "check_interval"})
 
 
 def test_server_generated_columns_are_stripped():
@@ -160,3 +160,20 @@ def test_service_and_host_key_sets_both_carry_the_coupled_pair():
 
 def test_contact_keys_cover_the_array_fields_that_cannot_be_emptied():
     assert {"container_names", "host_command_names", "service_command_names"} <= CONTACT_ALL_FIELD_KEYS
+
+
+def test_a_time_field_without_its_unit_is_refused_with_the_name_to_use():
+    """Measured: a model sent retry_interval=2 for "two minutes" and the old key stored two seconds."""
+    from openitcockpit_mcp.fields import reject_unknown_fields
+
+    with pytest.raises(ValueError) as exc:
+        reject_unknown_fields({"retry_interval": 2}, {"retry_interval", "notes"})
+
+    assert "retry_interval -> retry_interval_seconds" in str(exc.value)
+    assert "two minutes as 120" in str(exc.value)
+
+
+def test_a_field_named_with_its_unit_reaches_the_payload_under_the_stored_name():
+    from openitcockpit_mcp.fields import with_units
+
+    assert with_units({"retry_interval_seconds": 120, "notes": "x"}) == {"retry_interval": 120, "notes": "x"}
