@@ -1,0 +1,38 @@
+{
+  "_meta": {
+    "fastmcp": {
+      "tags": []
+    }
+  },
+  "annotations": {
+    "destructiveHint": false,
+    "idempotentHint": true,
+    "openWorldHint": true,
+    "readOnlyHint": true
+  },
+  "description": "How a service is configured and where each value comes from: what it sets itself and what it follows its servicetemplate for. Field names are the ones update_service takes, so a value can be changed by the name it is reported under. It reports the configuration, never the current state or check results.",
+  "inputSchema": {
+    "additionalProperties": false,
+    "properties": {
+      "hostname": {
+        "description": "Exact host name. Required - there is no estate-wide form of this tool. A name that matches no host is answered with the tools that can find the right one.",
+        "type": "string"
+      },
+      "servicename": {
+        "description": "Exact service name on that host. Required. A name that matches no service is answered with the tools that can find the right one.",
+        "type": "string"
+      }
+    },
+    "required": [
+      "hostname",
+      "servicename"
+    ],
+    "type": "object"
+  },
+  "name": "get_service_config",
+  "outputSchema": {
+    "additionalProperties": true,
+    "type": "object"
+  },
+  "title": "Service Configuration"
+}

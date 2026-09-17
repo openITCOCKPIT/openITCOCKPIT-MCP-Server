@@ -76,7 +76,7 @@ TOOLSET_OVERVIEW_SLUG = "oitc-toolsets"
 #: The toolsets the shipped file defines, for the supplements below. A set that
 #: is not here simply has no supplement shipped with it; toolsets.toml can name
 #: one of the operator's own instead.
-SHIPPED_TOOLSETS = ("triage", "patch", "catalog", "health", "operations", "onboarding", "config", "provisioning")
+SHIPPED_TOOLSETS = ("triage", "patch", "catalog", "health", "operations", "lifecycle", "onboarding", "config", "provisioning")
 
 
 @dataclass(frozen=True)

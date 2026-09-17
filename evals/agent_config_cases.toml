@@ -1,0 +1,60 @@
+# What a model gets right and wrong when changing configuration through the
+# free-form `fields` parameter of update_host/update_service:
+#
+#   python evals/agent.py --cases agent_config_cases.toml --write --workers 1 \
+#       --toolsets config --system-prompt en/general --system-prompt en/config ...
+#
+# The cases probe the three things `fields` leaves to the model: the field name,
+# the unit, and how a value is written (numbers for on/off, null to inherit).
+#
+# These questions are a test set. They must never be used as training data.
+
+[dataset]
+hosts_by_state = { up = 354, down = 3, unreachable = 147 }
+services_warning = 98
+
+# check_interval is in seconds; "every 10 minutes" is 600, not 10.
+[[case]]
+id = "interval-in-seconds"
+lang = "de"
+question = "Der Service Backup auf scale-srv-330 soll nur noch alle 10 Minuten geprüft werden."
+must_call = [{ tool = "update_service", arguments_json = '''{"hostname": "^scale-srv-330$", "servicename": "^Backup$", "fields": {"check_interval_seconds": 600}}''' }]
+reset = [{ tool = "update_service", arguments_json = '''{"hostname": "scale-srv-330", "servicename": "Backup", "fields": {"check_interval_seconds": null}}''' }]
+
+# notifications_enabled is 0 or 1 in openITCOCKPIT, not true/false.
+[[case]]
+id = "switch-notifications-off"
+lang = "de"
+question = "Für Updates auf scale-srv-331 sollen keine Benachrichtigungen mehr rausgehen."
+must_call = [{ tool = "update_service", arguments_json = '''{"hostname": "^scale-srv-331$", "servicename": "^Updates$", "fields": {"notifications_enabled": 0}}''' }]
+reset = [{ tool = "update_service", arguments_json = '''{"hostname": "scale-srv-331", "servicename": "Updates", "fields": {"notifications_enabled": null}}''' }]
+
+# Two fields, one of them again in seconds. Only the retry interval is checked:
+# the service already tries three times through its template, and a value equal
+# to the template's is stored as inherited either way, so sending it or leaving
+# it out comes to the same thing.
+[[case]]
+id = "attempts-and-retry"
+lang = "en"
+question = "Backup on scale-srv-332 should try three times before it counts as down, and wait two minutes between the tries."
+must_call = [
+    { tool = "update_service", arguments_json = '''{"hostname": "^scale-srv-332$", "servicename": "^Backup$", "fields": {"retry_interval_seconds": 120}}''' },
+]
+reset = [{ tool = "update_service", arguments_json = '''{"hostname": "scale-srv-332", "servicename": "Backup", "fields": {"max_check_attempts": null, "retry_interval_seconds": null}}''' }]
+
+# null is how a field goes back to the template's value.
+[[case]]
+id = "back-to-the-template"
+lang = "de"
+question = "Bei Backup auf scale-srv-333 soll das Check-Intervall wieder aus der Service-Vorlage kommen statt eigens gesetzt zu sein."
+setup = [{ tool = "update_service", arguments = { hostname = "scale-srv-333", servicename = "Backup", fields = { check_interval_seconds = 111 } } }]
+must_call = [{ tool = "update_service", arguments_json = '''{"hostname": "^scale-srv-333$", "servicename": "^Backup$", "fields": {"check_interval_seconds": null}}''' }]
+reset = [{ tool = "update_service", arguments_json = '''{"hostname": "scale-srv-333", "servicename": "Backup", "fields": {"check_interval_seconds": null}}''' }]
+
+# A plain text field on the host, and nothing else may be touched.
+[[case]]
+id = "host-description"
+lang = "de"
+question = "Trag bei scale-srv-334 als Beschreibung 'Fileserver Rechenzentrum 2' ein."
+must_call = [{ tool = "update_host", arguments = { hostname = "^scale-srv-334$", fields = { description = "Fileserver Rechenzentrum 2" } } }]
+reset = [{ tool = "update_host", arguments = { hostname = "scale-srv-334", fields = { description = "" } } }]

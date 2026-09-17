@@ -19,6 +19,7 @@ from openitcockpit_mcp.fields import (
     apply_standalone_array_override,
     reject_unknown_fields,
     strip_readonly_keys,
+    with_units,
 )
 from openitcockpit_mcp.tools.support.annotations import UPDATE
 from openitcockpit_mcp.tools.support.params import Fields, Hostname, Servicename
@@ -36,26 +37,22 @@ def register(mcp: FastMCP, deps: Deps) -> None:
     def update_service(hostname: Hostname, servicename: Servicename, fields: Fields = None) -> dict:
         """Update an existing service. Identifies the service by (hostname, servicename), not a raw id.
 
-        Read-modify-write, not a partial PATCH: openITCOCKPIT's edit endpoint expects the complete
-        service object on every save, and a partial payload blanks every omitted field. This tool
-        fetches the service's current effective values, applies `fields` on top, and resends the
-        whole object. Fields absent from `fields` are resent unchanged.
+        Read-modify-write, not a partial PATCH: the edit endpoint expects the whole service on
+        every save and blanks every field a partial payload omits. This tool reads the service's
+        current values, applies `fields` on top and resends all of it, so a field you leave out
+        keeps what it has.
 
-        Inheritance is preserved automatically. On every save the backend re-derives whether each
-        value still equals its servicetemplate's value: matching values are stored as inherited
-        (null), differing ones as this service's own override. Resending an unchanged effective
-        value therefore does not create an override.
+        Inheritance is kept automatically: on every save the backend stores a value equal to the
+        servicetemplate's as inherited (null) and a differing one as this service's override.
+        Resending an unchanged value therefore creates no override. Changing servicetemplate_name
+        re-diffs every field not changed in the same call against the new template; its values are
+        not adopted wholesale.
 
-        Changing servicetemplate_name re-diffs every field not also changed in the same call
-        against the new template: fields still matching become inherited, others become
-        overrides. The new template's values are not adopted wholesale.
-
-        To reset a single field to "inherited from servicetemplate", set it to null in `fields`
-        (e.g. {"check_interval": null}). Omitting it keeps whatever it currently resolves to; null
-        forces inheritance even when the current value is an explicit override. Applies to
-        check_interval, retry_interval, max_check_attempts,
-        first_notification_delay, notification_interval, notify_on_*, flap_detection_*, low/high_flap_
-        threshold, process_performance_data, freshness_checks_enabled, freshness_threshold,
+        To put one field back to "inherited from the servicetemplate", set it to null in `fields`
+        (e.g. {"check_interval_seconds": null}); omitting it keeps the current value. Applies to
+        check_interval_seconds, retry_interval_seconds, max_check_attempts,
+        first_notification_delay_seconds, notification_interval_seconds, notify_on_*, flap_detection_*, low/high_flap_
+        threshold, process_performance_data, freshness_checks_enabled, freshness_threshold_seconds,
         passive_checks_enabled, event_handler_enabled, active_checks_enabled, retain_status_information,
         retain_nonstatus_information, notifications_enabled, notes, priority, tags, service_url,
         is_volatile, sla_relevant, check_period_name, notify_period_name, check_command_name,
@@ -82,6 +79,7 @@ def register(mcp: FastMCP, deps: Deps) -> None:
         fields = fields or {}
         allowed_keys = SERVICE_ALL_FIELD_KEYS | {"servicetemplate_name"}
         reject_unknown_fields(fields, allowed_keys)
+        fields = with_units(fields)
         if "servicetemplate_name" in fields and fields["servicetemplate_name"] is None:
             raise ValueError("servicetemplate_name cannot be reset to null - a service must always reference exactly one service template.")
 

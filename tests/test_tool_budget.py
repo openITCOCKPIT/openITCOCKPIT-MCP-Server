@@ -29,12 +29,12 @@ TOOLSET_MAX_TOOLS = 12
 #: The free-form `fields` tools, replaced by explicit parameters later.
 OVER_BUDGET = {
     "create_service": 2932,
-    "update_contact": 2393,
-    "update_host": 3480,
-    "update_service": 3769,
+    "update_contact": 1664,
+    "update_host": 3347,
+    "update_service": 3488,
 }
 TOOLSETS_OVER_BUDGET = {
-    "config": 16041,
+    "config": 15723,
 }
 
 

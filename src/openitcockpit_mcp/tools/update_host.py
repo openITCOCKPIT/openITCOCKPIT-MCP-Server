@@ -20,6 +20,7 @@ from openitcockpit_mcp.fields import (
     apply_standalone_array_override,
     reject_unknown_fields,
     strip_readonly_keys,
+    with_units,
 )
 from openitcockpit_mcp.tools.support.annotations import UPDATE
 from openitcockpit_mcp.tools.support.hosts import HOST_ALL_FIELD_KEYS
@@ -36,18 +37,18 @@ def register(mcp: FastMCP, deps: Deps) -> None:
     def update_host(hostname: Hostname, fields: Fields = None, container_name: str | None = None) -> dict:
         """Update an existing host, identified by hostname.
 
-        Read-modify-write, not a partial PATCH: it fetches the host's current effective values,
-        applies `fields` (plus container_name) on top, and resends the whole object. Fields absent
-        from `fields` are resent unchanged.
+        Read-modify-write, not a partial PATCH: it reads the host's current values, applies
+        `fields` (plus container_name) on top and resends all of it, so a field you leave out keeps
+        what it has.
 
-        Inheritance works as in update_service: on every save the backend re-derives whether each
-        value still equals its hosttemplate's value, storing matches as inherited (null) and
-        differences as this host's own override. To force a field back to inherited, set it to null
-        in `fields` rather than omitting it. Applies to
-        description, check_interval, retry_interval, max_check_attempts, notification_interval,
+        Inheritance works as in update_service: a value equal to the hosttemplate's is stored as
+        inherited (null), a differing one as this host's override. To hand a field back to the
+        template, set it to null in `fields` rather than omitting it. Applies to
+        description, check_interval_seconds, retry_interval_seconds, max_check_attempts,
+        notification_interval_seconds,
         notify_on_down/unreachable/recovery/flapping/downtime, flap_detection_enabled/on_up/on_down/
         on_unreachable, notes, priority, tags, active_checks_enabled, freshness_checks_enabled,
-        freshness_threshold, host_url, notifications_enabled, sla_id, check_period_name,
+        freshness_threshold_seconds, host_url, notifications_enabled, sla_id, check_period_name,
         notify_period_name, check_command_name. name and address have no inheritance concept and
         reject null. hosttemplate_name is changeable but never null, a host always referencing
         exactly one host template; changing it re-diffs every untouched field against the new
@@ -60,14 +61,13 @@ def register(mcp: FastMCP, deps: Deps) -> None:
         hostgroup_names: independent of the above, REPLACES the full set if given (not additive); null
         drops it back to inherited from the hosttemplate.
 
-        container_name moves the host to a different container. Every cross-reference the host
-        holds - hosttemplate_name, check_period_name, notify_period_name, contact_names,
-        contactgroup_names, hostgroup_names - is then re-validated against the new container's
-        scope, including references not touched in the call. openITCOCKPIT performs no such check
-        itself, so a host moved to a tenant that cannot see its current host template would
-        otherwise keep a dangling reference. A reference invalid in the new container rejects the
-        call, and must be set to a valid value in the same call. Omitting container_name updates
-        the host in place; references are still validated against the current scope.
+        container_name moves the host to another container. Every cross-reference it holds -
+        hosttemplate_name, check_period_name, notify_period_name, contact_names, contactgroup_names,
+        hostgroup_names - is re-validated against the new container, including the ones the call
+        does not touch: openITCOCKPIT does not check this itself, so a host moved to a tenant that
+        cannot see its host template would keep a dangling reference. An invalid reference rejects
+        the call and has to be given a valid value in the same call. Without container_name the host
+        stays where it is, and references are checked against its current scope.
 
         Not re-validated on a container change, openITCOCKPIT exposing no scope-listing endpoint
         for either: parent host references and the host's additional "shared into" containers
@@ -80,6 +80,7 @@ def register(mcp: FastMCP, deps: Deps) -> None:
         fields = fields or {}
         allowed_keys = HOST_ALL_FIELD_KEYS | {"hosttemplate_name", "name", "address"}
         reject_unknown_fields(fields, allowed_keys)
+        fields = with_units(fields)
         for required_key in ("hosttemplate_name", "name", "address"):
             if required_key in fields and fields[required_key] is None:
                 raise ValueError(f"'{required_key}' cannot be reset to null.")

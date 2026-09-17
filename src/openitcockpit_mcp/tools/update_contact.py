@@ -33,34 +33,27 @@ def register(mcp: FastMCP, deps: Deps) -> None:
 
     @mcp.tool(title="Update Contact", annotations=ANNOTATIONS)
     def update_contact(name: str, fields: Fields = None) -> dict:
-        """Update an existing contact, identified by its exact name. Read-modify-write, same as
-        update_service/update_host: fetches the contact's current values, applies only what's in
-        `fields`, resends the whole object. Fields you don't mention are resent unchanged.
+        """Update an existing contact, identified by its exact name. Read-modify-write, like
+        update_service and update_host: it reads the contact, applies `fields` and resends all of
+        it, so a field you leave out keeps what it has.
 
-        Unlike Service/Host, a Contact has no template to inherit from - every field is either set or
-        it isn't, there is no "reset to null/inherited" concept, and none of these fields accept null.
+        A contact has no template, so nothing is inherited and no field accepts null.
 
-        `fields` (all optional):
-        - Plain scalars: description, email, phone, user_id, host_notifications_enabled,
+        `fields`, all optional:
+        - scalars: description, email, phone, user_id, host_notifications_enabled,
           service_notifications_enabled, notify_host_recovery/down/unreachable/flapping/downtime,
           notify_service_recovery/warning/unknown/critical/flapping/downtime,
-          host_push_notifications_enabled, service_push_notifications_enabled. Booleans may be given as
-          true/false or 0/1. At least one of email/phone must remain set after your change - openITCOCKPIT
-          requires it.
-        - name: renames the contact (does not affect identification of already-in-flight calls).
-        - container_names: replaces the full set of containers this contact belongs to. Must be
-          non-empty, a contact always belonging to at least one container, and each must be a
-          Tenant/Location/Node or root. openITCOCKPIT may re-add containers on top of what is sent
-          when a contact group, host template, service template, host or escalation still requires
-          the contact there.
-        - host_timeperiod_name / service_timeperiod_name: must be visible from container_names (the new
-          set if you're also changing it in this call, otherwise the contact's current containers) - never
-          null, always required.
-        - host_command_names / service_command_names: REPLACES the full set (not additive); must be
-          non-empty (at least one of each is always required); global (Commands aren't container-scoped),
-          only checked for existence.
+          host_push_notifications_enabled, service_push_notifications_enabled. Booleans as true/false
+          or 0/1. Email or phone has to stay set.
+        - name renames the contact.
+        - container_names replaces the full set and cannot be empty; openITCOCKPIT may add containers
+          back where a contact group, template, host or escalation still needs the contact.
+        - host_timeperiod_name / service_timeperiod_name are always required and must be visible from
+          those containers.
+        - host_command_names / service_command_names replace the full set, cannot be empty, and are
+          global rather than container-scoped.
 
-        Rejections list the closest matching names in scope and the total count of valid values.
+        A rejection names the closest valid values in scope.
         """
         fields = fields or {}
         reject_unknown_fields(fields, CONTACT_ALL_FIELD_KEYS)

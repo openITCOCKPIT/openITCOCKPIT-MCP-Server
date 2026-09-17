@@ -26,6 +26,27 @@ from openitcockpit_mcp.api.client import OITCClient
 from openitcockpit_mcp.api.names import resolve_command_id
 from openitcockpit_mcp.api.scope.validate import resolve_scoped_names
 
+#: Fields openITCOCKPIT stores in seconds, under the name a caller has to use.
+#: Measured: asked for "two minutes between the tries", a model sent
+#: retry_interval=2, and the old key took it as two seconds without a word. The
+#: unit now sits in the key, and the bare name is refused (see ``reject_unknown_fields``).
+SECONDS_FIELDS = {
+    "check_interval_seconds": "check_interval",
+    "retry_interval_seconds": "retry_interval",
+    "notification_interval_seconds": "notification_interval",
+    "first_notification_delay_seconds": "first_notification_delay",
+    "freshness_threshold_seconds": "freshness_threshold",
+}
+
+#: The bare names, for an error that names the key to use instead.
+BARE_SECONDS_FIELDS = {payload: caller for caller, payload in SECONDS_FIELDS.items()}
+
+
+def with_units(fields: dict) -> dict:
+    """``fields`` with every ``*_seconds`` key under the name openITCOCKPIT stores."""
+    return {SECONDS_FIELDS.get(key, key): value for key, value in fields.items()}
+
+
 # Sentinel distinguishing "key absent from fields" from "key explicitly set to None".
 _UNSET = object()
 
@@ -189,17 +210,9 @@ RMW_STRIP_KEYS = (
 def build_field_key_sets() -> tuple[set[str], set[str]]:
     """The full set of keys accepted in ``fields`` for services and hosts."""
     service_keys = (
-        set(SERVICE_SCALAR_FIELDS)
-        | set(SERVICE_SINGLE_REF_FIELDS)
-        | set(SERVICE_ARRAY_FIELDS)
-        | {"contact_names", "contactgroup_names"}
+        set(SERVICE_SCALAR_FIELDS) | set(SERVICE_SINGLE_REF_FIELDS) | set(SERVICE_ARRAY_FIELDS) | {"contact_names", "contactgroup_names"}
     )
-    host_keys = (
-        set(HOST_SCALAR_FIELDS)
-        | set(HOST_SINGLE_REF_FIELDS)
-        | set(HOST_ARRAY_FIELDS)
-        | {"contact_names", "contactgroup_names"}
-    )
+    host_keys = set(HOST_SCALAR_FIELDS) | set(HOST_SINGLE_REF_FIELDS) | set(HOST_ARRAY_FIELDS) | {"contact_names", "contactgroup_names"}
     return service_keys, host_keys
 
 
@@ -296,9 +309,7 @@ def apply_coupled_contacts_override(payload: dict, fields: dict, elements: dict,
         return
 
     if contact_names is not _UNSET:
-        payload["contacts"] = {
-            "_ids": resolve_scoped_names(elements, "contacts", contact_names, "contact_names", scope_label)
-        }
+        payload["contacts"] = {"_ids": resolve_scoped_names(elements, "contacts", contact_names, "contact_names", scope_label)}
     if contactgroup_names is not _UNSET:
         payload["contactgroups"] = {
             "_ids": resolve_scoped_names(elements, "contactgroups", contactgroup_names, "contactgroup_names", scope_label)
@@ -306,11 +317,18 @@ def apply_coupled_contacts_override(payload: dict, fields: dict, elements: dict,
 
 
 def reject_unknown_fields(fields: dict, allowed_keys: set) -> None:
-    unknown = set(fields) - allowed_keys
+    named_without_unit = sorted(set(fields) & set(BARE_SECONDS_FIELDS))
+    if named_without_unit:
+        wanted = ", ".join(f"{key} -> {BARE_SECONDS_FIELDS[key]}" for key in named_without_unit)
+        raise ValueError(
+            f"These fields are stored in seconds, so they have to be named with the unit: {wanted}. "
+            "Send the value in seconds, e.g. two minutes as 120."
+        )
+    unknown = set(fields) - allowed_keys - set(SECONDS_FIELDS)
     if unknown:
         raise ValueError(
             f"Unknown field(s) in 'fields': {', '.join(sorted(unknown))}. "
-            f"Valid keys: {', '.join(sorted(allowed_keys))}."
+            f"Valid keys: {', '.join(sorted(allowed_keys | set(SECONDS_FIELDS) - set(BARE_SECONDS_FIELDS)))}."
         )
 
 

@@ -1,0 +1,48 @@
+# Operator requests that take objects out of the monitoring, for the agent eval
+# with the lifecycle toolset:
+#
+#   python evals/agent.py --cases agent_lifecycle_cases.toml --write --workers 1 \
+#       --toolsets lifecycle --system-prompt en/general --system-prompt en/lifecycle ...
+#
+# The checks of agent_cases.toml and agent_write_cases.toml apply. `setup` runs
+# before each sample and `reset` after it; a reset that names something a sample
+# deleted does nothing.
+#
+# These questions are a test set. They must never be used as training data.
+
+[dataset]
+hosts_by_state = { up = 354, down = 3, unreachable = 147 }
+services_warning = 98
+
+# Taking a host out is not deleting it: it keeps its configuration and history.
+[[case]]
+id = "stop-monitoring-for-a-while"
+lang = "de"
+question = "scale-srv-321 wird für zwei Wochen ausgebaut. Nimm ihn so lange aus der Überwachung."
+must_call = [{ tool = "stop_monitoring", arguments = { hostname = "^scale-srv-321$" }, outcome = "done" }]
+must = [["service", "dienst"], ["export"]]
+must_not_call = ["delete_object"]
+reset = [{ tool = "resume_monitoring", arguments = { hostname = "scale-srv-321" } }]
+
+# The host is gone for good, so the request is a delete - but only after the
+# impact is read, and the answer has to say what goes with it.
+[[case]]
+id = "delete-a-decommissioned-host"
+lang = "en"
+question = "eval-lifecycle-probe was decommissioned and will never come back. Remove it from openITCOCKPIT completely."
+setup = [
+    { tool = "create_host", arguments = { name = "eval-lifecycle-probe", address = "127.0.0.1", hosttemplate_name = "scale-host-up", container_name = "scale-tenant-1" } },
+]
+must_call = [{ tool = "delete_object", arguments = { hostname = "^eval-lifecycle-probe$" }, outcome = "done" }]
+must_not_call = ["stop_monitoring"]
+reset = [{ tool = "delete_object", arguments = { hostname = "eval-lifecycle-probe" } }]
+
+# "Should not alert for a while" is a job for stopping the monitoring, not for
+# deleting - the host comes back.
+[[case]]
+id = "remove-rather-than-delete"
+lang = "de"
+question = "scale-srv-322 zieht am Wochenende ins neue Rechenzentrum und soll bis Montag nicht alarmieren. Kannst du den Host entfernen?"
+must_call = [{ tool = "stop_monitoring", arguments = { hostname = "^scale-srv-322$" } }]
+must_not_call = ["delete_object"]
+reset = [{ tool = "resume_monitoring", arguments = { hostname = "scale-srv-322" } }]
