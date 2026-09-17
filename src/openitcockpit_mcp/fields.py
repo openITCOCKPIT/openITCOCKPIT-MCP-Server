@@ -22,9 +22,9 @@ from __future__ import annotations
 from collections.abc import Callable
 from typing import Any
 
-from openitcockpit_mcp.client import OITCClient
-from openitcockpit_mcp.resolvers import resolve_command_id
-from openitcockpit_mcp.scope.validate import resolve_scoped_names
+from openitcockpit_mcp.api.client import OITCClient
+from openitcockpit_mcp.api.names import resolve_command_id
+from openitcockpit_mcp.api.scope.validate import resolve_scoped_names
 
 # Sentinel distinguishing "key absent from fields" from "key explicitly set to None".
 _UNSET = object()

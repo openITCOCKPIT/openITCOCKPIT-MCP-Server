@@ -1,0 +1,47 @@
+{
+  "_meta": {
+    "fastmcp": {
+      "tags": []
+    }
+  },
+  "annotations": {
+    "destructiveHint": false,
+    "idempotentHint": false,
+    "openWorldHint": true,
+    "readOnlyHint": false
+  },
+  "description": "Create a new contact group containing the given contacts (by exact contact name). At least one contact is required. parent_container_name must be a Tenant/Location/Node (or the root) container, and every contact_names entry must be visible from that container's scope - use get_allowed_elements_for_container(object_type=\"contactgroup\", container_name=...) to see which contacts qualify.",
+  "inputSchema": {
+    "additionalProperties": false,
+    "properties": {
+      "contact_names": {
+        "items": {},
+        "type": "array"
+      },
+      "description": {
+        "default": "",
+        "description": "Free-text description. Optional.",
+        "type": "string"
+      },
+      "name": {
+        "type": "string"
+      },
+      "parent_container_name": {
+        "default": "",
+        "description": "Parent container: a Tenant, Location, Node or the root. Empty means the root.",
+        "type": "string"
+      }
+    },
+    "required": [
+      "name",
+      "contact_names"
+    ],
+    "type": "object"
+  },
+  "name": "create_contactgroup",
+  "outputSchema": {
+    "additionalProperties": true,
+    "type": "object"
+  },
+  "title": "Create Contact Group"
+}

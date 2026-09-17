@@ -1,0 +1,72 @@
+{
+  "_meta": {
+    "fastmcp": {
+      "tags": []
+    }
+  },
+  "annotations": {
+    "destructiveHint": false,
+    "idempotentHint": true,
+    "openWorldHint": true,
+    "readOnlyHint": true
+  },
+  "description": "List host groups with their name and description. Use this to find a group's exact name before filtering hosts or services by it.",
+  "inputSchema": {
+    "additionalProperties": false,
+    "properties": {
+      "limit": {
+        "anyOf": [
+          {
+            "maximum": 500,
+            "minimum": 1,
+            "type": "integer"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "description": "Maximum rows to return. Defaults to 50, maximum 500."
+      }
+    },
+    "type": "object"
+  },
+  "name": "list_hostgroups",
+  "outputSchema": {
+    "description": "Rows plus enough context to know whether they are all of them.",
+    "properties": {
+      "count": {
+        "description": "Number of rows in `items`.",
+        "type": "integer"
+      },
+      "hint": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "description": "How to narrow the query when truncated."
+      },
+      "items": {
+        "description": "The rows, at most `limit` of them.",
+        "items": {},
+        "type": "array"
+      },
+      "truncated": {
+        "description": "True if openITCOCKPIT held more rows than were returned.",
+        "type": "boolean"
+      }
+    },
+    "required": [
+      "items",
+      "count",
+      "truncated"
+    ],
+    "type": "object"
+  },
+  "title": "Host Groups"
+}

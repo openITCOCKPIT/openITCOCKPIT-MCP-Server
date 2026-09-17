@@ -1,6 +1,6 @@
 # Read tools
 
-The 24 read-only tools, always registered. Signatures show defaults; every
+The read-only tools, always registered; `get_allowed_elements_for_container`, also read-only, is described with the write tools it serves. Signatures show defaults; every
 argument without one is required.
 
 ## What a result looks like

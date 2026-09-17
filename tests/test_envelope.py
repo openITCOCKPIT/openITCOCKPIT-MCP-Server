@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from openitcockpit_mcp.tools.envelope import (
+from openitcockpit_mcp.tools.support.results import (
     DEFAULT_LIMIT,
     MAX_LIMIT,
     build_result,

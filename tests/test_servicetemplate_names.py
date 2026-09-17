@@ -5,8 +5,8 @@ from __future__ import annotations
 import pytest
 import responses
 
-from openitcockpit_mcp.scope.definitions import CONTAINER_SCOPE_CONFIGS, LEGAL_CONTAINER_ENDPOINTS
-from openitcockpit_mcp.tools.write.servicetemplate_names import (
+from openitcockpit_mcp.api.scope.definitions import CONTAINER_SCOPE_CONFIGS, LEGAL_CONTAINER_ENDPOINTS
+from openitcockpit_mcp.tools.support.servicetemplate_names import (
     resolve_servicetemplate,
     resolve_servicetemplates,
 )

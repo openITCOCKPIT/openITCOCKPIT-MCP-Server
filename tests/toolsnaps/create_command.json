@@ -1,0 +1,52 @@
+{
+  "_meta": {
+    "fastmcp": {
+      "tags": []
+    }
+  },
+  "annotations": {
+    "destructiveHint": false,
+    "idempotentHint": false,
+    "openWorldHint": true,
+    "readOnlyHint": false
+  },
+  "description": "Create a new monitoring command. command_type must be one of: check, hostcheck, notification, eventhandler.",
+  "inputSchema": {
+    "additionalProperties": false,
+    "properties": {
+      "command_line": {
+        "type": "string"
+      },
+      "command_type": {
+        "description": "Kind of command to create. Required.",
+        "enum": [
+          "check",
+          "hostcheck",
+          "notification",
+          "eventhandler"
+        ],
+        "type": "string"
+      },
+      "description": {
+        "default": "",
+        "description": "Free-text description. Optional.",
+        "type": "string"
+      },
+      "name": {
+        "type": "string"
+      }
+    },
+    "required": [
+      "name",
+      "command_line",
+      "command_type"
+    ],
+    "type": "object"
+  },
+  "name": "create_command",
+  "outputSchema": {
+    "additionalProperties": true,
+    "type": "object"
+  },
+  "title": "Create Command"
+}

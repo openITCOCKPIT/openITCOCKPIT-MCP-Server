@@ -4,6 +4,14 @@ Notable changes to the openITCOCKPIT MCP Server. Versions follow `MCP_VERSION`,
 this server's semver, which is also the image tag. See
 [Versioning](README.md#versioning).
 
+## Unreleased
+
+### Changed
+
+- `get_allowed_elements_for_container` is available without
+  `OITC_ENABLE_WRITE_TOOLS`. Whether a tool is registered follows its
+  `readOnlyHint`, and this tool only reads. 25 tools without write tools, 39 with.
+
 ## 0.4.0 - 2026-09-16
 
 ### Added

@@ -4,7 +4,7 @@ import os
 
 import pytest
 
-from openitcockpit_mcp.client import OITCClient
+from openitcockpit_mcp.api.client import OITCClient
 from openitcockpit_mcp.config import Settings
 
 BASE_URL = "https://oitc.example.test"

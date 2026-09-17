@@ -1,0 +1,51 @@
+{
+  "_meta": {
+    "fastmcp": {
+      "tags": []
+    }
+  },
+  "annotations": {
+    "destructiveHint": true,
+    "idempotentHint": true,
+    "openWorldHint": true,
+    "readOnlyHint": false
+  },
+  "description": "Update an existing service. Identifies the service by (hostname, servicename), not a raw id.\n\nRead-modify-write, not a partial PATCH: openITCOCKPIT's edit endpoint expects the complete\nservice object on every save, and a partial payload blanks every omitted field. This tool\nfetches the service's current effective values, applies `fields` on top, and resends the\nwhole object. Fields absent from `fields` are resent unchanged.\n\nInheritance is preserved automatically. On every save the backend re-derives whether each\nvalue still equals its servicetemplate's value: matching values are stored as inherited\n(null), differing ones as this service's own override. Resending an unchanged effective\nvalue therefore does not create an override.\n\nChanging servicetemplate_name re-diffs every field not also changed in the same call\nagainst the new template: fields still matching become inherited, others become\noverrides. The new template's values are not adopted wholesale.\n\nTo reset a single field to \"inherited from servicetemplate\", set it to null in `fields`\n(e.g. {\"check_interval\": null}). Omitting it keeps whatever it currently resolves to; null\nforces inheritance even when the current value is an explicit override. Applies to\ncheck_interval, retry_interval, max_check_attempts,\nfirst_notification_delay, notification_interval, notify_on_*, flap_detection_*, low/high_flap_\nthreshold, process_performance_data, freshness_checks_enabled, freshness_threshold,\npassive_checks_enabled, event_handler_enabled, active_checks_enabled, retain_status_information,\nretain_nonstatus_information, notifications_enabled, notes, priority, tags, service_url,\nis_volatile, sla_relevant, check_period_name, notify_period_name, check_command_name,\neventhandler_command_name. name and description have no inheritance concept, their\ntemplate-name fallback being applied server-side; null is rejected by validation.\n\ncontact_names/contactgroup_names: openITCOCKPIT inherits contacts and contact groups only as\na pair, a naemon-core limitation. Pass both as null to reset both to inherited, or real name\nlists to replace the full set. Setting one to null while giving the other a value is\nrejected; openITCOCKPIT cannot represent that state.\n\nservicegroup_names: independent of the above, REPLACES the full set if given (not additive); null\ndrops it back to inherited from the servicetemplate.\n\nservicetemplate_name: changeable, but never null - a service must always reference exactly one\nservice template.\n\nAll cross-references (servicetemplate_name, check_period_name, notify_period_name,\ncontact_names, contactgroup_names, servicegroup_names) must be visible from the host's own scope;\ncheck_command_name/eventhandler_command_name are global (Commands aren't container-scoped) and\nonly checked for existence. Rejections list the closest matching names in scope and the total\ncount of valid values.",
+  "inputSchema": {
+    "additionalProperties": false,
+    "properties": {
+      "fields": {
+        "anyOf": [
+          {
+            "additionalProperties": true,
+            "type": "object"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "description": "Only the fields to change. Omitted fields keep their current value; null resets a field to inherited where inheritance applies. Array fields replace rather than append."
+      },
+      "hostname": {
+        "description": "Exact host name. Required - there is no estate-wide form of this tool. Get a name from list_services_by_state, list_log_entries or get_container_tree first.",
+        "type": "string"
+      },
+      "servicename": {
+        "description": "Exact service name on that host. Required. get_host_info lists the services of a host, and list_services_by_state reports host and service together.",
+        "type": "string"
+      }
+    },
+    "required": [
+      "hostname",
+      "servicename"
+    ],
+    "type": "object"
+  },
+  "name": "update_service",
+  "outputSchema": {
+    "additionalProperties": true,
+    "type": "object"
+  },
+  "title": "Update Service"
+}

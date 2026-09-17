@@ -1,0 +1,79 @@
+{
+  "_meta": {
+    "fastmcp": {
+      "tags": []
+    }
+  },
+  "annotations": {
+    "destructiveHint": false,
+    "idempotentHint": true,
+    "openWorldHint": true,
+    "readOnlyHint": true
+  },
+  "description": "Acknowledgement history for one host: who acknowledged a problem, when, and with what comment.\n\nPer host only - openITCOCKPIT exposes no estate-wide acknowledgement list. To find out\nwhether current problems are already handled, take the hosts from\nlist_services_by_state and call this for each one.",
+  "inputSchema": {
+    "additionalProperties": false,
+    "properties": {
+      "hostname": {
+        "description": "Exact host name. Required - there is no estate-wide form of this tool. Get a name from list_services_by_state, list_log_entries or get_container_tree first.",
+        "type": "string"
+      },
+      "limit": {
+        "anyOf": [
+          {
+            "maximum": 500,
+            "minimum": 1,
+            "type": "integer"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "description": "Maximum rows to return. Defaults to 50, maximum 500."
+      }
+    },
+    "required": [
+      "hostname"
+    ],
+    "type": "object"
+  },
+  "name": "list_host_acknowledgements",
+  "outputSchema": {
+    "description": "Rows plus enough context to know whether they are all of them.",
+    "properties": {
+      "count": {
+        "description": "Number of rows in `items`.",
+        "type": "integer"
+      },
+      "hint": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "description": "How to narrow the query when truncated."
+      },
+      "items": {
+        "description": "The rows, at most `limit` of them.",
+        "items": {},
+        "type": "array"
+      },
+      "truncated": {
+        "description": "True if openITCOCKPIT held more rows than were returned.",
+        "type": "boolean"
+      }
+    },
+    "required": [
+      "items",
+      "count",
+      "truncated"
+    ],
+    "type": "object"
+  },
+  "title": "Host Acknowledgements"
+}

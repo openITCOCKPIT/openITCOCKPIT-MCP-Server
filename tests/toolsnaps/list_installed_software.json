@@ -1,0 +1,88 @@
+{
+  "_meta": {
+    "fastmcp": {
+      "tags": []
+    }
+  },
+  "annotations": {
+    "destructiveHint": false,
+    "idempotentHint": true,
+    "openWorldHint": true,
+    "readOnlyHint": true
+  },
+  "description": "Software installed on a host, from the openITCOCKPIT agent's inventory. OS is auto-detected (Linux, Windows, macOS).\n\nA host carries hundreds to thousands of packages. Pass name_filter to search by\npackage name, or only_updatable=True for just the outdated ones. For updates across\nthe whole estate use list_pending_updates or list_pending_security_updates.\n\nA host with no agent inventory at all raises, rather than returning zero rows.",
+  "inputSchema": {
+    "additionalProperties": false,
+    "properties": {
+      "hostname": {
+        "description": "Exact host name. Required - there is no estate-wide form of this tool. Get a name from list_services_by_state, list_log_entries or get_container_tree first.",
+        "type": "string"
+      },
+      "limit": {
+        "anyOf": [
+          {
+            "maximum": 500,
+            "minimum": 1,
+            "type": "integer"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "description": "Maximum rows to return. Defaults to 50, maximum 500."
+      },
+      "name_filter": {
+        "default": "",
+        "description": "Substring to search for in the name. Empty returns everything, capped by limit.",
+        "type": "string"
+      },
+      "only_updatable": {
+        "default": false,
+        "type": "boolean"
+      }
+    },
+    "required": [
+      "hostname"
+    ],
+    "type": "object"
+  },
+  "name": "list_installed_software",
+  "outputSchema": {
+    "description": "Rows plus enough context to know whether they are all of them.",
+    "properties": {
+      "count": {
+        "description": "Number of rows in `items`.",
+        "type": "integer"
+      },
+      "hint": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "description": "How to narrow the query when truncated."
+      },
+      "items": {
+        "description": "The rows, at most `limit` of them.",
+        "items": {},
+        "type": "array"
+      },
+      "truncated": {
+        "description": "True if openITCOCKPIT held more rows than were returned.",
+        "type": "boolean"
+      }
+    },
+    "required": [
+      "items",
+      "count",
+      "truncated"
+    ],
+    "type": "object"
+  },
+  "title": "Installed Software"
+}

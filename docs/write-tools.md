@@ -1,12 +1,13 @@
 # Write tools
 
-The 15 write tools, and the two openITCOCKPIT behaviours that decide what they
+The 14 write tools, the read-only helper they rely on, and the two openITCOCKPIT behaviours that decide what they
 actually do: cross-references are scoped to a container, and the edit endpoints
 want the whole object on every save.
 
 > [!IMPORTANT]
 > These change your monitoring configuration. They are not registered at all
-> unless `OITC_ENABLE_WRITE_TOOLS=true`.
+> unless `OITC_ENABLE_WRITE_TOOLS=true`. `get_allowed_elements_for_container`
+> only reads and is always registered.
 
 ## The tools
 

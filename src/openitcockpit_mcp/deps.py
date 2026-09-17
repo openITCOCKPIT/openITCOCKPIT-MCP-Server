@@ -8,9 +8,9 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
-from openitcockpit_mcp.client import OITCClient
+from openitcockpit_mcp.api.client import OITCClient
+from openitcockpit_mcp.api.scope import ScopeService
 from openitcockpit_mcp.config import Settings
-from openitcockpit_mcp.scope import ScopeService
 
 
 @dataclass(frozen=True)

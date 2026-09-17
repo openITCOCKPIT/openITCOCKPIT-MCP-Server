@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import pytest
 
-from openitcockpit_mcp.errors import OITCUnreachableError, require_success, require_write_success
+from openitcockpit_mcp.api.errors import OITCUnreachableError, require_success, require_write_success
 
 
 def test_200_passes():

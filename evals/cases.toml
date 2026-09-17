@@ -1,0 +1,330 @@
+# Operator questions for the tool-selection eval.
+#
+# Each case states which tool a model should call FIRST, for two surfaces:
+#   current - the tools this server registers today
+#   target  - the reorganised tool surface (see docs/tool-design.md)
+# `tools = []` means the surface has no tool for the task. `args` lists the
+# arguments that must be present with these values (strings compare
+# case-insensitively; "a.b" addresses a nested key).
+#
+# These questions are a test set. They must never be used as training data.
+
+[[case]]
+id = "triage-broken-now"
+task = "triage"
+lang = "de"
+question = "Was ist gerade kaputt?"
+expect.current = { tools = ["list_services_by_state"], args = { state = "critical" } }
+expect.target = { tools = ["get_problem_overview"] }
+
+[[case]]
+id = "triage-critical-services"
+task = "triage"
+lang = "en"
+question = "Which services are critical right now?"
+expect.current = { tools = ["list_services_by_state"], args = { state = "critical" } }
+expect.target = { tools = ["find_services", "get_problem_overview"] }
+
+[[case]]
+id = "triage-unknown-services"
+task = "triage"
+lang = "de"
+question = "Welche Services sind gerade im Zustand unknown?"
+expect.current = { tools = ["list_services_by_state"], args = { state = "unknown" } }
+expect.target = { tools = ["find_services"], args = { state = "unknown" } }
+
+[[case]]
+id = "triage-root-cause-overview"
+task = "triage"
+lang = "de"
+question = "Gib mir eine Übersicht: was ist kaputt und was davon ist nur ein Folgefehler?"
+expect.current = { tools = [] }
+expect.target = { tools = ["get_problem_overview"] }
+
+[[case]]
+id = "triage-engine-health"
+task = "triage"
+lang = "en"
+question = "Lots of unrelated checks fail at once. Is the monitoring engine itself healthy?"
+expect.current = { tools = ["get_monitoring_engine_stats"] }
+expect.target = { tools = ["get_problem_overview"] }
+
+[[case]]
+id = "health-host"
+task = "health"
+lang = "de"
+question = "Wie geht es dem Host web01?"
+expect.current = { tools = ["get_host_info"], args = { hostname = "web01" } }
+expect.target = { tools = ["get_host_health"], args = { hostname = "web01" } }
+
+[[case]]
+id = "health-host-last-day"
+task = "health"
+lang = "en"
+question = "What happened on host web01 in the last 24 hours?"
+expect.current = { tools = ["list_host_state_changes", "get_host_info"], args = { hostname = "web01" } }
+expect.target = { tools = ["get_host_health", "get_host_history"], args = { hostname = "web01" } }
+
+[[case]]
+id = "health-acknowledged"
+task = "health"
+lang = "de"
+question = "Ist das Problem auf dem Host db01 schon quittiert?"
+expect.current = { tools = ["list_host_acknowledgements"], args = { hostname = "db01" } }
+expect.target = { tools = ["get_host_health"], args = { hostname = "db01" } }
+
+[[case]]
+id = "history-state-changes"
+task = "history"
+lang = "en"
+question = "Show the state changes of the service Ping on web01 in the last 6 hours."
+expect.current = { tools = ["list_service_state_changes"], args = { hostname = "web01", servicename = "Ping", hours = 6 } }
+expect.target = { tools = ["get_service_history"], args = { hostname = "web01", servicename = "Ping" } }
+
+[[case]]
+id = "history-last-checks"
+task = "history"
+lang = "de"
+question = "Zeig mir die letzten Check-Ergebnisse vom Service Ping auf web01."
+expect.current = { tools = ["list_service_checks"], args = { hostname = "web01", servicename = "Ping" } }
+expect.target = { tools = ["get_service_history"], args = { hostname = "web01", servicename = "Ping" } }
+
+[[case]]
+id = "history-downtimes-host"
+task = "history"
+lang = "de"
+question = "Welche Downtimes gibt es gerade für web01?"
+expect.current = { tools = ["list_host_downtimes"], args = { hostname = "web01" } }
+expect.target = { tools = ["find_downtimes"], args = { hostname = "web01" } }
+
+[[case]]
+id = "investigate-failing-http"
+task = "investigate"
+lang = "en"
+question = "Why has the HTTP check on shop01 been failing since this morning?"
+expect.current = { tools = ["list_service_state_changes", "list_service_checks"], args = { hostname = "shop01", servicename = "HTTP" } }
+expect.target = { tools = ["investigate_problem"], args = { hostname = "shop01", servicename = "HTTP" } }
+
+[[case]]
+id = "shift-summary"
+task = "shift"
+lang = "de"
+question = "Ich übernehme die Schicht. Was ist in den letzten 8 Stunden passiert?"
+expect.current = { tools = ["list_log_entries"], args = { hours = 8 } }
+expect.target = { tools = ["get_shift_summary"] }
+
+[[case]]
+id = "search-hosts-down"
+task = "search"
+lang = "en"
+question = "List all hosts that are down."
+expect.current = { tools = [] }
+expect.target = { tools = ["find_hosts", "get_problem_overview"] }
+
+[[case]]
+id = "search-hosts-in-tenant"
+task = "search"
+lang = "de"
+question = "Welche Hosts gibt es im Mandanten 'Kunde A'?"
+expect.current = { tools = ["get_container_tree"], args = { container_name = "Kunde A" } }
+expect.target = { tools = ["find_hosts"] }
+
+[[case]]
+id = "search-services-by-name-and-state"
+task = "search"
+lang = "de"
+question = "Finde alle Services mit 'Disk' im Namen, die gerade warning sind."
+expect.current = { tools = ["list_services_by_state"], args = { state = "warning" } }
+expect.target = { tools = ["find_services"], args = { state = "warning" } }
+
+[[case]]
+id = "noise-flapping"
+task = "noise"
+lang = "de"
+question = "Welche Checks flattern ständig?"
+expect.current = { tools = [] }
+expect.target = { tools = ["find_noisy_checks"] }
+
+[[case]]
+id = "noise-most-notifications"
+task = "noise"
+lang = "en"
+question = "Which services sent the most notifications this week?"
+expect.current = { tools = [] }
+expect.target = { tools = ["find_noisy_checks"] }
+
+[[case]]
+id = "notification-missing"
+task = "notification"
+lang = "de"
+question = "Warum habe ich für den Service Backup auf nas01 gestern keine Mail bekommen?"
+expect.current = { tools = [] }
+expect.target = { tools = ["explain_notification"], args = { hostname = "nas01", servicename = "Backup" } }
+
+[[case]]
+id = "maintenance-host-with-services"
+task = "maintenance"
+lang = "de"
+question = "Setz für web01 heute von 22 bis 2 Uhr eine Wartung, inklusive aller Services."
+expect.current = { tools = [] }
+expect.target = { tools = ["schedule_host_downtime"], args = { hostname = "web01" } }
+
+[[case]]
+id = "maintenance-hostgroup"
+task = "maintenance"
+lang = "en"
+question = "Put the host group linux-prod into maintenance for the next 2 hours."
+expect.current = { tools = [] }
+expect.target = { tools = ["schedule_group_downtime"] }
+
+[[case]]
+id = "maintenance-cancel"
+task = "maintenance"
+lang = "de"
+question = "Heb die laufende Downtime von db01 wieder auf."
+expect.current = { tools = [] }
+expect.target = { tools = ["find_downtimes", "cancel_downtime"] }
+
+[[case]]
+id = "operations-acknowledge"
+task = "operations"
+lang = "en"
+question = "Acknowledge the critical Disk problem on db01, I'm working on it."
+expect.current = { tools = [] }
+expect.target = { tools = ["acknowledge_service_problem"], args = { hostname = "db01" } }
+
+[[case]]
+id = "operations-recheck"
+task = "operations"
+lang = "de"
+question = "Prüf den Service Ping auf web01 sofort noch einmal."
+expect.current = { tools = [] }
+expect.target = { tools = ["reschedule_check"], args = { hostname = "web01" } }
+
+[[case]]
+id = "onboarding-create-host"
+task = "onboarding"
+lang = "de"
+question = "Lege den Host web05 mit der IP 10.0.0.5 im Container 'Kunde A' mit der Vorlage 'default host' an."
+expect.current = { tools = ["create_host", "get_allowed_elements_for_container"] }
+expect.target = { tools = ["create_host", "get_allowed_elements_for_container"] }
+
+[[case]]
+id = "onboarding-add-service"
+task = "onboarding"
+lang = "en"
+question = "Add a service from the template 'Ping' to host web05."
+expect.current = { tools = ["create_service"], args = { hostname = "web05", servicetemplate_name = "Ping" } }
+expect.target = { tools = ["create_service"], args = { hostname = "web05" } }
+
+[[case]]
+id = "onboarding-allowed-templates"
+task = "onboarding"
+lang = "en"
+question = "Which host templates may I use in the container 'Kunde A'?"
+expect.current = { tools = ["get_allowed_elements_for_container"], args = { container_name = "Kunde A" } }
+expect.target = { tools = ["get_allowed_elements_for_container"], args = { container_name = "Kunde A" } }
+
+[[case]]
+id = "config-check-interval"
+task = "config"
+lang = "de"
+question = "Setze beim Host web05 das Check-Intervall auf 60 Sekunden."
+expect.current = { tools = ["update_host"], args = { hostname = "web05", "fields.check_interval" = 60 } }
+expect.target = { tools = ["update_host"], args = { hostname = "web05", check_interval = 60 } }
+
+[[case]]
+id = "config-list-hosttemplates"
+task = "config"
+lang = "en"
+question = "Which host templates exist?"
+expect.current = { tools = ["list_hosttemplates"] }
+expect.target = { tools = ["list_catalog"] }
+
+[[case]]
+id = "config-list-contacts"
+task = "config"
+lang = "de"
+question = "Welche Kontakte sind angelegt?"
+expect.current = { tools = ["list_contacts"] }
+expect.target = { tools = ["list_catalog"] }
+
+[[case]]
+id = "config-containers"
+task = "config"
+lang = "de"
+question = "Welche Container gibt es?"
+expect.current = { tools = ["get_container_tree"] }
+expect.target = { tools = ["get_container_tree"] }
+
+[[case]]
+id = "impact-before-delete"
+task = "impact"
+lang = "en"
+question = "Can I delete the service template CHECK_HTTP? What still uses it?"
+expect.current = { tools = [] }
+expect.target = { tools = ["get_impact"] }
+
+[[case]]
+id = "lifecycle-deactivate"
+task = "lifecycle"
+lang = "de"
+question = "Deaktiviere den Host old-srv01."
+expect.current = { tools = [] }
+expect.target = { tools = ["deactivate_host"], args = { hostname = "old-srv01" } }
+
+[[case]]
+id = "lifecycle-delete"
+task = "lifecycle"
+lang = "en"
+question = "Delete the host test-vm07."
+expect.current = { tools = [] }
+expect.target = { tools = ["get_impact", "delete_host"] }
+
+[[case]]
+id = "apply-why-not-active"
+task = "apply"
+lang = "en"
+question = "I changed a host an hour ago. Why doesn't the monitoring show the change yet?"
+expect.current = { tools = [] }
+expect.target = { tools = ["get_configuration_status"] }
+
+[[case]]
+id = "apply-export"
+task = "apply"
+lang = "de"
+question = "Übernimm die geänderte Konfiguration jetzt ins Monitoring."
+expect.current = { tools = [] }
+expect.target = { tools = ["get_configuration_status", "apply_configuration"] }
+
+[[case]]
+id = "report-availability"
+task = "reporting"
+lang = "de"
+question = "Wie verfügbar war der Host shop01 im letzten Monat?"
+expect.current = { tools = [] }
+expect.target = { tools = ["get_availability_report"] }
+
+[[case]]
+id = "report-forecast-disk"
+task = "reporting"
+lang = "en"
+question = "When will the disk on db01 be full?"
+expect.current = { tools = [] }
+expect.target = { tools = ["forecast_metric"] }
+
+[[case]]
+id = "patch-security-updates"
+task = "patch"
+lang = "de"
+question = "Welche Hosts haben offene Sicherheitsupdates?"
+expect.current = { tools = ["list_pending_security_updates"] }
+expect.target = { tools = ["find_pending_updates"] }
+
+[[case]]
+id = "patch-installed-version"
+task = "patch"
+lang = "en"
+question = "Is nginx installed on web01, and in which version?"
+expect.current = { tools = ["list_installed_software"], args = { hostname = "web01" } }
+expect.target = { tools = ["get_installed_software"], args = { hostname = "web01" } }

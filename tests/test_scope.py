@@ -3,8 +3,8 @@ from __future__ import annotations
 import pytest
 import responses
 
-from openitcockpit_mcp.scope import ScopeService
-from openitcockpit_mcp.scope.validate import resolve_scoped_names, verify_ids_in_scope
+from openitcockpit_mcp.api.scope import ScopeService
+from openitcockpit_mcp.api.scope.validate import resolve_scoped_names, verify_ids_in_scope
 
 BASE_URL = "https://oitc.example.test"
 

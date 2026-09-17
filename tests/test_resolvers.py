@@ -11,7 +11,7 @@ from __future__ import annotations
 import pytest
 import responses
 
-from openitcockpit_mcp.resolvers import (
+from openitcockpit_mcp.api.names import (
     lookup_servicetemplate_reference_name,
     resolve_host_id,
     resolve_service_id,

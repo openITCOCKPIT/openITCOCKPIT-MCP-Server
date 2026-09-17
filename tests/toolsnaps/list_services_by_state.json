@@ -1,0 +1,85 @@
+{
+  "_meta": {
+    "fastmcp": {
+      "tags": []
+    }
+  },
+  "annotations": {
+    "destructiveHint": false,
+    "idempotentHint": true,
+    "openWorldHint": true,
+    "readOnlyHint": true
+  },
+  "description": "Services currently in a given state. Pass state=\"critical\" for the usual \"what is broken\" question.\n\nBefore reporting an entry as a new incident, check list_service_acknowledgements and\nlist_service_downtimes: a problem already acknowledged or inside a downtime window is\nknown work.",
+  "inputSchema": {
+    "additionalProperties": false,
+    "properties": {
+      "limit": {
+        "anyOf": [
+          {
+            "maximum": 500,
+            "minimum": 1,
+            "type": "integer"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "description": "Maximum rows to return. Defaults to 50, maximum 500."
+      },
+      "state": {
+        "description": "Service state to filter by. Required.",
+        "enum": [
+          "ok",
+          "warning",
+          "critical",
+          "unknown"
+        ],
+        "type": "string"
+      }
+    },
+    "required": [
+      "state"
+    ],
+    "type": "object"
+  },
+  "name": "list_services_by_state",
+  "outputSchema": {
+    "description": "Rows plus enough context to know whether they are all of them.",
+    "properties": {
+      "count": {
+        "description": "Number of rows in `items`.",
+        "type": "integer"
+      },
+      "hint": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "description": "How to narrow the query when truncated."
+      },
+      "items": {
+        "description": "The rows, at most `limit` of them.",
+        "items": {},
+        "type": "array"
+      },
+      "truncated": {
+        "description": "True if openITCOCKPIT held more rows than were returned.",
+        "type": "boolean"
+      }
+    },
+    "required": [
+      "items",
+      "count",
+      "truncated"
+    ],
+    "type": "object"
+  },
+  "title": "Services by State"
+}

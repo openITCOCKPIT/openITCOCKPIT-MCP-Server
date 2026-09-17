@@ -18,7 +18,7 @@ import responses
 from fastmcp import Client
 
 from openitcockpit_mcp.server import create_server
-from openitcockpit_mcp.tools.envelope import ListResult
+from openitcockpit_mcp.tools.support.results import ListResult
 
 BASE_URL = "https://oitc.example.test"
 

@@ -1,0 +1,76 @@
+{
+  "_meta": {
+    "fastmcp": {
+      "tags": []
+    }
+  },
+  "annotations": {
+    "destructiveHint": false,
+    "idempotentHint": true,
+    "openWorldHint": true,
+    "readOnlyHint": true
+  },
+  "description": "Hosts with any pending updates, security or not, with package names and versions.\n\nCovers all updates, not only security ones, and is correspondingly larger. Naming\neach package costs one API request, capped by max_packages_per_host.",
+  "inputSchema": {
+    "additionalProperties": false,
+    "properties": {
+      "limit": {
+        "anyOf": [
+          {
+            "maximum": 500,
+            "minimum": 1,
+            "type": "integer"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "description": "Maximum rows to return. Defaults to 50, maximum 500."
+      },
+      "max_packages_per_host": {
+        "default": 20,
+        "type": "integer"
+      }
+    },
+    "type": "object"
+  },
+  "name": "list_pending_updates",
+  "outputSchema": {
+    "description": "Rows plus enough context to know whether they are all of them.",
+    "properties": {
+      "count": {
+        "description": "Number of rows in `items`.",
+        "type": "integer"
+      },
+      "hint": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "description": "How to narrow the query when truncated."
+      },
+      "items": {
+        "description": "The rows, at most `limit` of them.",
+        "items": {},
+        "type": "array"
+      },
+      "truncated": {
+        "description": "True if openITCOCKPIT held more rows than were returned.",
+        "type": "boolean"
+      }
+    },
+    "required": [
+      "items",
+      "count",
+      "truncated"
+    ],
+    "type": "object"
+  },
+  "title": "Pending Updates"
+}
