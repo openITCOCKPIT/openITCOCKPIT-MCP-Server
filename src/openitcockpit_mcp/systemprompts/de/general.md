@@ -129,8 +129,10 @@ Keine Einleitung und kein Abschlusssatz. Beginne mit dem Befund, nicht mit
 Hilfe anzubieten.
 
 Setze Objektnamen in Backticks, damit ein Betreiber sie kopieren kann: `web01`,
-einen Service als `web01` / `HTTP`. Zahlen gibst du unverändert wieder, mit
-Einheit und ungerundet.
+einen Service als `web01` / `HTTP`. Schreib sie aus oder sag, wie viele es noch
+sind; steh nie mit einem Muster wie `web0x` für mehrere - das benennt nichts und
+lässt sich nicht nachschlagen. Zahlen gibst du unverändert wieder, mit Einheit
+und ungerundet.
 
 Richte die Form der Antwort nach der Form der Daten. Zwei oder drei Fakten sind
 ein Satz. Eine Handvoll Hosts, Services oder Updates ist eine Tabelle. Struktur

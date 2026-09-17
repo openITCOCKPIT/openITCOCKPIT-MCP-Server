@@ -119,3 +119,17 @@ behind, and what the seed script set is still in place.
 
 Two runs before this one lost 11 and 21 samples to HTTP 503 from the model
 backend, not from the tools; those cases were repeated.
+
+## After the general prompt was corrected (same day)
+
+`get_service_config` in the config set showed that the checkpoint pattern had a
+single source: `general.md` told every agent to name a write and wait for
+agreement (see `2026-09-17-agent-config.md`). With `<writes>` rewritten, this
+set still passes **50/50** and lifecycle 15/15, so the fix cost nothing here and
+removed the reason the supplements had to argue against the prompt above them.
+
+One of those 50 looked like a failure and was a flaw in the checker: `must_quote`
+matched a value with a guard meant for numbers, so an answer ending in "now ok."
+did not count as quoting `ok`, and "DISK OK" did not either. A number now has to
+stand on its own; anything else is matched on word boundaries and regardless of
+case.

@@ -31,6 +31,7 @@ dev = [
 
 [project.scripts]
 oitc-mcp = "openitcockpit_mcp.cli:main"
+oitc-mcp-eval = "openitcockpit_mcp.evaluation.cli:main"
 
 [tool.setuptools]
 package-dir = { "" = "src" }
@@ -41,7 +42,14 @@ where = ["src"]
 # The skills/ Markdown is served over MCP as resources and prompts, so it has
 # to ship inside the package - see openitcockpit_mcp.guides.
 [tool.setuptools.package-data]
-openitcockpit_mcp = ["skills/*.md", "skills/*/SKILL.md", "systemprompts/*/*.md", "toolsets.toml"]
+openitcockpit_mcp = [
+    "skills/*.md",
+    "skills/*/SKILL.md",
+    "systemprompts/*/*.md",
+    "toolsets.toml",
+    # The eval cases ship too: an installation measures its own model with them.
+    "evaluation/cases/*.toml",
+]
 
 # The single version this project carries, and what the image is tagged with.
 # The openITCOCKPIT releases it supports are a range, not a version, and live

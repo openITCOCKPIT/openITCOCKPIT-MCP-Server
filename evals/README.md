@@ -1,33 +1,49 @@
 # Evals
 
-Measures whether a model picks the right tool with the right arguments for real
-operator questions. Unit tests show a tool works; this shows a model can use it.
+Two measurements, for two different questions.
 
-- `cases.toml` - the questions, each with the tool expected first for the
-  `current` tool surface and for the reorganised `target` surface
-- `run.py` - sends every question several times per model to an
-  OpenAI-compatible endpoint, with the tool definitions this build registers,
-  and scores the first tool call
-- `agent.py`, `agent_cases.toml` - lets a model answer over several turns, with
-  every tool call running against a live instance holding the scale test dataset
-  (`scripts/seed_scale_dataset.py`), and checks the final answer against what the
-  dataset holds. Checks find missing facts; names the answer invents are listed as
-  unsupported. Wrong added claims still take reading the answers.
-- `results/` - raw results per run (not committed)
-- `baselines/` - summaries that are kept for comparison
+## Can a model do the job? (`oitc-mcp-eval`)
+
+The runner ships with the server; see [docs/evals.md](../docs/evals.md). It asks
+operator questions against a live instance and checks the answers.
+
+The cases here are ours: they are written for the scale test dataset
+(`scripts/seed_scale_dataset.py`) and they are a **test set**. Keep them out of
+anything a model is trained on.
 
 ```bash
-set -a; . ~/.config/oitc-evals/env; set +a      # OITC_EVAL_BASE_URL, OITC_EVAL_API_KEY
-python evals/run.py --surface current --model <model> --samples 5
-python evals/run.py --surface current --model <model> --toolsets triage   # as one instance sees it
+set -a; . ~/.config/oitc-evals/env; set +a          # OITC_EVAL_BASE_URL, OITC_EVAL_API_KEY
+set -a; . ~/.config/oitc-evals/local-stack.env; set +a
+OITC_APIKEY=$OITC_LOCAL_APIKEY OITC_BASEURL=$OITC_LOCAL_BASEURL \
+  oitc-mcp-eval --model h200-heavy-think-01-01 --samples 5 --yes \
+    --toolsets health --system-prompt en/general --system-prompt en/health \
+    --cases evals/agent_cases.toml --results evals/results
 ```
 
-A case names the tools that answer it (`tools`) and may name tools that are a
-sensible first step without being the answer (`also`), such as `list_catalog`
-before filtering by a group. A case counts as covered once this build registers
-one of its tools, so the `target` surface can be measured while it is being built.
+| file | what it covers |
+|---|---|
+| `agent_cases.toml` | reading: overview, search, health, noise, notifications, handover, investigation |
+| `agent_write_cases.toml` | acting: acknowledge, downtimes, check now, impact, configuration export (`--write --toolsets operations`) |
+| `agent_lifecycle_cases.toml` | taking objects out of the monitoring and deleting them (`--write --toolsets lifecycle`) |
+| `agent_config_cases.toml` | changing configuration through `update_*` (`--write --toolsets config`) |
 
-Answers vary between runs of the same prompt, so every question is asked
-several times and rates are reported, never single outcomes.
+Cases that act set the instance up and clean up after themselves, and run one at
+a time. After a run, check the instance: the baselines below note what was
+verified by hand.
 
-**The questions are a test set and must never become training data.**
+## Does a model pick the right tool at all? (`run.py`)
+
+A cheaper measurement that needs no instance: one question, one answer, and the
+first tool call is scored against the tool the question calls for. Useful while
+the tool surface itself is being changed.
+
+```bash
+python evals/run.py --surface current --model <model> --samples 5
+```
+
+## Results
+
+`results/` holds the raw records of our own runs and is not committed;
+`eval-results/runs.sqlite` (or whatever `--results` points at) keeps every run
+for comparison. `baselines/` holds the summaries worth keeping, with what was
+measured and what it changed.

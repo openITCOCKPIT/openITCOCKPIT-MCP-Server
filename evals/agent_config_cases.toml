@@ -9,6 +9,14 @@
 #
 # These questions are a test set. They must never be used as training data.
 
+[instance]
+# What the AiModule appends to the system prompt, so a run sees what the product
+# shows: who is asking, in which zone. The dataset belongs to this admin.
+session_user = "John Doe"
+time_zone = "Europe/Berlin"
+language = "en_US"
+container = "/root"
+
 [dataset]
 hosts_by_state = { up = 354, down = 3, unreachable = 147 }
 services_warning = 98

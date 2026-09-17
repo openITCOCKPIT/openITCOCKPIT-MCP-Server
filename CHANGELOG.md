@@ -6,6 +6,15 @@ this server's semver, which is also the image tag. See
 
 ## Unreleased
 
+### Added
+
+- `oitc-mcp-eval`: measure a model against these tools on your own instance.
+  Ships with cases that check an answer against what the tools returned in the
+  same conversation, so they work anywhere and do not age; keeps every run in
+  `eval-results/runs.sqlite` with `--history` and `--compare` to read it back;
+  `scripts/eval-throwaway.sh` creates an instance for the run and removes it
+  again. See [docs/evals.md](docs/evals.md).
+
 ### Fixed
 
 - `create_hosttemplate` and `create_servicetemplate` enable notifications. The
