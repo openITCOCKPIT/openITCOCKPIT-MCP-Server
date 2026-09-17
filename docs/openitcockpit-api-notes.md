@@ -148,3 +148,35 @@ before critical (2). A list in severity order is read state by state.
 Without a sort, `downtimes/host.json` lists planned downtimes before running
 ones; `sort=DowntimeHosts.scheduled_start_time&direction=asc` puts the running
 ones first.
+
+## Performance data is addressed by two uuids, not by one
+
+`Graphgenerators/getPerfdataByUuid.json` reads `host_uuid` and `service_uuid`,
+despite its name. Given `uuid` it answers 200 with one empty datasource, which
+looks like a service that records nothing rather than a wrong request.
+
+`hours` is a shortcut that overrides `start` and `end`. Each metric of a check
+is its own entry; `data` is a mapping of timestamp to value, ISO 8601 with
+`isoTimestamp=1`. The thresholds come with the datasource as `warn` and `crit`,
+already converted to the unit the values use, and its `setup.scale.type` states
+the direction, `O<W<C` for the usual upper bounds.
+
+## Availability has no endpoint for an arbitrary object and window
+
+`Instantreports/generate` computes it, but only for an `instantreport_id` that
+someone saved first. `Downtimereports/index` is a POST that needs a timeperiod
+with time ranges and answers 400 when no downtime falls in the window, and it
+reports downtimes rather than availability. `Currentstatereports/index` filters
+by the state an object is in *now*.
+
+Availability over a period is therefore computed from `statehistories`, which
+records changes rather than durations: the state a window opens in is the newest
+record *before* it, fetched with `filter[to]` alone.
+
+## Expired downtimes are hidden unless asked for
+
+`downtimes/host.json` and `downtimes/service.json` default to
+`filter[hideExpired]=true`. Measured on the scale dataset: 29 rows with it, 132
+without. A report about the past needs `false`. `actualEndTime` is the epoch
+(`01:00:00 - 01.01.1970`) while a downtime has not ended, and `wasStarted`
+distinguishes one that ran from one that was only ever planned.

@@ -30,9 +30,10 @@ skills directory still gets them:
 
 - **Resources** at `oitc://skills/<name>`, one per file, `text/markdown`. The
   description a client shows is the SKILL.md frontmatter description.
-- **Prompts** named after the workflow, for the `oitc-*` skills only. The two
-  `system-prompt` files are resources but not prompts: a prompt is inserted as
-  a message, and a system prompt belongs in the client's system field.
+- **Prompts** named after the workflow, for the `oitc-*` skills only. The system
+  prompt files - the two general ones and one per toolset per language - are
+  resources but not prompts: a prompt is inserted as a message, and a system
+  prompt belongs in the client's system field.
 
 `oitc-host-onboarding` and `oitc-config-change` describe write workflows and are
 registered only when `OITC_ENABLE_WRITE_TOOLS=true`, exactly as the write tools

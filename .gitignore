@@ -15,3 +15,8 @@ build/
 .coverage.*
 coverage.xml
 htmlcov/
+
+# Where oitc-mcp-eval writes its runs by default.
+eval-results/
+
+.DS_Store
