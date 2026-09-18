@@ -13,7 +13,7 @@ and, off by default, the tools that act on it.
 > or liability of any kind; see the [MIT License](LICENSE).
 
 - **Requires openITCOCKPIT 5.6 or newer** ([compatibility](docs/versioning.md)).
-- **42 tools**, 20 read-only and 22 that change something.
+- **44 tools**, 22 read-only and 22 that change something.
 - **Write tools are off by default** and are not registered until you enable them.
 - **Names, never IDs.** Tools take hostnames, template names and container paths;
   the server resolves them.
@@ -47,6 +47,7 @@ openITCOCKPIT). Everything else has a default -
 | "Why did I get no alert for web01?" | `explain_notification` |
 | "Take web01 out until Monday" | `schedule_downtime` (write) |
 | "Which templates could web-05 use?" | `get_allowed_elements_for_container` |
+| "Where do I set the sender of notification mails?" | `find_setting` - the way through the menu and a link |
 
 Every tool by name, with its parameters and what it costs in context:
 **[docs/tools.md](docs/tools.md)**, generated from the code. What a result looks
@@ -67,8 +68,8 @@ OITC_TOOLSETS=lifecycle       # take things out of the monitoring, or delete the
 ```
 
 The shipped sets are `health`, `operations`, `lifecycle`, `patch`, `reporting`,
-`catalog`, `onboarding`, `config` and `provisioning`. Sets are defined in a file
-you can replace: [docs/toolsets.md](docs/toolsets.md).
+`catalog`, `guide`, `onboarding`, `config` and `provisioning`. Sets are defined
+in a file you can replace: [docs/toolsets.md](docs/toolsets.md).
 
 ## Measuring a model
 

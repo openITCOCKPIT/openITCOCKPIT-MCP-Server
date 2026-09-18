@@ -49,6 +49,13 @@ _CONTAINERS = {"containers": [{"key": 1, "value": "/root"}]}
 
 # path substring -> response body
 PAYLOADS: dict[str, dict] = {
+    "/angular/menu.json": {"menu": [{"alias": "Monitoring", "items": [
+        {"name": "Hosts", "angularUrl": "/hosts/index", "controller": "hosts", "plugin": "", "tags": []},
+        {"alias": "System", "items": [
+            {"name": "System settings", "angularUrl": "/systemsettings/index", "controller": "systemsettings", "plugin": "", "tags": []},
+            {"name": "Proxy", "angularUrl": "/proxy/index", "controller": "proxy", "plugin": "", "tags": []}]}]}]},
+    "/systemsettings/index.json": {"all_systemsettings": {"MONITORING": [
+        {"key": "MONITORING.FROM_ADDRESS", "value": "oitc@example.org", "info": "Sender of notification mails", "section": "MONITORING"}]}},
     "/hosts/loadHostsByString": {"hosts": [{"key": 1, "value": "web01"}]},
     "/services/loadServicesByString": {
         "services": [{"key": 2, "value": {"Service": {"servicename": "Ping"}, "Host": {"name": "web01"}}}]
@@ -122,6 +129,8 @@ READ_CALLS = {
     "get_configuration_status": {},
     "get_service_config": {"hostname": "web01", "servicename": "Ping"},
     "list_catalog": {"kind": "hostgroup"},
+    "find_setting": {"query": "proxy mail"},
+    "get_object_link": {"kind": "host", "name": "web01"},
     "get_container_tree": {},
     "get_problem_overview": {},
     "find_noisy_checks": {},

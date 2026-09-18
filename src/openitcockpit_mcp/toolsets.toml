@@ -63,6 +63,15 @@ tools = [
     "get_allowed_elements_for_container",
 ]
 
+[guide]
+description = "Show where something is set up in the web interface, and link straight to a page, a setting or a named object. Changes nothing."
+systemprompts = ["system-prompt-guide", "system-prompt-guide-de"]
+tools = [
+    "find_setting",
+    "get_object_link",
+    "list_catalog",
+]
+
 [health]
 description = "Find hosts and services across the estate and see how one is doing - its state, what likely explains a problem, recent changes."
 skills = ["oitc-incident-triage"]

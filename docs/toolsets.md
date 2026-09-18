@@ -42,6 +42,7 @@ blank value: `all` plus the write gate already says everything there is to say.
 | `patch` | Update and security posture across the estate |
 | `reporting` | Answer for a period rather than for right now: availability, and where a value is heading |
 | `catalog` | Look up what exists, without changing anything |
+| `guide` | Show where something is set up, and link straight to a page, a setting or a named object |
 | `onboarding` | Take a host and its services into monitoring |
 | `config` | Change existing objects without blanking fields |
 | `provisioning` | Create the building blocks hosts and services are made of |

@@ -36,6 +36,7 @@ and must never be committed.
 | Register the write tools | `OITC_ENABLE_WRITE_TOOLS` | `false` |
 | Limit the instance to named toolsets, see [Toolsets](toolsets.md) | `OITC_TOOLSETS` | `all` |
 | A toolsets file of your own | `OITC_TOOLSETS_FILE` | `./toolsets.toml`, else the one shipped |
+| Base URL for links in tool results, as a browser reaches openITCOCKPIT. Empty: relative links, right inside openITCOCKPIT | `OITC_PUBLIC_URL` | empty |
 | House style added to the general system prompts, see [Skills and prompts](skills.md) | `OITC_PROMPT_STYLE_FILE` | `./prompt-style.md` when it exists |
 | Cache scope-validation lookups | `OITC_SCOPE_CACHE_ENABLED` | `true` |
 | Scope cache TTL, seconds | `OITC_SCOPE_CACHE_TTL_SECONDS` | `30` |

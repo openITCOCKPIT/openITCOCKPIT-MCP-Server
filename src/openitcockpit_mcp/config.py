@@ -57,6 +57,10 @@ class Settings(BaseSettings):
     )
     apikey: str = Field(default="", description="openITCOCKPIT API key of the MCP service user. Static mode only.")
     baseurl: str = Field(default="", description="Base URL of the openITCOCKPIT instance.")
+    public_url: str = Field(
+        default="",
+        description="Base URL a person's browser reaches openITCOCKPIT under, for links in tool results. Empty: links are relative, which works wherever the answer is shown inside openITCOCKPIT itself.",
+    )
 
     # --- Tool surface ------------------------------------------------------
     toolsets: str = Field(

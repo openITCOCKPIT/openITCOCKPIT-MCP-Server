@@ -36,35 +36,43 @@ class CatalogRow:
     description: str
     #: The display name of a service template, the type of a command; empty otherwise.
     detail: str = ""
+    #: The id the object's pages take. For a group that is the group's own id, not its container's.
+    id: int = 0
 
 
 def _nested(key: str) -> Callable[[dict[str, Any]], CatalogRow]:
     def read(item: dict[str, Any]) -> CatalogRow:
         row = item.get(key) or {}
-        return CatalogRow(name=row.get("name") or "", description=row.get("description") or "")
+        return CatalogRow(name=row.get("name") or "", description=row.get("description") or "", id=int(row.get("id") or 0))
 
     return read
 
 
 def _flat_group(item: dict[str, Any]) -> CatalogRow:
-    return CatalogRow(name=(item.get("container") or {}).get("name") or "", description=item.get("description") or "")
+    return CatalogRow(
+        name=(item.get("container") or {}).get("name") or "", description=item.get("description") or "", id=int(item.get("id") or 0)
+    )
 
 
 def _contactgroup(item: dict[str, Any]) -> CatalogRow:
+    group = item.get("Contactgroup") or {}
     return CatalogRow(
         name=(item.get("Container") or {}).get("name") or "",
-        description=(item.get("Contactgroup") or {}).get("description") or "",
+        description=group.get("description") or "",
+        id=int(group.get("id") or 0),
     )
 
 
 def _servicetemplate(item: dict[str, Any]) -> CatalogRow:
     row = item.get("Servicetemplate") or {}
-    return CatalogRow(name=row.get("template_name") or "", description=row.get("description") or "", detail=row.get("name") or "")
+    return CatalogRow(
+        name=row.get("template_name") or "", description=row.get("description") or "", detail=row.get("name") or "", id=int(row.get("id") or 0)
+    )
 
 
 def _command(item: dict[str, Any]) -> CatalogRow:
     row = item.get("Command") or {}
-    return CatalogRow(name=row.get("name") or "", description=row.get("description") or "", detail=row.get("type") or "")
+    return CatalogRow(name=row.get("name") or "", description=row.get("description") or "", detail=row.get("type") or "", id=int(row.get("id") or 0))
 
 
 @dataclass(frozen=True)
@@ -98,3 +106,12 @@ def list_catalog(api: OITCClient, kind: Kind, name: str, limit: int) -> tuple[li
     require_success(resp, code, f"listing {kind}s")
     rows = [endpoint.read(item) for item in resp.get(endpoint.list_key, [])]
     return rows, int((resp.get("paging") or {}).get("count") or len(rows))
+
+
+def find_exact(api: OITCClient, kind: Kind, name: str) -> CatalogRow | None:
+    """The one object of a kind with exactly this name. A service template also matches by display name."""
+    rows, _ = list_catalog(api, kind, name, 50)
+    for row in rows:
+        if name in (row.name, row.detail):
+            return row
+    return None

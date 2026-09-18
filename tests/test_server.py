@@ -7,7 +7,7 @@ import pytest
 
 from openitcockpit_mcp.server import create_server
 
-READ_TOOL_COUNT = 20
+READ_TOOL_COUNT = 22
 WRITE_TOOL_COUNT = 22
 
 ROOT = Path(__file__).resolve().parent.parent

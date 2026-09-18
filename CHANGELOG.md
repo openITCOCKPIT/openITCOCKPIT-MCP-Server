@@ -4,6 +4,23 @@ Notable changes to the openITCOCKPIT MCP Server. Versions follow `MCP_VERSION`,
 this server's semver, which is also the image tag. See
 [Versioning](README.md#versioning).
 
+## Unreleased
+
+### Added
+
+- **`guide` toolset**, an agent that shows where something is set up in the web
+  interface and links straight to it. It changes nothing.
+  - `find_setting` searches the pages of the user's own menu and the system
+    settings by keywords, and returns the way through the menu and a link.
+    The menu is the one openITCOCKPIT builds for that user, so only pages the
+    user may open are found. Values of settings whose name suggests a secret,
+    such as `SUDO_SERVER.API_KEY` or `FRONTEND.LDAP.PASSWORD`, are not shown.
+  - `get_object_link` links to the status and configuration page of a named
+    host, service, template, group, contact, command or time period.
+- **`OITC_PUBLIC_URL`**, the address a browser reaches openITCOCKPIT under. Links
+  are relative without it, which is right wherever the answer is shown inside
+  openITCOCKPIT.
+
 ## 0.5.0 - 2026-09-17
 
 ### Added

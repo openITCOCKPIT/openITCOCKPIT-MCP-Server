@@ -1,0 +1,40 @@
+{
+  "_meta": {
+    "fastmcp": {
+      "tags": []
+    }
+  },
+  "annotations": {
+    "destructiveHint": false,
+    "idempotentHint": true,
+    "openWorldHint": true,
+    "readOnlyHint": true
+  },
+  "description": "Find where something is set up in the web interface: pages of the menu and system settings, each with the way through the menu and a link. Only pages the user may open are found. Use it for \"where do I set up the mail server\" or \"where are the proxy settings\".",
+  "inputSchema": {
+    "additionalProperties": false,
+    "properties": {
+      "limit": {
+        "default": 5,
+        "description": "How many pages and how many settings to return at most.",
+        "maximum": 20,
+        "minimum": 1,
+        "type": "integer"
+      },
+      "query": {
+        "description": "Keywords for what the user looks for, in German and English, e.g. 'mail smtp absender sender'.",
+        "type": "string"
+      }
+    },
+    "required": [
+      "query"
+    ],
+    "type": "object"
+  },
+  "name": "find_setting",
+  "outputSchema": {
+    "additionalProperties": true,
+    "type": "object"
+  },
+  "title": "Find a Setting"
+}

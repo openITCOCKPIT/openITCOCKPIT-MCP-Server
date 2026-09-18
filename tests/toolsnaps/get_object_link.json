@@ -1,0 +1,55 @@
+{
+  "_meta": {
+    "fastmcp": {
+      "tags": []
+    }
+  },
+  "annotations": {
+    "destructiveHint": false,
+    "idempotentHint": true,
+    "openWorldHint": true,
+    "readOnlyHint": true
+  },
+  "description": "Links to the page of one named object - to see it and to change it - with the way there through the menu. Use it for \"take me to web01\" or \"where do I edit the template default host\".",
+  "inputSchema": {
+    "additionalProperties": false,
+    "properties": {
+      "kind": {
+        "description": "What kind of object. A service: kind host plus servicename.",
+        "enum": [
+          "host",
+          "hosttemplate",
+          "servicetemplate",
+          "command",
+          "contact",
+          "contactgroup",
+          "hostgroup",
+          "servicegroup",
+          "servicetemplategroup",
+          "timeperiod"
+        ],
+        "type": "string"
+      },
+      "name": {
+        "description": "Exact name of the object; for a service, of its host.",
+        "type": "string"
+      },
+      "servicename": {
+        "default": "",
+        "description": "Exact name of a service on that host. Only with kind host.",
+        "type": "string"
+      }
+    },
+    "required": [
+      "kind",
+      "name"
+    ],
+    "type": "object"
+  },
+  "name": "get_object_link",
+  "outputSchema": {
+    "additionalProperties": true,
+    "type": "object"
+  },
+  "title": "Link to an Object"
+}

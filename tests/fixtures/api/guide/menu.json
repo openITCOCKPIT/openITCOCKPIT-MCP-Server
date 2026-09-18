@@ -1,0 +1,1730 @@
+{
+ "menu": [
+  {
+   "name": "overview",
+   "alias": "Übersicht",
+   "order": 1,
+   "items": [
+    {
+     "name": "Dashboards",
+     "state": "DashboardsIndex",
+     "controller": "dashboards",
+     "action": "index",
+     "plugin": "",
+     "tags": [
+      "dashboard"
+     ],
+     "order": 1,
+     "icon": [
+      "fas",
+      "gauge-high"
+     ],
+     "isAngular": true,
+     "angularUrl": "/dashboards/index"
+    },
+    {
+     "name": "Browser",
+     "state": "BrowsersIndex",
+     "controller": "browsers",
+     "action": "index",
+     "plugin": "",
+     "tags": [
+      "browser"
+     ],
+     "order": 3,
+     "icon": [
+      "fas",
+      "list"
+     ],
+     "isAngular": true,
+     "angularUrl": "/browsers/index"
+    },
+    {
+     "name": "maps_category",
+     "alias": "Karten",
+     "order": 3,
+     "icon": [
+      "fas",
+      "location-dot"
+     ],
+     "items": [
+      {
+       "name": "Status Karte",
+       "state": "StatusmapsIndex",
+       "controller": "statusmaps",
+       "action": "index",
+       "plugin": "",
+       "tags": [
+        "statusmap",
+        "status",
+        "map"
+       ],
+       "order": 1,
+       "icon": [
+        "fas",
+        "globe-europe"
+       ],
+       "isAngular": true,
+       "angularUrl": "/statusmaps/index"
+      },
+      {
+       "name": "Automatische Karte",
+       "state": "AutomapsIndex",
+       "controller": "automaps",
+       "action": "index",
+       "plugin": "",
+       "tags": [
+        "automaps",
+        "auto",
+        "map"
+       ],
+       "order": 2,
+       "icon": [
+        "fas",
+        "wand-magic-sparkles"
+       ],
+       "isAngular": true,
+       "angularUrl": "/automaps/index"
+      },
+      {
+       "name": "Karten",
+       "state": "MapsIndex",
+       "controller": "maps",
+       "action": "index",
+       "plugin": "MapModule",
+       "tags": [],
+       "order": 3,
+       "icon": [
+        "fas",
+        "location-pin"
+       ],
+       "isAngular": true,
+       "angularUrl": "map_module/maps/index"
+      },
+      {
+       "name": "Rotationen",
+       "state": "RotationsIndex",
+       "controller": "rotations",
+       "action": "index",
+       "plugin": "MapModule",
+       "tags": [],
+       "order": 4,
+       "icon": [
+        "fas",
+        "retweet"
+       ],
+       "isAngular": true,
+       "angularUrl": "map_module/rotations/index"
+      },
+      {
+       "name": "Map-Generatoren",
+       "state": "MapgeneratorsIndex",
+       "controller": "mapgenerators",
+       "action": "index",
+       "plugin": "MapModule",
+       "tags": [],
+       "order": 5,
+       "icon": [
+        "fas",
+        "cog"
+       ],
+       "isAngular": true,
+       "angularUrl": "map_module/mapgenerators/index"
+      },
+      {
+       "name": "Uploads overview",
+       "state": "BackgroundUploadsIndex",
+       "controller": "backgrounduploads",
+       "action": "index",
+       "plugin": "MapModule",
+       "tags": [],
+       "order": 5,
+       "icon": [
+        "fas",
+        "images"
+       ],
+       "isAngular": true,
+       "angularUrl": "map_module/backgrounduploads/backgrounds"
+      }
+     ]
+    },
+    {
+     "name": "reports_category",
+     "alias": "Berichte",
+     "order": 4,
+     "icon": [
+      "fas",
+      "file-invoice"
+     ],
+     "items": [
+      {
+       "name": "Sofortige Berichte",
+       "state": "InstantreportsIndex",
+       "controller": "instantreports",
+       "action": "index",
+       "plugin": "",
+       "tags": [
+        "instantreports"
+       ],
+       "order": 1,
+       "icon": [
+        "fas",
+        "file-invoice"
+       ],
+       "isAngular": true,
+       "angularUrl": "/instantreports/index"
+      },
+      {
+       "name": "Wartungszeitberichte",
+       "state": "DowntimereportsIndex",
+       "controller": "downtimereports",
+       "action": "index",
+       "plugin": "",
+       "tags": [],
+       "order": 2,
+       "icon": [
+        "fas",
+        "file-invoice"
+       ],
+       "isAngular": true,
+       "angularUrl": "/downtimereports/index"
+      },
+      {
+       "name": "Aktuelle Statusberichte",
+       "state": "CurrentstatereportsIndex",
+       "controller": "currentstatereports",
+       "action": "index",
+       "plugin": "",
+       "tags": [],
+       "order": 3,
+       "icon": [
+        "fas",
+        "file-invoice"
+       ],
+       "isAngular": true,
+       "angularUrl": "/currentstatereports/index"
+      },
+      {
+       "name": "Autoreport",
+       "state": "AutoreportsIndex",
+       "controller": "autoreports",
+       "action": "index",
+       "plugin": "AutoreportModule",
+       "tags": [],
+       "order": 3,
+       "icon": [
+        "fas",
+        "file-invoice"
+       ],
+       "isAngular": true,
+       "angularUrl": "autoreport_module/autoreports/index"
+      },
+      {
+       "name": "Grafana",
+       "state": "GrafanaUserdashboardsIndex",
+       "controller": "GrafanaUserdashboards",
+       "action": "index",
+       "plugin": "GrafanaModule",
+       "tags": [],
+       "order": 4,
+       "icon": [
+        "fas",
+        "area-chart"
+       ],
+       "isAngular": true,
+       "angularUrl": "/grafana_module/grafana_userdashboards/index"
+      }
+     ]
+    },
+    {
+     "name": "status_pages",
+     "alias": "Statusseitenverwaltung",
+     "order": 4,
+     "icon": [
+      "fas",
+      "globe"
+     ],
+     "items": [
+      {
+       "name": "Statusseiten",
+       "state": "StatuspagesIndex",
+       "controller": "statuspages",
+       "action": "index",
+       "plugin": "",
+       "tags": [],
+       "order": 3,
+       "icon": [
+        "fas",
+        "info-circle"
+       ],
+       "isAngular": true,
+       "angularUrl": "/statuspages/index"
+      },
+      {
+       "name": "Statusseitengruppen",
+       "state": "StatuspagegroupsIndex",
+       "controller": "statuspagegroups",
+       "action": "index",
+       "plugin": "",
+       "tags": [],
+       "order": 3,
+       "icon": [
+        "fas",
+        "layer-group"
+       ],
+       "isAngular": true,
+       "angularUrl": "/statuspagegroups/index"
+      }
+     ]
+    },
+    {
+     "name": "logs_category",
+     "alias": "Protokolle",
+     "order": 5,
+     "icon": [
+      "fas",
+      "file-lines"
+     ],
+     "items": [
+      {
+       "name": "Benachrichtigungen",
+       "state": "NotificationsIndex",
+       "controller": "notifications",
+       "action": "index",
+       "plugin": "",
+       "tags": [],
+       "order": 1,
+       "icon": [
+        "fas",
+        "envelope"
+       ],
+       "isAngular": true,
+       "angularUrl": "/notifications/index"
+      },
+      {
+       "name": "Protokolleinträge",
+       "state": "LogentriesIndex",
+       "controller": "logentries",
+       "action": "index",
+       "plugin": "",
+       "tags": [],
+       "order": 2,
+       "icon": [
+        "fas",
+        "file-lines"
+       ],
+       "isAngular": true,
+       "angularUrl": "/logentries/index"
+      },
+      {
+       "name": "Änderungsprotokoll",
+       "state": "ChangelogsIndex",
+       "controller": "changelogs",
+       "action": "index",
+       "plugin": "",
+       "tags": [],
+       "order": 3,
+       "icon": [
+        "fas",
+        "code-fork"
+       ],
+       "isAngular": true,
+       "angularUrl": "/changelogs/index"
+      },
+      {
+       "name": "Ereignisprotokoll",
+       "state": "EventlogsIndex",
+       "controller": "eventlogs",
+       "action": "index",
+       "plugin": "",
+       "tags": [],
+       "order": 4,
+       "icon": [
+        "fas",
+        "file-text"
+       ],
+       "isAngular": true,
+       "angularUrl": "/eventlogs/index"
+      }
+     ]
+    },
+    {
+     "name": "Event Correlation",
+     "state": "EventcorrelationsIndex",
+     "controller": "eventcorrelations",
+     "action": "index",
+     "plugin": "EventcorrelationModule",
+     "tags": [],
+     "order": 9,
+     "icon": [
+      "fas",
+      "sitemap"
+     ],
+     "isAngular": true,
+     "angularUrl": "/eventcorrelation_module/eventcorrelations/index"
+    },
+    {
+     "name": "ai_assistant_category",
+     "alias": "AI Assistant",
+     "order": 9999,
+     "icon": [
+      "fas",
+      "robot"
+     ],
+     "items": [
+      {
+       "name": "Chat",
+       "state": "ChatIndex",
+       "controller": "Chat",
+       "action": "index",
+       "plugin": "AiModule",
+       "tags": [
+        "ai",
+        "assistant",
+        "chat"
+       ],
+       "order": 1,
+       "icon": [
+        "fas",
+        "comments"
+       ],
+       "isAngular": true,
+       "angularUrl": "/ai_module/chat/index"
+      },
+      {
+       "name": "Pending approvals",
+       "state": "ToolconfirmationsIndex",
+       "controller": "Toolconfirmations",
+       "action": "index",
+       "plugin": "AiModule",
+       "tags": [
+        "ai",
+        "approval",
+        "confirmation"
+       ],
+       "order": 2,
+       "icon": [
+        "fas",
+        "user-check"
+       ],
+       "isAngular": true,
+       "angularUrl": "/ai_module/toolconfirmations/index"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "name": "monitoring",
+   "alias": "Monitoring",
+   "order": 2,
+   "items": [
+    {
+     "name": "Hosts",
+     "state": "HostsIndex",
+     "controller": "hosts",
+     "action": "index",
+     "plugin": "",
+     "tags": [
+      "hosts"
+     ],
+     "order": 1,
+     "icon": [
+      "fas",
+      "desktop"
+     ],
+     "isAngular": true,
+     "angularUrl": "/hosts/index"
+    },
+    {
+     "name": "Services",
+     "state": "ServicesIndex",
+     "controller": "services",
+     "action": "index",
+     "plugin": "",
+     "tags": [
+      "hosts"
+     ],
+     "order": 2,
+     "icon": [
+      "fas",
+      "gears"
+     ],
+     "isAngular": true,
+     "angularUrl": "/services/index"
+    },
+    {
+     "name": "Wizard",
+     "state": "WizardsIndex",
+     "controller": "wizards",
+     "action": "index",
+     "plugin": "",
+     "tags": [],
+     "order": 3,
+     "icon": [
+      "fas",
+      "wand-magic-sparkles"
+     ],
+     "isAngular": true,
+     "angularUrl": "/wizards/index"
+    },
+    {
+     "name": "objects_category",
+     "alias": "Objekte",
+     "order": 3,
+     "icon": [
+      "fas",
+      "cubes"
+     ],
+     "items": [
+      {
+       "name": "Kontakte",
+       "state": "ContactsIndex",
+       "controller": "contacts",
+       "action": "index",
+       "plugin": "",
+       "tags": [],
+       "order": 1,
+       "icon": [
+        "fas",
+        "user"
+       ],
+       "isAngular": true,
+       "angularUrl": "/contacts/index"
+      },
+      {
+       "name": "Kommandos",
+       "state": "CommandsIndex",
+       "controller": "commands",
+       "action": "index",
+       "plugin": "",
+       "tags": [],
+       "order": 2,
+       "icon": [
+        "fas",
+        "terminal"
+       ],
+       "isAngular": true,
+       "angularUrl": "/commands/index"
+      },
+      {
+       "name": "Benutzerdefinierte Makros",
+       "state": "MacrosIndex",
+       "controller": "macros",
+       "action": "index",
+       "plugin": "",
+       "tags": [],
+       "order": 3,
+       "icon": [
+        "fas",
+        "dollar-sign"
+       ],
+       "isAngular": true,
+       "angularUrl": "/macros/index"
+      },
+      {
+       "name": "Zeitabschnitte",
+       "state": "TimeperiodsIndex",
+       "controller": "timeperiods",
+       "action": "index",
+       "plugin": "",
+       "tags": [],
+       "order": 4,
+       "icon": [
+        "fas",
+        "clock"
+       ],
+       "isAngular": true,
+       "angularUrl": "/timeperiods/index"
+      },
+      {
+       "name": "Kalender",
+       "state": "CalendarsIndex",
+       "controller": "calendars",
+       "action": "index",
+       "plugin": "",
+       "tags": [],
+       "order": 5,
+       "icon": [
+        "fas",
+        "calendar"
+       ],
+       "isAngular": true,
+       "angularUrl": "/calendars/index"
+      },
+      {
+       "name": "Hosteskalationen",
+       "state": "HostescalationsIndex",
+       "controller": "hostescalations",
+       "action": "index",
+       "plugin": "",
+       "tags": [],
+       "order": 6,
+       "icon": [
+        "fas",
+        "bomb"
+       ],
+       "isAngular": true,
+       "angularUrl": "/hostescalations/index"
+      },
+      {
+       "name": "Service Eskalationen",
+       "state": "ServiceescalationsIndex",
+       "controller": "serviceescalations",
+       "action": "index",
+       "plugin": "",
+       "tags": [],
+       "order": 7,
+       "icon": [
+        "fas",
+        "bomb"
+       ],
+       "isAngular": true,
+       "angularUrl": "/serviceescalations/index"
+      },
+      {
+       "name": "Hostabhängigkeiten",
+       "state": "HostdependenciesIndex",
+       "controller": "hostdependencies",
+       "action": "index",
+       "plugin": "",
+       "tags": [],
+       "order": 8,
+       "icon": [
+        "fas",
+        "sitemap"
+       ],
+       "isAngular": true,
+       "angularUrl": "/hostdependencies/index"
+      },
+      {
+       "name": "Serviceabhängigkeiten",
+       "state": "ServicedependenciesIndex",
+       "controller": "servicedependencies",
+       "action": "index",
+       "plugin": "",
+       "tags": [],
+       "order": 9,
+       "icon": [
+        "fas",
+        "sitemap"
+       ],
+       "isAngular": true,
+       "angularUrl": "/servicedependencies/index"
+      }
+     ]
+    },
+    {
+     "name": "groups_category",
+     "alias": "Gruppen",
+     "order": 4,
+     "icon": [
+      "fas",
+      "object-group"
+     ],
+     "items": [
+      {
+       "name": "Hostgruppen",
+       "state": "HostgroupsIndex",
+       "controller": "hostgroups",
+       "action": "index",
+       "plugin": "",
+       "tags": [],
+       "order": 1,
+       "icon": [
+        "fas",
+        "server"
+       ],
+       "isAngular": true,
+       "angularUrl": "/hostgroups/index"
+      },
+      {
+       "name": "Servicegruppen",
+       "state": "ServicegroupsIndex",
+       "controller": "servicegroups",
+       "action": "index",
+       "plugin": "",
+       "tags": [],
+       "order": 2,
+       "icon": [
+        "fas",
+        "gears"
+       ],
+       "isAngular": true,
+       "angularUrl": "/servicegroups/index"
+      },
+      {
+       "name": "Kontaktgruppen",
+       "state": "ContactgroupsIndex",
+       "controller": "contactgroups",
+       "action": "index",
+       "plugin": "",
+       "tags": [],
+       "order": 3,
+       "icon": [
+        "fas",
+        "users"
+       ],
+       "isAngular": true,
+       "angularUrl": "/contactgroups/index"
+      },
+      {
+       "name": "Servicevorlagengruppen",
+       "state": "ServicetemplategroupsIndex",
+       "controller": "servicetemplategroups",
+       "action": "index",
+       "plugin": "",
+       "tags": [],
+       "order": 4,
+       "icon": [
+        "fas",
+        "pen-to-square"
+       ],
+       "isAngular": true,
+       "angularUrl": "/servicetemplategroups/index"
+      }
+     ]
+    },
+    {
+     "name": "downtimes_category",
+     "alias": "Wartungszeiten",
+     "order": 5,
+     "icon": [
+      "fas",
+      "power-off"
+     ],
+     "items": [
+      {
+       "name": "Host Wartungszeiten",
+       "state": "DowntimesHost",
+       "controller": "downtimes",
+       "action": "host",
+       "plugin": "",
+       "tags": [],
+       "order": 1,
+       "icon": [
+        "fas",
+        "power-off"
+       ],
+       "isAngular": true,
+       "angularUrl": "/downtimes/host"
+      },
+      {
+       "name": "Service Wartungszeiten",
+       "state": "DowntimesService",
+       "controller": "downtimes",
+       "action": "service",
+       "plugin": "",
+       "tags": [],
+       "order": 2,
+       "icon": [
+        "fas",
+        "power-off"
+       ],
+       "isAngular": true,
+       "angularUrl": "/downtimes/service"
+      },
+      {
+       "name": "Wiederkehrende Host Wartungszeiten",
+       "state": "SystemdowntimesHost",
+       "controller": "systemdowntimes",
+       "action": "host",
+       "plugin": "",
+       "tags": [],
+       "order": 3,
+       "icon": [
+        "fas",
+        "repeat"
+       ],
+       "isAngular": true,
+       "angularUrl": "/systemdowntimes/host"
+      },
+      {
+       "name": "Wiederkehrende Service Wartungszeiten",
+       "state": "SystemdowntimesService",
+       "controller": "systemdowntimes",
+       "action": "service",
+       "plugin": "",
+       "tags": [],
+       "order": 4,
+       "icon": [
+        "fas",
+        "repeat"
+       ],
+       "isAngular": true,
+       "angularUrl": "/systemdowntimes/service"
+      },
+      {
+       "name": "Systemfehler",
+       "state": "SystemfailuresIndex",
+       "controller": "systemfailures",
+       "action": "index",
+       "plugin": "",
+       "tags": [],
+       "order": 5,
+       "icon": [
+        "fas",
+        "exclamation-circle"
+       ],
+       "isAngular": true,
+       "angularUrl": "/systemfailures/index"
+      }
+     ]
+    },
+    {
+     "name": "templates_category",
+     "alias": "Vorlagen",
+     "order": 6,
+     "icon": [
+      "fas",
+      "pen-to-square"
+     ],
+     "items": [
+      {
+       "name": "Hostvorlagen",
+       "state": "HosttemplatesIndex",
+       "controller": "hosttemplates",
+       "action": "index",
+       "plugin": "",
+       "tags": [],
+       "order": 1,
+       "icon": [
+        "fas",
+        "pen-to-square"
+       ],
+       "isAngular": true,
+       "angularUrl": "/hosttemplates/index"
+      },
+      {
+       "name": "Servicevorlagen",
+       "state": "ServicetemplatesIndex",
+       "controller": "servicetemplates",
+       "action": "index",
+       "plugin": "",
+       "tags": [],
+       "order": 2,
+       "icon": [
+        "fas",
+        "pen-to-square"
+       ],
+       "isAngular": true,
+       "angularUrl": "/servicetemplates/index"
+      }
+     ]
+    },
+    {
+     "name": "software_inventory",
+     "alias": "Software-Inventar",
+     "order": 7,
+     "icon": [
+      "fas",
+      "toolbox"
+     ],
+     "items": [
+      {
+       "name": "Pakete",
+       "state": "PackagesIndex",
+       "controller": "packages",
+       "action": "linux",
+       "plugin": "",
+       "tags": [],
+       "order": 1,
+       "icon": [
+        "fas",
+        "cubes"
+       ],
+       "isAngular": true,
+       "angularUrl": "/packages/linux"
+      },
+      {
+       "name": "Patch-Status",
+       "state": "PatchstatusIndex",
+       "controller": "patchstatus",
+       "action": "index",
+       "plugin": "",
+       "tags": [],
+       "order": 1,
+       "icon": [
+        "fas",
+        "bandage"
+       ],
+       "isAngular": true,
+       "angularUrl": "/patchstatus/index"
+      }
+     ]
+    },
+    {
+     "name": "monitoring_api",
+     "alias": "API",
+     "order": 999,
+     "icon": [
+      "fas",
+      "code"
+     ],
+     "items": [
+      {
+       "name": "Externe Kommandos",
+       "state": "ExternalCommandsIndex",
+       "controller": "Cmd",
+       "action": "index",
+       "plugin": "NagiosModule",
+       "tags": [],
+       "order": 1,
+       "icon": [
+        "fas",
+        "code"
+       ],
+       "isAngular": true,
+       "angularUrl": "/nagios_module/cmd/index"
+      }
+     ]
+    },
+    {
+     "name": "Prometheus",
+     "alias": "Prometheus",
+     "order": 1000,
+     "icon": [
+      "fas",
+      "burn"
+     ],
+     "items": [
+      {
+       "name": "Query",
+       "state": "PrometheusQueryIndex",
+       "controller": "PrometheusQuery",
+       "action": "index",
+       "plugin": "PrometheusModule",
+       "tags": [
+        "prometheus",
+        "query"
+       ],
+       "order": 1,
+       "icon": [
+        "fas",
+        "code"
+       ],
+       "isAngular": true,
+       "angularUrl": "prometheus_module/PrometheusQuery/index"
+      },
+      {
+       "name": "Exporters",
+       "state": "PrometheusExportersIndex",
+       "controller": "PrometheusExporters",
+       "action": "index",
+       "plugin": "PrometheusModule",
+       "tags": [
+        "prometheus"
+       ],
+       "order": 2,
+       "icon": [
+        "fas",
+        "tower-broadcast"
+       ],
+       "isAngular": true,
+       "angularUrl": "prometheus_module/PrometheusExporters/index"
+      }
+     ]
+    },
+    {
+     "name": "maps_category",
+     "alias": "Checkmk",
+     "order": 1001,
+     "icon": [
+      "fas",
+      "share-nodes"
+     ],
+     "items": [
+      {
+       "name": "Checkmk Checks",
+       "state": "MkchecksIndex",
+       "controller": "Mkchecks",
+       "action": "index",
+       "plugin": "CheckmkModule",
+       "tags": [],
+       "order": 1,
+       "icon": [
+        "fas",
+        "gears"
+       ],
+       "isAngular": true,
+       "angularUrl": "/checkmk_module/mkchecks/index"
+      },
+      {
+       "name": "Checkmk Agents",
+       "state": "MkagentsIndex",
+       "controller": "Mkagents",
+       "action": "index",
+       "plugin": "CheckmkModule",
+       "tags": [],
+       "order": 2,
+       "icon": [
+        "fas",
+        "user-secret"
+       ],
+       "isAngular": true,
+       "angularUrl": "/checkmk_module/mkagents/index"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "name": "administration",
+   "alias": "Verwaltung",
+   "order": 3,
+   "items": [
+    {
+     "name": "user_mgmt_category",
+     "alias": "Benutzerverwaltung",
+     "order": 1,
+     "icon": [
+      "fas",
+      "users"
+     ],
+     "items": [
+      {
+       "name": "Verwalte Benutzer",
+       "state": "UsersIndex",
+       "controller": "users",
+       "action": "index",
+       "plugin": "",
+       "tags": [],
+       "order": 1,
+       "icon": [
+        "fas",
+        "user"
+       ],
+       "isAngular": true,
+       "angularUrl": "/users/index"
+      },
+      {
+       "name": "Verwalte Benutzerrollen ",
+       "state": "UsergroupsIndex",
+       "controller": "usergroups",
+       "action": "index",
+       "plugin": "",
+       "tags": [],
+       "order": 2,
+       "icon": [
+        "fas",
+        "users"
+       ],
+       "isAngular": true,
+       "angularUrl": "/usergroups/index"
+      },
+      {
+       "name": "Benutzercontainerrollen",
+       "state": "UsercontainerrolesIndex",
+       "controller": "usercontainerroles",
+       "action": "index",
+       "plugin": "",
+       "tags": [],
+       "order": 3,
+       "icon": [
+        "fas",
+        "users"
+       ],
+       "isAngular": true,
+       "angularUrl": "/usercontainerroles/index"
+      },
+      {
+       "name": "Meldung des Tages",
+       "state": "MessagesOTDIndex",
+       "controller": "messagesOtd",
+       "action": "index",
+       "plugin": "",
+       "tags": [
+        "nachricht",
+        "neuigkeiten",
+        "information"
+       ],
+       "order": 4,
+       "icon": [
+        "fas",
+        "bullhorn"
+       ],
+       "isAngular": true,
+       "angularUrl": "/messagesOtd/index"
+      },
+      {
+       "name": "Dashboard-Zuweisung",
+       "state": "DashboardAllocationsIndex",
+       "controller": "DashboardAllocations",
+       "action": "index",
+       "plugin": "",
+       "tags": [],
+       "order": 5,
+       "icon": [
+        "fas",
+        "table"
+       ],
+       "isAngular": true,
+       "angularUrl": "/DashboardAllocations/index"
+      },
+      {
+       "name": "Filter Bookmark Allocation",
+       "state": "FilterBookmarkAllocationsIndex",
+       "controller": "FilterBookmarksAllocations",
+       "action": "index",
+       "plugin": "",
+       "tags": [],
+       "order": 6,
+       "icon": [
+        "fas",
+        "square-share-nodes"
+       ],
+       "isAngular": true,
+       "angularUrl": "/FilterbookmarkAllocations/index"
+      },
+      {
+       "name": "LDAP User Defaults",
+       "state": "UserDefaultTemplatesIndex",
+       "controller": "UserDefaultTemplates",
+       "action": "index",
+       "plugin": "",
+       "tags": [],
+       "order": 6,
+       "icon": [
+        "fas",
+        "user-plus"
+       ],
+       "isAngular": true,
+       "angularUrl": "/userDefaultTemplates/index"
+      },
+      {
+       "name": "Manage LDAP Groups",
+       "state": "LdapgroupsIndex",
+       "controller": "Ldapgroups",
+       "action": "index",
+       "plugin": "",
+       "tags": [],
+       "order": 7,
+       "icon": [
+        "fas",
+        "users-gear"
+       ],
+       "isAngular": true,
+       "angularUrl": "/ldapgroups/index"
+      }
+     ]
+    },
+    {
+     "name": "container_mgmt_category",
+     "alias": "Containerverwaltung",
+     "order": 2,
+     "icon": [
+      "fas",
+      "link"
+     ],
+     "items": [
+      {
+       "name": "Mandanten",
+       "state": "TenantsIndex",
+       "controller": "tenants",
+       "action": "index",
+       "plugin": "",
+       "tags": [],
+       "order": 1,
+       "icon": [
+        "fas",
+        "home"
+       ],
+       "isAngular": true,
+       "angularUrl": "/tenants/index"
+      },
+      {
+       "name": "Container",
+       "state": "ContainersIndex",
+       "controller": "containers",
+       "action": "index",
+       "plugin": "",
+       "tags": [],
+       "order": 2,
+       "icon": [
+        "fas",
+        "link"
+       ],
+       "isAngular": true,
+       "angularUrl": "/containers/index"
+      },
+      {
+       "name": "Standorte",
+       "state": "LocationsIndex",
+       "controller": "locations",
+       "action": "index",
+       "plugin": "",
+       "tags": [],
+       "order": 3,
+       "icon": [
+        "fas",
+        "location-arrow"
+       ],
+       "isAngular": true,
+       "angularUrl": "/locations/index"
+      },
+      {
+       "name": "Organigramme",
+       "state": "OrganizationalCharts",
+       "controller": "organizationalcharts",
+       "action": "index",
+       "plugin": "",
+       "tags": [],
+       "order": 5,
+       "icon": [
+        "fas",
+        "sitemap"
+       ],
+       "isAngular": true,
+       "angularUrl": "/organizationalcharts/index"
+      }
+     ]
+    },
+    {
+     "name": "system_tools_category",
+     "alias": "Systemwerkzeuge",
+     "order": 3,
+     "icon": [
+      "fas",
+      "link"
+     ],
+     "items": [
+      {
+       "name": "Cronjobs",
+       "state": "CronjobsIndex",
+       "controller": "cronjobs",
+       "action": "index",
+       "plugin": "",
+       "tags": [],
+       "order": 1,
+       "icon": [
+        "far",
+        "clock"
+       ],
+       "isAngular": true,
+       "angularUrl": "/cronjobs/index"
+      },
+      {
+       "name": "Paketmanager",
+       "state": "PackageManagerIndex",
+       "controller": "packetmanager",
+       "action": "index",
+       "plugin": "",
+       "tags": [],
+       "order": 2,
+       "icon": [
+        "fas",
+        "cloud-arrow-down"
+       ],
+       "isAngular": true,
+       "angularUrl": "/packetmanager/index"
+      },
+      {
+       "name": "Fehlerbeseitigung",
+       "state": "AdministratorsDebug",
+       "controller": "Administrators",
+       "action": "debug",
+       "plugin": "",
+       "tags": [],
+       "order": 3,
+       "icon": [
+        "fas",
+        "bug"
+       ],
+       "isAngular": true,
+       "angularUrl": "/administrators/debug"
+      },
+      {
+       "name": "Leistungsinfo",
+       "state": "NagiostatsIndex",
+       "controller": "nagiostats",
+       "action": "index",
+       "plugin": "",
+       "tags": [],
+       "order": 4,
+       "icon": [
+        "fas",
+        "jet-fighter"
+       ],
+       "isAngular": true,
+       "angularUrl": "/nagiostats/index"
+      },
+      {
+       "name": "Sichern / Wiederherstellen",
+       "state": "BackupsIndex",
+       "controller": "backups",
+       "action": "index",
+       "plugin": "",
+       "tags": [],
+       "order": 5,
+       "icon": [
+        "fas",
+        "database"
+       ],
+       "isAngular": true,
+       "angularUrl": "/backups/index"
+      },
+      {
+       "name": "Anonyme Statistiken",
+       "state": "StatisticsIndex",
+       "controller": "statistics",
+       "action": "index",
+       "plugin": "",
+       "tags": [],
+       "order": 7,
+       "icon": [
+        "fas",
+        "chart-line"
+       ],
+       "isAngular": true,
+       "angularUrl": "/statistics/index"
+      },
+      {
+       "name": "System-Health-Benachrichtigungen",
+       "state": "SystemHealthUsersIndex",
+       "controller": "systemHealthUsers",
+       "action": "index",
+       "plugin": "",
+       "tags": [],
+       "order": 8,
+       "icon": [
+        "fas",
+        "user"
+       ],
+       "isAngular": true,
+       "angularUrl": "/systemHealthUsers/index"
+      }
+     ]
+    },
+    {
+     "name": "agent_category",
+     "alias": "openITCOCKPIT Agent",
+     "order": 4,
+     "icon": [
+      "fas",
+      "user-secret"
+     ],
+     "items": [
+      {
+       "name": "Agent Assistent",
+       "state": "AgentconnectorsWizard",
+       "controller": "agentconnector",
+       "action": "wizard",
+       "plugin": "",
+       "tags": [],
+       "order": 1,
+       "icon": [
+        "fas",
+        "wand-magic-sparkles"
+       ],
+       "isAngular": true,
+       "angularUrl": "/agentconnector/wizard"
+      },
+      {
+       "name": "Agenten Übersicht",
+       "state": "AgentconnectorsPull",
+       "controller": "agentconnector",
+       "action": "overview",
+       "plugin": "",
+       "tags": [],
+       "order": 2,
+       "icon": [
+        "fas",
+        "user-secret"
+       ],
+       "isAngular": true,
+       "angularUrl": "/agentconnector/pull"
+      },
+      {
+       "name": "Agenten Prüfungen",
+       "state": "AgentchecksIndex",
+       "controller": "agentchecks",
+       "action": "index",
+       "plugin": "",
+       "tags": [],
+       "order": 3,
+       "icon": [
+        "fas",
+        "gears"
+       ],
+       "isAngular": true,
+       "angularUrl": "/agentchecks/index"
+      }
+     ]
+    },
+    {
+     "name": "ai_administration_category",
+     "alias": "AI Agent management",
+     "order": 10,
+     "icon": [
+      "fas",
+      "robot"
+     ],
+     "items": [
+      {
+       "name": "Agents",
+       "state": "AgentsIndex",
+       "controller": "Agents",
+       "action": "index",
+       "plugin": "AiModule",
+       "tags": [
+        "ai",
+        "agent"
+       ],
+       "order": 1,
+       "icon": [
+        "fas",
+        "robot"
+       ],
+       "isAngular": true,
+       "angularUrl": "/ai_module/agents/index"
+      },
+      {
+       "name": "Conversations",
+       "state": "ChatsessionsIndex",
+       "controller": "Chatsessions",
+       "action": "index",
+       "plugin": "AiModule",
+       "tags": [
+        "ai",
+        "chat",
+        "history"
+       ],
+       "order": 2,
+       "icon": [
+        "fas",
+        "clock-rotate-left"
+       ],
+       "isAngular": true,
+       "angularUrl": "/ai_module/chatsessions/index"
+      },
+      {
+       "name": "AI audit log",
+       "state": "AuditlogIndex",
+       "controller": "Auditlog",
+       "action": "index",
+       "plugin": "AiModule",
+       "tags": [
+        "ai",
+        "audit",
+        "log"
+       ],
+       "order": 3,
+       "icon": [
+        "fas",
+        "list-check"
+       ],
+       "isAngular": true,
+       "angularUrl": "/ai_module/auditlog/index"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "name": "configuration",
+   "alias": "Systemkonfiguration",
+   "order": 4,
+   "items": [
+    {
+     "name": "api_settings",
+     "alias": "APIs",
+     "order": 1,
+     "icon": [
+      "fas",
+      "code"
+     ],
+     "items": [
+      {
+       "name": "Mattermost",
+       "state": "MattermostSettingsIndex",
+       "controller": "MattermostSettings",
+       "action": "index",
+       "plugin": "MattermostModule",
+       "tags": [],
+       "order": 1,
+       "icon": [
+        "fas",
+        "code"
+       ],
+       "isAngular": true,
+       "angularUrl": "/mattermost_module/MattermostSettings/index"
+      },
+      {
+       "name": "Grafana",
+       "state": "GrafanaConfigurationIndex",
+       "controller": "GrafanaConfiguration",
+       "action": "index",
+       "plugin": "GrafanaModule",
+       "tags": [],
+       "order": 4,
+       "icon": [
+        "fas",
+        "area-chart"
+       ],
+       "isAngular": true,
+       "angularUrl": "/grafana_module/grafana_configuration/index"
+      }
+     ]
+    },
+    {
+     "name": "ai_configuration_category",
+     "alias": "AI",
+     "order": 2,
+     "icon": [
+      "fas",
+      "robot"
+     ],
+     "items": [
+      {
+       "name": "AI Providers",
+       "state": "LlmprovidersIndex",
+       "controller": "Llmproviders",
+       "action": "index",
+       "plugin": "AiModule",
+       "tags": [
+        "ai",
+        "llm",
+        "provider"
+       ],
+       "order": 1,
+       "icon": [
+        "fas",
+        "brain"
+       ],
+       "isAngular": true,
+       "angularUrl": "/ai_module/llmproviders/index"
+      },
+      {
+       "name": "AI MCP Servers",
+       "state": "McpserversIndex",
+       "controller": "Mcpservers",
+       "action": "index",
+       "plugin": "AiModule",
+       "tags": [
+        "ai",
+        "mcp",
+        "tools"
+       ],
+       "order": 2,
+       "icon": [
+        "fas",
+        "plug"
+       ],
+       "isAngular": true,
+       "angularUrl": "/ai_module/mcpservers/index"
+      },
+      {
+       "name": "AI Globals",
+       "state": "SettingsIndex",
+       "controller": "Settings",
+       "action": "index",
+       "plugin": "AiModule",
+       "tags": [
+        "ai",
+        "settings"
+       ],
+       "order": 3,
+       "icon": [
+        "fas",
+        "sliders"
+       ],
+       "isAngular": true,
+       "angularUrl": "/ai_module/settings/index"
+      }
+     ]
+    },
+    {
+     "name": "settings_category",
+     "alias": "System",
+     "order": 3,
+     "icon": [
+      "fas",
+      "gears"
+     ],
+     "items": [
+      {
+       "name": "Konfigurationsdatei Editor",
+       "state": "ConfigurationFilesIndex",
+       "controller": "ConfigurationFiles",
+       "action": "index",
+       "plugin": "",
+       "tags": [],
+       "order": 1,
+       "icon": [
+        "fas",
+        "file-waveform"
+       ],
+       "isAngular": true,
+       "angularUrl": "/ConfigurationFiles/index"
+      },
+      {
+       "name": "Systemeinstellungen",
+       "state": "SystemsettingsIndex",
+       "controller": "systemsettings",
+       "action": "index",
+       "plugin": "",
+       "tags": [],
+       "order": 2,
+       "icon": [
+        "fas",
+        "wrench"
+       ],
+       "isAngular": true,
+       "angularUrl": "/systemsettings/index"
+      },
+      {
+       "name": "Proxy Einstellungen",
+       "state": "ProxyIndex",
+       "controller": "proxy",
+       "action": "index",
+       "plugin": "",
+       "tags": [],
+       "order": 2,
+       "icon": [
+        "fas",
+        "globe"
+       ],
+       "isAngular": true,
+       "angularUrl": "/proxy/index"
+      },
+      {
+       "name": "Push Notification Settings",
+       "state": "NotificationsRelayIndex",
+       "controller": "notificationsrelay",
+       "action": "index",
+       "plugin": "",
+       "tags": [],
+       "order": 2,
+       "icon": [
+        "fas",
+        "globe"
+       ],
+       "isAngular": true,
+       "angularUrl": "/notificationsrelay/index"
+      },
+      {
+       "name": "Registrierung",
+       "state": "RegistersIndex",
+       "controller": "registers",
+       "action": "index",
+       "plugin": "",
+       "tags": [],
+       "order": 3,
+       "icon": [
+        "fas",
+        "square-check"
+       ],
+       "isAngular": true,
+       "angularUrl": "/registers/index"
+      },
+      {
+       "name": "Unterstützung",
+       "state": "SupportsIssue",
+       "controller": "supports",
+       "action": "issue",
+       "plugin": "",
+       "tags": [],
+       "order": 4,
+       "icon": [
+        "fas",
+        "life-ring"
+       ],
+       "isAngular": true,
+       "angularUrl": "/supports/issue"
+      },
+      {
+       "name": "Event Correlation Globals",
+       "state": "EventcorrelationsSettingsIndex",
+       "controller": "EventcorrelationSettings",
+       "action": "index",
+       "plugin": "EventcorrelationModule",
+       "tags": [],
+       "order": 4,
+       "icon": [
+        "fas",
+        "code"
+       ],
+       "isAngular": true,
+       "angularUrl": "/eventcorrelation_module/eventcorrelation_settings/index"
+      },
+      {
+       "name": "Autoreport Globals",
+       "state": "AutoreportSettingsIndex",
+       "controller": "AutoreportSettings",
+       "action": "index",
+       "plugin": "AutoreportModule",
+       "tags": [],
+       "order": 4,
+       "icon": [
+        "fas",
+        "code"
+       ],
+       "isAngular": true,
+       "angularUrl": "autoreport_module/autoreport_settings/index"
+      },
+      {
+       "name": "Dokumentation",
+       "state": "DocumentationsWiki",
+       "controller": "documentations",
+       "action": "wiki",
+       "plugin": "",
+       "tags": [],
+       "order": 5,
+       "icon": [
+        "fas",
+        "book"
+       ],
+       "isAngular": true,
+       "angularUrl": "/documentations/wiki"
+      },
+      {
+       "name": "Wizard Zuweisungen",
+       "state": "WizardsAssignments",
+       "controller": "wizards",
+       "action": "assignments",
+       "plugin": "",
+       "tags": [],
+       "order": 6,
+       "icon": [
+        "fas",
+        "wand-magic-sparkles"
+       ],
+       "isAngular": true,
+       "angularUrl": "/wizards/assignments"
+      },
+      {
+       "name": "Prometheus-Metriken",
+       "state": "MetricsInfo",
+       "controller": "metrics",
+       "action": "index",
+       "plugin": "",
+       "tags": [],
+       "order": 7,
+       "icon": [
+        "fas",
+        "heart-pulse"
+       ],
+       "isAngular": true,
+       "angularUrl": "/metrics/info"
+      },
+      {
+       "name": "Design Editor",
+       "state": "DesignsEdit",
+       "controller": "Designs",
+       "action": "edit",
+       "plugin": "DesignModule",
+       "tags": [],
+       "order": 18,
+       "icon": [
+        "fas",
+        "palette"
+       ],
+       "isAngular": true,
+       "angularUrl": "design_module/designs/edit"
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}
